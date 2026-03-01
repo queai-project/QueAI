@@ -9,4 +9,7 @@ urlpatterns = [
     path('uninstall/', views.uninstall_app, name='uninstall_app'),
     path('logo/<str:plugin_name>/<str:filename>', views.plugin_logo, name='plugin_logo'),
     path('logs/<str:folder_name>/', views.app_logs, name='app_logs'),
+    # Nuevas rutas para .env
+    path('get_env/<str:folder_name>/', views.get_env_config, name='get_env_config'),
+    path('save_env/', views.save_env_config, name='save_env_config'),
 ]

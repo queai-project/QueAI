@@ -162,3 +162,60 @@ def app_logs(request, folder_name):
         return JsonResponse({"status": "ok", "logs": res.stdout + res.stderr})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+    
+
+
+# ... (tus imports y funciones anteriores se mantienen igual) ...
+
+
+import shutil # Añade este import al inicio del archivo
+
+def get_env_config(request, folder_name):
+    """Lee el .env, clonando el .env.example si es la primera vez."""
+    plugin_path = os.path.join(settings.PLUGINS_DIR, folder_name)
+    env_path = os.path.join(plugin_path, '.env')
+    example_path = os.path.join(plugin_path, '.env.example')
+    
+    # Lógica de inicialización inteligente
+    if not os.path.exists(env_path):
+        try:
+            if os.path.exists(example_path):
+                # Clonamos el ejemplo para que el usuario tenga una base
+                shutil.copyfile(example_path, env_path)
+                print(f"DEBUG: .env creado a partir de .env.example para {folder_name}")
+            else:
+                # Si no hay ejemplo, creamos uno con un comentario guía
+                with open(env_path, 'w', encoding='utf-8') as f:
+                    f.write("# Configuración del Módulo\n# Define tus variables aquí (KEY=VALUE)\n")
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"Error de permisos al crear .env: {str(e)}"})
+            
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return JsonResponse({"status": "ok", "content": content})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+@require_POST
+def save_env_config(request):
+    """Guarda el .env y aplica cambios recreando el contenedor."""
+    folder_name = request.POST.get("folder_name")
+    content = request.POST.get("content")
+    env_path = os.path.join(settings.PLUGINS_DIR, folder_name, '.env')
+    path = get_compose_path(folder_name)
+
+    try:
+        # 1. Guardar el archivo físico
+        with open(env_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        # 2. Si la app está instalada, aplicar cambios con Docker
+        # Docker Compose detecta el cambio en .env y recrea el contenedor automáticamente
+        if os.path.exists(path):
+            subprocess.run(["docker-compose", "-f", path, "up", "-d"], check=True)
+            messages.success(request, f"Configuración de {folder_name} actualizada y aplicada.")
+        
+        return JsonResponse({"status": "ok"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
