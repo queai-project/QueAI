@@ -1,33 +1,17 @@
 #!/usr/bin/env bash
-
 set -Eeuo pipefail
 
-########################################
-# CONFIG
-########################################
-
+APP_NAME="QueAI"
 REPO_URL="https://github.com/alejandrofonsecacuza/QueAI.git"
-INSTALL_DIR="$HOME/QueAI"
+INSTALL_DIR="$HOME/$APP_NAME"
 
-########################################
-# HELPERS
-########################################
-
-log() { echo -e "\033[1;32m[INFO]\033[0m $1"; }
+log()  { echo -e "\033[1;32m[INFO]\033[0m $1"; }
 warn() { echo -e "\033[1;33m[WARN]\033[0m $1"; }
-error() { echo -e "\033[1;31m[ERROR]\033[0m $1"; }
+err()  { echo -e "\033[1;31m[ERROR]\033[0m $1"; }
 
-require_root_if_needed() {
-  if [ "$EUID" -ne 0 ]; then
-    SUDO="sudo"
-  else
-    SUDO=""
-  fi
-}
-
-abort_if_container() {
-  if grep -qa docker /proc/1/cgroup 2>/dev/null; then
-    error "Detectado entorno contenedor. Este instalador requiere un sistema real."
+require_root() {
+  if [[ $EUID -ne 0 ]]; then
+    err "Este script requiere privilegios root (usa sudo)."
     exit 1
   fi
 }
@@ -36,124 +20,90 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-########################################
-# START
-########################################
+purge_old_docker() {
+  warn "Eliminando cualquier instalación previa de Docker..."
+  systemctl stop docker 2>/dev/null || true
+  systemctl stop docker.socket 2>/dev/null || true
 
-log "Iniciando instalación de QueAI..."
+  apt-get remove --purge -y \
+    docker docker-engine docker.io containerd runc \
+    docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin || true
 
-require_root_if_needed
-abort_if_container
+  rm -rf /var/lib/docker
+  rm -rf /var/lib/containerd
+  rm -rf /etc/docker
+  rm -f /etc/apt/sources.list.d/docker.list
+  rm -f /etc/apt/keyrings/docker.asc
 
-########################################
-# 1. Dependencias básicas
-########################################
-
-if ! command_exists git; then
-  log "Instalando Git..."
-  $SUDO apt-get update -qq
-  $SUDO apt-get install -y git
-fi
-
-if ! command_exists curl; then
-  log "Instalando curl..."
-  $SUDO apt-get update -qq
-  $SUDO apt-get install -y curl
-fi
-
-########################################
-# 2. Docker Installation Logic
-########################################
-
-install_official_docker() {
-  log "Instalando Docker oficial (docker-ce)..."
-  curl -fsSL https://get.docker.com | $SUDO sh
+  systemctl daemon-reload
+  apt-get update
 }
 
-remove_docker_io_if_present() {
-  if dpkg -l | grep -q docker.io; then
-    warn "Detectado docker.io (Ubuntu package). Removiendo..."
-    $SUDO apt-get remove -y docker.io || true
+install_docker_official() {
+  log "Instalando Docker oficial..."
+  curl -fsSL https://get.docker.com | sh
+}
+
+verify_docker_running() {
+  log "Verificando estado de Docker..."
+
+  if ! systemctl is-active --quiet docker; then
+    err "Docker no está corriendo. Mostrando diagnóstico:"
+    systemctl status docker --no-pager
+    exit 1
+  fi
+
+  log "Docker está activo."
+}
+
+install_git_if_missing() {
+  if ! command_exists git; then
+    log "Instalando Git..."
+    apt-get update
+    apt-get install -y git
   fi
 }
 
-docker_needs_install=false
+clone_repository() {
+  log "Preparando directorio en $INSTALL_DIR..."
 
-if ! command_exists docker; then
-  docker_needs_install=true
-else
-  if ! docker info >/dev/null 2>&1; then
-    warn "Docker binario existe pero daemon no funcional."
-    docker_needs_install=true
+  if [[ -d "$INSTALL_DIR" ]]; then
+    warn "El directorio ya existe. Eliminándolo para instalación limpia..."
+    rm -rf "$INSTALL_DIR"
   fi
-fi
 
-if [ "$docker_needs_install" = true ]; then
-  remove_docker_io_if_present
-  install_official_docker
-else
-  log "Docker detectado."
-fi
-
-########################################
-# 3. Ensure Docker is running
-########################################
-
-if ! $SUDO systemctl is-active --quiet docker; then
-  log "Iniciando servicio Docker..."
-  $SUDO systemctl enable docker >/dev/null 2>&1 || true
-  $SUDO systemctl start docker
-fi
-
-########################################
-# 4. Docker Compose V2
-########################################
-
-if ! docker compose version >/dev/null 2>&1; then
-  warn "Docker Compose V2 no encontrado. Reinstalando Docker oficial..."
-  install_official_docker
-fi
-
-########################################
-# 5. Add user to docker group (non-root)
-########################################
-
-if [ "$EUID" -ne 0 ]; then
-  if ! groups "$USER" | grep -q docker; then
-    log "Añadiendo usuario $USER al grupo docker..."
-    $SUDO usermod -aG docker "$USER"
-    warn "Deberás cerrar sesión y volver a entrar para aplicar el grupo."
-  fi
-fi
-
-########################################
-# 6. Clone or Update Repo
-########################################
-
-log "Preparando directorio $INSTALL_DIR"
-
-if [ -d "$INSTALL_DIR/.git" ]; then
-  log "Repositorio existente detectado. Actualizando..."
-  git -C "$INSTALL_DIR" pull
-else
-  rm -rf "$INSTALL_DIR"
   git clone "$REPO_URL" "$INSTALL_DIR"
-fi
+}
 
-########################################
-# 7. Start Services
-########################################
+start_application() {
+  cd "$INSTALL_DIR"
+  log "Levantando servicios con Docker Compose..."
+  docker compose up -d
+}
 
-cd "$INSTALL_DIR"
+main() {
+  require_root
 
-log "Levantando servicios con Docker Compose..."
-$SUDO docker compose up -d --build
+  log "Iniciando instalación de $APP_NAME..."
 
-########################################
-# DONE
-########################################
+  install_git_if_missing
 
-log "--------------------------------------"
-log "QueAI está ejecutándose correctamente."
-log "Logs: cd $INSTALL_DIR && docker compose logs -f"
-log "--------------------------------------"
+  if command_exists docker; then
+    warn "Docker detectado. Se realizará reinstalación limpia para evitar conflictos."
+    purge_old_docker
+  fi
+
+  install_docker_official
+  verify_docker_running
+
+  clone_repository
+  start_application
+
+  log "--------------------------------------------"
+  log "Instalación completada correctamente."
+  log "Ver logs: cd $INSTALL_DIR && docker compose logs -f"
+  log "--------------------------------------------"
+}
+
+main "$@"
