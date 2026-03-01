@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik_router
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Traefik lee los contenedores
+    networks:
+      - odoo_network
+
+  django-kernel:
+    build: .
+    container_name: django_kernel
+    volumes:
+      - .:/app
+      # ESTO ES LO QUE FALTA: Conecta Django con el Docker de tu PC
+      - /var/run/docker.sock:/var/run/docker.sock 
+    environment:
+      - HOST_PROJECT_PATH=${PWD}
+    networks:
+      - odoo_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kernel.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.kernel.entrypoints=web"
+      - "traefik.http.services.kernel.loadbalancer.server.port=8000"
+
+networks:
+  odoo_network:
+    name: odoo_network # Red externa compartida

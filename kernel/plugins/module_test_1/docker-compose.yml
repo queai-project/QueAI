@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  plugin-demo:
+    build: .
+    container_name: plugin_demo_service
+    # QUITAMOS LOS PORTS: - "8002:8000"
+    networks:
+      - odoo_network
+    labels:
+      - "traefik.enable=true"
+      # Definimos la ruta de entrada para este plugin
+      - "traefik.http.routers.plugin-demo.rule=PathPrefix(`/api/module1`)"
+      - "traefik.http.routers.plugin-demo.entrypoints=web"
+      # Le decimos a Traefik en qué puerto interno escucha FastAPI
+      - "traefik.http.services.plugin-demo.loadbalancer.server.port=8000"
+networks:
+  odoo_network:
+    external: true # IMPORTANTE: Le dice que use la red que ya creó el Kernel

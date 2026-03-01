@@ -1,0 +1,13 @@
+{
+    "name": "Chatbot Local",
+    "display_name": "Ollama Chatbot",
+    "ui_entry_point": "/api/chatbot_local/ui",
+    "configuration_entry_point": "/api/chatbot_local/config",
+    "documentation_entry_point": "/api/chatbot_local/docs",
+    "healthcheck_entry_point": "/api/chatbot_local/health",
+    "version": "2.0.0",
+    "logo": "logo3.png",
+    "description": "Chatea gratis con la Inteligencia Artificial!!!",
+    "author": "Alejandro Fonseca && Juana Iris",
+    "license": "MIT"
+}

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  chatbot_local:
+    build: .
+    container_name: chatbot_local_service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - odoo_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatbot_local.rule=PathPrefix(`/api/chatbot_local`)"
+      - "traefik.http.routers.chatbot_local.entrypoints=web"
+      - "traefik.http.services.chatbot_local.loadbalancer.server.port=8000"
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3}
+      - OLLAMA_SERVER=${OLLAMA_SERVER:-http://host.docker.internal:11434}
+      - OLLAMA_TEMPERATURE=${OLLAMA_TEMPERATURE:-0.7}
+
+networks:
+  odoo_network:
+    external: true

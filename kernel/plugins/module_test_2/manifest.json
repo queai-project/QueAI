@@ -1,0 +1,13 @@
+{
+    "name": "module2",
+    "display_name": "Module Display Name Test Two",
+    "ui_entry_point": "/api/module2/ui",
+    "configuration_entry_point": "/api/module2/config",
+    "documentation_entry_point": "/api/module2/docs",
+    "healthcheck_entry_point": "/api/module2/health",
+    "version": "5.0.0",
+    "logo": "logo2.png",
+    "description": "This is a module two",
+    "author": "Alejandro Fonseca && Juana Iris",
+    "license": "MIT"
+}

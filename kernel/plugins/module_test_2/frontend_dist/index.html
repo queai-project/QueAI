@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Plugin UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-50 p-4">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function App() {
+            const [input, setInput] = useState("");
+            const [result, setResult] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const handleProcess = async () => {
+                setLoading(true);
+                try {
+                    // LLAMADA AL PROPIO BACKEND (Ruta relativa)
+                    const response = await fetch(`./../process?text=${input}`);
+                    const data = await response.json();
+                    setResult(data.result);
+                } catch (e) {
+                    setResult("Error conectando al servicio");
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 border border-indigo-100">
+                    <h2 class="text-xl font-bold text-indigo-600 mb-4">Plugin de Procesamiento IA</h2>
+                    <input 
+                        type="text" 
+                        placeholder="Escribe algo..." 
+                        class="w-full p-2 border rounded mb-4"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                    />
+                    <button 
+                        onClick={handleProcess}
+                        disabled={loading}
+                        class="w-full bg-indigo-500 text-white p-2 rounded hover:bg-indigo-700 disabled:bg-gray-400"
+                    >
+                        {loading ? "Procesando..." : "Ejecutar Tarea"}
+                    </button>
+                    
+                    {result && (
+                        <div class="mt-4 p-3 bg-indigo-50 rounded text-sm text-indigo-800">
+                            <strong>Respuesta:</strong> {result}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
