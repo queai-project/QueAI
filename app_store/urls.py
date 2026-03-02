@@ -14,5 +14,6 @@ urlpatterns = [
     path('save_env/', views.save_env_config, name='save_env_config'),
     path('marketplace/', views.marketplace, name='marketplace'),
     path('download/', views.download_plugin, name='download_plugin'),
-
+    path('stats/<str:folder_name>/', views.app_stats, name='app_stats'),
+    path('dashboard/', views.stats_dashboard, name='stats_dashboard'),
 ]
