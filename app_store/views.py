@@ -219,3 +219,60 @@ def save_env_config(request):
         return JsonResponse({"status": "ok"})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+    
+
+import requests
+import os
+import subprocess
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+
+# Tu URL oficial de GitHub
+REGISTRY_URL = "https://raw.githubusercontent.com/alejandrofonsecacuza/QueAI-Registry/refs/heads/master/registry.json"
+
+def marketplace(request):
+    """Muestra los plugins disponibles en la nube."""
+    remote_plugins = []
+    try:
+        response = requests.get(REGISTRY_URL, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            # Si el JSON es {"plugins": [...]}, extraemos la lista. Si es lista directa, la usamos.
+            remote_plugins = data.get('plugins', []) if isinstance(data, dict) else data
+    except Exception as e:
+        messages.error(request, f"No se pudo conectar con el Marketplace: {e}")
+
+    # Escaneamos carpetas locales para saber qué módulos ya han sido descargados
+    downloaded_folders = []
+    if os.path.exists(settings.PLUGINS_DIR):
+        downloaded_folders = os.listdir(settings.PLUGINS_DIR)
+    
+    # Marcamos cada plugin remoto como 'ya_descargado' si su carpeta existe
+    for plugin in remote_plugins:
+        # Asumimos que la carpeta se llamará como el final de la git_url
+        folder_name = plugin['git_url'].split('/')[-1].replace('.git', '')
+        plugin['is_downloaded'] = folder_name in downloaded_folders
+
+    return render(request, "marketplace.html", {"remote_plugins": remote_plugins})
+
+@require_POST
+def download_plugin(request):
+    """Descarga el código desde GitHub."""
+    git_url = request.POST.get("git_url")
+    folder_name = git_url.split('/')[-1].replace('.git', '')
+    target_path = os.path.join(settings.PLUGINS_DIR, folder_name)
+
+    if os.path.exists(target_path):
+        messages.warning(request, "El código de este módulo ya se encuentra en el sistema.")
+        return redirect("marketplace")
+
+    try:
+        # Clonamos el repositorio
+        subprocess.run(["git", "clone", git_url, target_path], check=True)
+        messages.success(request, f"Módulo '{folder_name}' descargado con éxito. Ahora puedes instalarlo.")
+    except Exception as e:
+        messages.error(request, f"Error al descargar desde GitHub: {str(e)}")
+    
+    return redirect("get_apps") # Vamos a la lista local para que lo instale

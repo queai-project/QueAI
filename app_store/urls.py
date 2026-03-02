@@ -12,4 +12,7 @@ urlpatterns = [
     # Nuevas rutas para .env
     path('get_env/<str:folder_name>/', views.get_env_config, name='get_env_config'),
     path('save_env/', views.save_env_config, name='save_env_config'),
+    path('marketplace/', views.marketplace, name='marketplace'),
+    path('download/', views.download_plugin, name='download_plugin'),
+
 ]
