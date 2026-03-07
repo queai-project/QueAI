@@ -26,6 +26,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock 
     environment:
       - HOST_PROJECT_PATH=${PWD}
+      - HOST_UID=${UID:-1000}  # Toma tu ID de usuario de Linux
+      - HOST_GID=${GID:-1000}  # Toma tu ID de grupo de Linux
     networks:
       - odoo_network
     labels:

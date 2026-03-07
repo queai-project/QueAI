@@ -7,7 +7,7 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import AvailableApp
-
+import platform
 # --- UTILIDADES ---
 def get_compose_path(folder_name):
     return os.path.join(settings.PLUGINS_DIR, folder_name, 'docker-compose.yml')
@@ -230,7 +230,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 # Tu URL oficial de GitHub
-REGISTRY_URL = "https://raw.githubusercontent.com/alejandrofonsecacuza/QueAI-Registry/refs/heads/master/registry.json"
+REGISTRY_URL = "https://raw.githubusercontent.com/queai-project/QueAI-Registry/refs/heads/main/register.json"
 
 def marketplace(request):
     """Muestra los plugins disponibles en la nube."""
@@ -259,24 +259,46 @@ def marketplace(request):
 
 @require_POST
 def download_plugin(request):
-    """Descarga el código desde GitHub."""
     git_url = request.POST.get("git_url")
     folder_name = git_url.split('/')[-1].replace('.git', '')
-    target_path = os.path.join(settings.PLUGINS_DIR, folder_name)
+    
+    # 1. Ruta interna (la que Django ve para verificar si existe)
+    target_path_internal = os.path.join(settings.PLUGINS_DIR, folder_name)
 
-    if os.path.exists(target_path):
+    if os.path.exists(target_path_internal):
         messages.warning(request, "El código de este módulo ya se encuentra en el sistema.")
         return redirect("marketplace")
 
     try:
-        # Clonamos el repositorio
-        subprocess.run(["git", "clone", git_url, target_path], check=True)
-        messages.success(request, f"Módulo '{folder_name}' descargado con éxito. Ahora puedes instalarlo.")
-    except Exception as e:
-        messages.error(request, f"Error al descargar desde GitHub: {str(e)}")
-    
-    return redirect("get_apps") # Vamos a la lista local para que lo instale
+        host_base_path = os.environ.get('HOST_PROJECT_PATH')
+        user_id = os.environ.get('HOST_UID')
+        group_id = os.environ.get('HOST_GID')
+        
+        host_plugins_path = f"{host_base_path}/plugins"
 
+        # Comando base
+        command = ["docker", "run", "--rm"]
+
+        # SOLO añadimos el usuario si estamos en Linux (donde UID suele existir)
+        # En Windows, omitimos esto para que Docker Desktop maneje los permisos
+        if user_id and group_id and platform.system() != "Windows":
+            command += ["--user", f"{user_id}:{group_id}"]
+
+        # Añadimos el resto del comando
+        command += [
+            "-v", f"{host_plugins_path}:/data",
+            "alpine/git",
+            "clone", git_url, f"/data/{folder_name}"
+        ]
+        
+        subprocess.run(command, check=True)
+        messages.success(request, f"Módulo '{folder_name}' descargado con éxito.")
+        
+    except Exception as e:
+        messages.error(request, f"Error al descargar: {str(e)}")
+        print(f"DEBUG Error: {str(e)}")
+        
+    return redirect("get_apps")
 
 import subprocess
 import json
