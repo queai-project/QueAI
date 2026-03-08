@@ -6,11 +6,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from .views import home_view
 
 urlpatterns = [
-
-    path('admin/', admin.site.urls),
     path('', home_view, name='home'),
-    path('store/', include('app_store.urls')),
+    path('manager/', include('module_manager.urls')),
+    path('marketplace/', include('marketplace.urls')),
+    path('monitor/', include('system_monitor.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += staticfiles_urlpatterns()
+urlpatterns += staticfiles_urlpatterns()

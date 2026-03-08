@@ -93,7 +93,7 @@
     async function fetchStats(folder) {
         try {
             console.log(`[DEBUG] Solicitando stats para: ${folder}`);
-            const response = await fetch(`/store/stats/${folder}/`);
+            const response = await fetch(`/monitor/stats/${folder}/`);
             const data = await response.json();
             
             const card = document.getElementById(`card-${folder}`);

@@ -15,7 +15,7 @@ async function showLogs(folder) {
     "> Conectando con Docker daemon...\n> Cargando streams...";
   document.getElementById("logsModal").classList.remove("hidden");
   try {
-    const r = await fetch(`/store/logs/${folder}/`);
+    const r = await fetch(`/manager/logs/${folder}/`);
     const d = await r.json();
     content.textContent = d.status === "ok" ? d.logs : "ERROR: " + d.message;
   } catch {
@@ -33,7 +33,7 @@ async function openConfigEditor(folder) {
   document.getElementById("configModal").classList.remove("hidden");
 
   try {
-    const r = await fetch(`/store/get_env/${folder}/`);
+    const r = await fetch(`/manager/get_env/${folder}/`);
     const d = await r.json();
     if (d.status === "ok") {
       editor.value = d.content;
@@ -67,7 +67,7 @@ async function saveConfig(event) {
   formData.append("csrfmiddlewaretoken", csrfToken);
 
   try {
-    const r = await fetch(`/store/save_env/`, {
+    const r = await fetch(`/manager/save_env/`, {
       method: "POST",
       body: formData,
     });
