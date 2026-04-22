@@ -6,7 +6,7 @@
     "documentation_entry_point": "/api/module1/docs",
     "healthcheck_entry_point": "/api/module1/health",
     "version": "5.0.0",
-    "logo": "logo.png",
+    "logo": "stt_logo.png",
     "description": "This is a module",
     "author": "Alejandro Fonseca && Juana Iris",
     "license": "MIT"

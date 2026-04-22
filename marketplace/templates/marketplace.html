@@ -1,82 +1,462 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Marketplace - QueAI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueAI — Marketplace</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:            #161616;
+            --bg-card:       #232323;
+            --bg-hover:      #2a2a2a;
+            --surface:       #2e2e2e;
+            --surface2:      #363636;
+            --border:        #383838;
+            --border-subtle: #2c2c2c;
+            --text:          #eaeae6;
+            --text-muted:    #909090;
+            --text-dim:      #585856;
+            --red:           #e8180c;
+            --red-soft:      rgba(232,24,12,0.1);
+            --red-border:    rgba(232,24,12,0.22);
+            --green:         #22c55e;
+            --green-soft:    rgba(34,197,94,0.08);
+            --green-border:  rgba(34,197,94,0.22);
+            --radius:        14px;
+            --radius-sm:     9px;
+        }
+
+        html, body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(26,26,26,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 16px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: var(--red);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .logo-name { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+        .logo-name em { color: var(--red); font-style: normal; }
+
+        .page-title {
+            font-size: 13px;
+            color: var(--text-dim);
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: all 0.15s;
+        }
+
+        .btn-back:hover { color: var(--text); background: var(--surface); border-color: #444; }
+
+        /* ─── MESSAGES ─── */
+        .messages { max-width: 1100px; margin: 0 auto; padding: 16px 28px 0; }
+
+        .msg {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            margin-bottom: 8px;
+        }
+
+        .msg.error { background: var(--red-soft); border: 1px solid var(--red-border); color: #ff6b6b; }
+        .msg.ok    { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
+
+        /* ─── CONTENT ─── */
+        .content { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+
+        /* ─── DIRECT INSTALL PANEL ─── */
+        .install-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            margin-bottom: 40px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .panel-icon {
+            font-size: 20px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .panel-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .install-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .install-input {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            padding: 11px 16px;
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .install-input:focus { border-color: var(--red); }
+        .install-input::placeholder { color: var(--text-dim); }
+
+        .btn-install {
+            background: var(--red);
+            border: none;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 11px 22px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+
+        .btn-install:hover { opacity: 0.88; }
+
+        /* ─── SECTION HEADER ─── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.3px;
+        }
+
+        .section-count { font-size: 13px; color: var(--text-muted); }
+
+        /* ─── PLUGINS GRID ─── */
+        .plugins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+            animation: fadeUp 0.4s 0.1s ease both;
+        }
+
+        /* ─── PLUGIN CARD ─── */
+        .plugin-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .plugin-card:hover {
+            border-color: #3d3d3d;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+            transform: translateY(-2px);
+        }
+
+        .plugin-top {
+            padding: 22px 22px 16px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .plugin-logo {
+            width: 75px;
+            height: 75px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .plugin-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .plugin-logo-ph { font-size: 22px; }
+
+        .plugin-meta { flex: 1; min-width: 0; }
+
+        .plugin-cat {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .plugin-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .plugin-version {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 3px;
+        }
+
+        .plugin-body {
+            padding: 0 22px 16px;
+            flex: 1;
+        }
+
+        .plugin-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        .plugin-footer {
+            padding: 14px 22px 18px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .btn-add {
+            width: 100%;
+            background: var(--red);
+            border: none;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-add:hover { opacity: 0.88; }
+
+        .btn-downloaded {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: var(--green-soft);
+            border: 1px solid var(--green-border);
+            color: var(--green);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: default;
+        }
+
+        /* Empty */
+        .empty-state {
+            grid-column: 1/-1;
+            padding: 80px 24px;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+        }
+
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p { font-size: 14px; color: var(--text-dim); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        form { margin: 0; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20">
-
-    <nav class="bg-white border-b border-slate-200 py-4 mb-8 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <a href="{% url 'get_apps' %}" class="bg-indigo-600 p-2 rounded-lg"><i class="fas fa-brain text-white"></i></a>
-                <h1 class="text-xl font-black text-slate-800">QUEAI <span class="text-indigo-600">MARKETPLACE</span></h1>
-            </div>
-            <a href="{% url 'get_apps' %}" class="text-slate-500 hover:text-indigo-600 font-bold text-sm flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i> VOLVER A MIS APPS
+<body>
+    <header>
+        <div class="header-left">
+            <a href="/" class="logo">
+                <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
+                <span class="logo-name">Que<em>AI</em></span>
             </a>
+            <span class="page-title">Marketplace</span>
         </div>
-    </nav>
+        <a href="{% url 'get_apps' %}" class="btn-back">← Volver al Hub</a>
+    </header>
 
-    <div class="max-w-7xl mx-auto px-6">
-        
-        <div class="bg-slate-900 rounded-3xl p-8 mb-12 shadow-2xl relative overflow-hidden group">
-            <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <i class="fab fa-github text-9xl text-white"></i>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="msg {% if 'error' in message.tags %}error{% else %}ok{% endif %}">
+            <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="content">
+
+        <!-- Direct install -->
+        <div class="install-panel">
+            <div class="panel-header">
+                <span class="panel-icon">🔗</span>
+                <span class="panel-title">Instalación directa desde Git</span>
+                <span class="panel-subtitle">Pega cualquier URL de repositorio</span>
             </div>
-            <div class="relative z-10">
-                <h2 class="text-2xl font-bold text-white mb-2">Instalación Directa</h2>
-                <p class="text-slate-400 mb-6 text-sm">¿Tienes un repositorio externo? Pega la URL de Git aquí.</p>
-                <form method="post" action="{% url 'download_plugin' %}" class="flex flex-col md:flex-row gap-4">
-                    {% csrf_token %}
-                    <input type="text" name="git_url" required placeholder="https://github.com/usuario/mi-plugin-ia.git" 
-                           class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-indigo-500 text-white placeholder:text-slate-500 transition-all">
-                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-10 py-4 rounded-2xl shadow-lg transition-all active:scale-95">
-                        DESCARGAR Y AÑADIR
-                    </button>
-                </form>
-            </div>
+            <form method="post" action="{% url 'download_plugin' %}">
+                {% csrf_token %}
+                <div class="install-form">
+                    <input type="text" name="git_url" required
+                        class="install-input"
+                        placeholder="https://github.com/usuario/mi-plugin.git">
+                    <button type="submit" class="btn-install">↓ Descargar</button>
+                </div>
+            </form>
         </div>
 
-        <h2 class="text-xl font-black text-slate-800 mb-8 flex items-center gap-3">
-            <i class="fas fa-store text-indigo-600"></i> REPOSITORIO OFICIAL
-        </h2>
+        <!-- Official registry -->
+        <div class="section-header">
+            <span class="section-title">// repositorio oficial</span>
+            <span class="section-count">{{ remote_plugins|length }} disponibles</span>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="plugins-grid">
             {% for plugin in remote_plugins %}
-            <div class="bg-white rounded-3xl border border-slate-200 p-6 flex flex-col hover:shadow-xl transition-all border-b-4 hover:border-b-indigo-500">
-                <div class="flex items-start justify-between mb-6">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shadow-inner">
-                        <img src="{{ plugin.logo_url }}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=AI'">
+            <div class="plugin-card">
+                <div class="plugin-top">
+                    <div class="plugin-logo">
+                        {% if plugin.logo_url %}
+                        <img src="{{ plugin.logo_url }}" alt="{{ plugin.name }}" onerror="this.parentElement.innerHTML='<div class=plugin-logo-ph>📦</div>'">
+                        {% else %}
+                        <div class="plugin-logo-ph">📦</div>
+                        {% endif %}
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-1 bg-indigo-50 text-indigo-600 rounded-md uppercase tracking-widest">{{ plugin.category|default:"General" }}</span>
+                    <div class="plugin-meta">
+                        <div class="plugin-cat">{{ plugin.category|default:"General" }}</div>
+                        <div class="plugin-name">{{ plugin.name }}</div>
+                        <div class="plugin-version">v{{ plugin.version|default:"1.0.0" }}</div>
+                    </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-slate-800 mb-2">{{ plugin.name }}</h3>
-                <p class="text-slate-500 text-sm mb-6 flex-1">{{ plugin.description }}</p>
+                <div class="plugin-body">
+                    <p class="plugin-desc">{{ plugin.description }}</p>
+                </div>
 
-                <div class="pt-4 border-t border-slate-50">
+                <div class="plugin-footer">
                     {% if plugin.is_downloaded %}
-                        <button disabled class="w-full py-3 bg-emerald-50 text-emerald-600 font-bold rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
-                            <i class="fas fa-check-circle"></i> YA DESCARGADO
-                        </button>
+                    <div class="btn-downloaded">✓ Ya descargado</div>
                     {% else %}
-                        <form method="post" action="{% url 'download_plugin' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                            <button class="w-full py-3 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-xl transition-all shadow-lg active:scale-95">
-                                AÑADIR AL HUB
-                            </button>
-                        </form>
+                    <form method="post" action="{% url 'download_plugin' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
+                        <button type="submit" class="btn-add">↓ Añadir al Hub</button>
+                    </form>
                     {% endif %}
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-full py-20 text-center">
-                <i class="fas fa-cloud-download-alt text-6xl text-slate-200 mb-4"></i>
-                <p class="text-slate-400 font-medium">No hay plugins disponibles en el repositorio oficial en este momento.</p>
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>Repositorio oficial vacío</h3>
+                <p>No hay plugins disponibles en este momento. Usa la instalación directa desde Git.</p>
             </div>
             {% endfor %}
         </div>

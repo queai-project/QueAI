@@ -7,7 +7,6 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 import platform
 
-# Tu URL oficial de GitHub
 REGISTRY_URL = "https://raw.githubusercontent.com/queai-project/QueAI-Registry/refs/heads/main/register.json"
 
 def marketplace(request):
@@ -20,7 +19,7 @@ def marketplace(request):
             # Si el JSON es {"plugins": [...]}, extraemos la lista. Si es lista directa, la usamos.
             remote_plugins = data.get('plugins', []) if isinstance(data, dict) else data
     except Exception as e:
-        messages.error(request, f"No se pudo conectar con el Marketplace: {e}")
+        messages.error(request, f"No se pudo conectar con el Marketplace. Verifica tu conexión a internet.")
 
     # Escaneamos carpetas locales para saber qué módulos ya han sido descargados
     downloaded_folders = []

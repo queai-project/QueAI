@@ -10,12 +10,12 @@ def app_stats(request, folder_name):
         # 1. Buscamos los contenedores que pertenecen a este proyecto
         cmd_ids = [
             "docker", "ps", 
-            "--filter", f"label=com.docker.compose.project={folder_name}", 
+            "--filter", f"label=com.docker.compose.project={folder_name.lower()}", 
             "--format", "{{.ID}}"
         ]
         res_ids = subprocess.run(cmd_ids, capture_output=True, text=True)
         container_ids = res_ids.stdout.strip().split('\n')
-
+        print(f"Contenedores encontrados para {folder_name}: {container_ids}")
         # Si no hay contenedores, devolvemos error silencioso para el JS
         if not container_ids or container_ids == ['']:
             return JsonResponse({"status": "error", "message": "No containers found"})

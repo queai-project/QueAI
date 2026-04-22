@@ -73,6 +73,7 @@ def get_apps(request):
                 defaults = {
                     'folder_name': folder,
                     'display_name': m.get('display_name', app_name),
+                    'author': m.get('author', ''),
                     'ui_entry_point': m.get('ui_entry_point', ''),
                     'documentation_entry_point': m.get('documentation_entry_point', ''),
                     'version': m.get('version', '1.0.0'),

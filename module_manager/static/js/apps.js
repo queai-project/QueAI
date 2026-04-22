@@ -3,17 +3,18 @@ const csrfToken =
 
 function openApp(url) {
   document.getElementById("appIframe").src = url;
-  document.getElementById("appModal").classList.remove("hidden");
+  document.getElementById("appModal").classList.add("open");
 }
+
 function closeApp() {
-  document.getElementById("appModal").classList.add("hidden");
+  document.getElementById("appModal").classList.remove("open");
   document.getElementById("appIframe").src = "";
 }
+
 async function showLogs(folder) {
   const content = document.getElementById("logsContent");
-  content.textContent =
-    "> Conectando con Docker daemon...\n> Cargando streams...";
-  document.getElementById("logsModal").classList.remove("hidden");
+  content.textContent = "> Conectando con Docker daemon...\n> Cargando streams...";
+  document.getElementById("logsModal").classList.add("open");
   try {
     const r = await fetch(`/manager/logs/${folder}/`);
     const d = await r.json();
@@ -29,8 +30,8 @@ async function openConfigEditor(folder) {
   currentConfigFolder = folder;
   document.getElementById("configTitle").textContent = folder;
   const editor = document.getElementById("envEditor");
-  editor.value = "# Cargando configuración desde el Kernel...";
-  document.getElementById("configModal").classList.remove("hidden");
+  editor.value = "# Cargando configuración...";
+  document.getElementById("configModal").classList.add("open");
 
   try {
     const r = await fetch(`/manager/get_env/${folder}/`);
@@ -38,27 +39,24 @@ async function openConfigEditor(folder) {
     if (d.status === "ok") {
       editor.value = d.content;
     } else {
-      editor.value = "ERROR: " + d.message;
+      editor.value = "# ERROR: " + d.message;
     }
   } catch {
-    editor.value =
-      "CRITICAL ERROR: No se pudo conectar con el sistema de archivos.";
+    editor.value = "# ERROR: No se pudo conectar con el sistema de archivos.";
   }
 }
 
 function closeConfigEditor() {
-  document.getElementById("configModal").classList.add("hidden");
+  document.getElementById("configModal").classList.remove("open");
 }
 
 async function saveConfig(event) {
   const content = document.getElementById("envEditor").value;
   const btn = event?.currentTarget ?? event?.target;
-  if (!btn) {
-    return;
-  }
+  if (!btn) return;
   const originalText = btn.textContent;
 
-  btn.textContent = "APLICANDO...";
+  btn.textContent = "Aplicando…";
   btn.disabled = true;
 
   const formData = new FormData();
@@ -72,9 +70,7 @@ async function saveConfig(event) {
       body: formData,
     });
     const d = await r.json();
-
     if (d.status === "ok") {
-      // Recargamos para ver los mensajes flash de Django
       window.location.reload();
     } else {
       alert("Error al guardar: " + d.message);

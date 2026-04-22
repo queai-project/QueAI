@@ -1,308 +1,1175 @@
 {% load static %}
 <!doctype html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="csrf-token" content="{{ csrf_token }}" />
-    <title>AI Solution Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-  </head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueAI — Hub</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <body class="bg-slate-50 min-h-screen pb-20">
-    <nav
-      class="bg-white border-b border-slate-200 py-4 mb-8 sticky top-0 z-40 shadow-sm"
-    >
-      <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-2 rounded-lg">
-              <i class="fas fa-brain text-white"></i>
-            </div>
-            <h1 class="text-xl font-black text-slate-800 tracking-tight">
-              AI HUB <span class="text-indigo-600">KERNEL</span>
-            </h1>
-          </div>
-          <a
-            href="{% url 'marketplace' %}"
-            class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-200 transition-all flex items-center gap-2"
-          >
-            <i class="fas fa-shopping-cart"></i> Marketplace
-          </a>
-          <a href="{% url 'stats_dashboard' %}" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
-    <i class="fas fa-microchip"></i> Monitoreo
-</a>
+        :root {
+            --bg:            #161616;
+            --bg-card:       #232323;
+            --bg-hover:      #2a2a2a;
+            --surface:       #2e2e2e;
+            --surface2:      #363636;
+            --border:        #383838;
+            --border-subtle: #2c2c2c;
+            --text:          #eaeae6;
+            --text-muted:    #909090;
+            --text-dim:      #585856;
+            --red:           #e8180c;
+            --red-soft:      rgba(232,24,12,0.1);
+            --red-border:    rgba(232,24,12,0.22);
+            --green:         #22c55e;
+            --green-soft:    rgba(34,197,94,0.1);
+            --green-border:  rgba(34,197,94,0.22);
+            --amber:         #f59e0b;
+            --amber-soft:    rgba(245,158,11,0.1);
+            --radius:        14px;
+            --radius-sm:     9px;
+        }
+
+        html, body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(26,26,26,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 16px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--red);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .logo-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .logo-name em { color: var(--red); font-style: normal; }
+
+        .page-title {
+            font-size: 13px;
+            color: var(--text-dim);
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+            font-weight: 400;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 6px 13px;
+            border-radius: var(--radius-sm);
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .header-nav a:hover { color: var(--text); background: var(--surface); }
+        .header-nav a.active {
+            color: var(--text);
+            background: var(--surface);
+            box-shadow: inset 0 -2px 0 var(--red);
+        }
+
+        .docker-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            color: var(--green);
+            background: var(--green-soft);
+            border: 1px solid var(--green-border);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        .docker-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2.5s infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+        /* ─── MESSAGES ─── */
+        .messages {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 28px 0;
+        }
+
+        .msg {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            margin-bottom: 8px;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .msg.error {
+            background: var(--red-soft);
+            border: 1px solid var(--red-border);
+            color: #ff6b6b;
+        }
+
+        .msg.ok {
+            background: var(--green-soft);
+            border: 1px solid var(--green-border);
+            color: var(--green);
+        }
+
+        .msg-icon { font-size: 15px; flex-shrink: 0; }
+
+        /* ─── CONTENT ─── */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 28px 80px;
+        }
+
+        /* ─── TOOLBAR ─── */
+        /* ─── FILTER BAR ─── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .filter-search {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            padding: 9px 14px 9px 36px;
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        }
+
+        .filter-search:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(232,24,12,0.1);
+        }
+
+        .filter-search::placeholder { color: var(--text-dim); }
+
+        .filter-pills {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .filter-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-pill:hover { border-color: #484848; color: var(--text); }
+
+        .filter-pill.active {
+            background: var(--surface);
+            border-color: #484848;
+            color: var(--text);
+        }
+
+        .filter-pill.active.all   { border-color: var(--text-dim); color: var(--text); }
+        .filter-pill.active.run   { border-color: #16a34a; color: #86efac; background: #14532d; }
+        .filter-pill.active.stop  { border-color: #d97706; color: #fcd34d; background: #451a03; }
+        .filter-pill.active.fresh { border-color: #5b6ad0; color: #a5b4fc; background: #1e1e4a; }
+
+        .pill-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .filter-count {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+            margin-left: auto;
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        /* Empty filter state */
+        .filter-empty {
+            display: none;
+            grid-column: 1/-1;
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        .filter-empty.visible { display: block; }
+
+        .filter-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+
+        .filter-empty p {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .filter-empty span {
+            font-family: 'DM Mono', monospace;
+            color: var(--text-dim);
+        }
+
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        /* ─── APP CARD ─── */
+        .app-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.45), inset 0 0.5px 0 rgba(255,255,255,0.04);
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .app-card:hover {
+            border-color: #484848;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
+        }
+
+        /* Status strip at top */
+        .card-strip {
+            height: 4px;
+            background: var(--border-subtle);
+            transition: background 0.3s;
+        }
+
+        .card-strip.running  { background: #22c55e; }
+        .card-strip.stopped  { background: #f59e0b; }
+        .card-strip.fresh    { background: var(--border-subtle); }
+
+        /* Card header */
+        .card-header {
+            padding: 20px 20px 14px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .card-logo-wrap {
+            flex-shrink: 0;
+        }
+
+        .card-logo {
+            width: 75px;
+            height: 75px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-logo-ph { font-size: 22px; color: var(--text-dim); }
+
+        /* Status badge — inline next to module name */
+        .state-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            font-family: 'DM Mono', monospace;
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            vertical-align: middle;
+            margin-left: 6px;
+            position: relative;
+            top: -1px;
+        }
+
+        .state-badge::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .state-badge.running {
+            background: #14532d;
+            border: 1px solid #166534;
+            color: #86efac;
+        }
+
+        .state-badge.running::before { background: #4ade80; }
+
+        .state-badge.stopped {
+            background: #451a03;
+            border: 1px solid #78350f;
+            color: #fcd34d;
+        }
+
+        .state-badge.stopped::before { background: #fbbf24; }
+
+        .card-info { flex: 1; min-width: 0; }
+
+        .card-version {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .card-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            line-height: 1.25;
+            margin-bottom: 3px;
+        }
+
+        .card-author {
+            font-size: 12.5px;
+            color: var(--text-dim);
+        }
+
+        /* Card body */
+        .card-body {
+            padding: 0 20px 16px;
+            flex: 1;
+        }
+
+        .card-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Card actions */
+        .card-actions {
+            padding: 14px 20px 18px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            width: 100%;
+            text-decoration: none;
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: #fff;
+            border-color: var(--red);
+        }
+        .btn-red:hover { opacity: 0.88; }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-outline:hover { background: var(--surface); border-color: #444; }
+
+        .btn-green {
+            background: var(--green-soft);
+            color: var(--green);
+            border-color: var(--green-border);
+        }
+        .btn-green:hover { background: rgba(34,197,94,0.16); }
+
+        /* Icon row */
+        .icon-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .icon-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .btn-icon {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            padding: 9px 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-icon:hover { background: var(--surface2); color: var(--text); border-color: #444; }
+
+        .btn-icon.warn:hover {
+            background: var(--amber-soft);
+            border-color: rgba(245,158,11,0.3);
+            color: var(--amber);
+        }
+
+        .btn-icon.danger:hover {
+            background: var(--red-soft);
+            border-color: var(--red-border);
+            color: var(--red);
+        }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            grid-column: 1/-1;
+            padding: 80px 24px;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+        }
+
+        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .empty-state a {
+            color: var(--red);
+            text-decoration: none;
+        }
+
+        /* ─── MODAL OVERLAY ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        /* ─── APP MODAL ─── */
+        #appModal {
+            align-items: stretch;
+            padding: 14px;
+        }
+
+        .app-modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+        }
+
+        .modal-topbar {
+            height: 46px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+            background: var(--bg-card);
+        }
+
+        .modal-dots { display: flex; gap: 7px; }
+        .dot { width: 11px; height: 11px; border-radius: 50%; }
+        .dot.r { background: #ff5f57; }
+        .dot.y { background: #febc2e; }
+        .dot.g { background: #28c840; }
+
+        .btn-modal-close {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 12.5px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            padding: 5px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-modal-close:hover { border-color: #555; color: var(--text); }
+
+        /* ─── LOGS MODAL ─── */
+        .logs-box {
+            background: #0e0e0e;
+            border: 1px solid #1f2a1f;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 860px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+            overflow: hidden;
+        }
+
+        .logs-topbar {
+            background: #111;
+            border-bottom: 1px solid #1f2a1f;
+            padding: 11px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .logs-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: #4ade80;
+            letter-spacing: 0.5px;
+        }
+
+        #logsContent {
+            flex: 1;
+            padding: 18px;
+            overflow: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: #86efac;
+            line-height: 1.75;
+            background: #0e0e0e;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* ─── CONFIG MODAL ─── */
+        .config-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 920px;
+            height: 92vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+
+        .config-topbar {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .config-title-group { display: flex; flex-direction: column; gap: 2px; }
+
+        .config-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .config-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        #envEditor {
+            flex: 1;
+            background: #111;
+            color: #a5b4fc;
+            padding: 22px 24px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13.5px;
+            line-height: 1.85;
+            border: none;
+            outline: none;
+            resize: none;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .config-footer {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .config-hint {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .config-btns { display: flex; gap: 8px; }
+
+        .btn-sm-cancel {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 18px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-sm-cancel:hover { border-color: #555; color: var(--text); }
+
+        .btn-sm-save {
+            background: var(--red);
+            border: 1px solid var(--red);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-sm-save:hover { opacity: 0.88; }
+        .btn-sm-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ─── CONFIRM MODAL ─── */
+        .confirm-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 420px;
+            padding: 28px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+        }
+
+        .confirm-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .confirm-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin-bottom: 24px;
+        }
+
+        .confirm-module {
+            font-family: 'DM Mono', monospace;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: var(--red);
+            margin-bottom: 24px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-confirm-cancel {
+            flex: 1;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-confirm-cancel:hover { border-color: #555; color: var(--text); }
+
+        .btn-confirm-danger {
+            flex: 1;
+            background: var(--red);
+            border: 1px solid var(--red);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-confirm-danger:hover { opacity: 0.88; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        form { margin: 0; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="/" class="logo">
+                <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
+                <span class="logo-name">Que<em>AI</em></span>
+            </a>
+            <span class="page-title">App Store</span>
         </div>
-        <div class="flex items-center gap-4 text-sm font-medium">
-          <span class="text-slate-400"
-            >Docker Engine:
-            <span class="text-emerald-500 font-bold">ACTIVE</span></span
-          >
+        <div class="header-nav">
+            <a href="/marketplace/">Marketplace</a>
+            <a href="/monitor/">Monitor</a>
+            <div class="docker-pill">
+                <div class="docker-dot"></div>
+                Docker activo
+            </div>
         </div>
-      </div>
-    </nav>
+    </header>
 
-    <div class="max-w-7xl mx-auto px-6">
-      {% if messages %} {% for message in messages %}
-      <div
-        class="mb-4 p-4 rounded-xl border {% if 'error' in message.tags %}bg-red-50 border-red-200 text-red-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %} flex items-center gap-3 animate-pulse"
-      >
-        <i class="fas fa-info-circle"></i> {{ message }}
-      </div>
-      {% endfor %} {% endif %}
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for app in apps %}
-        <div
-          class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-xl hover:border-indigo-100 group"
-        >
-          <div class="p-6 flex-1">
-            <div class="flex items-start justify-between mb-6">
-              <div
-                class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden relative shadow-inner"
-              >
-                {% if app.logo %}
-                <img
-                  src="{% url 'plugin_logo' app.folder_name app.logo %}"
-                  class="w-full h-full object-cover"
-                />
-                {% else %}
-                <i class="fas fa-robot text-3xl text-slate-300"></i>
-                {% endif %} {% if app.is_installed %}
-                <div
-                  class="absolute -top-1 -right-1 w-5 h-5 rounded-full border-4 border-white {% if app.is_running %}bg-emerald-500 shadow-[0_0_10px_#10b981]{% else %}bg-slate-400{% endif %}"
-                ></div>
-                {% endif %}
-              </div>
-              <span
-                class="text-[10px] font-bold px-2 py-1 bg-slate-100 text-slate-500 rounded-md uppercase tracking-widest"
-                >v{{ app.version }}</span
-              >
-            </div>
-
-            <h2
-              class="text-xl font-bold text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors"
-            >
-              {{ app.display_name }}
-            </h2>
-            <p class="text-slate-500 text-sm leading-relaxed line-clamp-2 mb-6">
-              {{ app.description }}
-            </p>
-
-            <div class="space-y-3">
-              {% if not app.is_installed %}
-              <form method="post" action="{% url 'install_app' %}">
-                {% csrf_token %}
-                <input
-                  type="hidden"
-                  name="manifest_folder_name"
-                  value="{{ app.folder_name }}"
-                />
-                <button
-                  class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
-                >
-                  <i class="fas fa-plus"></i> Instalar Módulo
-                </button>
-              </form>
-              {% else %} {% if app.is_running %}
-              <button
-                onclick="openApp('{{ app.ui_entry_point }}')"
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
-              >
-                <i class="fas fa-external-link-alt"></i> Abrir Aplicación
-              </button>
-              <div class="grid grid-cols-3 gap-2">
-                <button
-                  onclick="showLogs('{{ app.folder_name }}')"
-                  class="py-2 bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-700 rounded-xl transition-colors text-xs font-bold uppercase"
-                >
-                  <i class="fas fa-terminal"></i>
-                </button>
-                <button
-                  onclick="openConfigEditor('{{ app.folder_name }}')"
-                  class="py-2 bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 rounded-xl transition-colors text-xs font-bold uppercase"
-                  title="Configurar .env"
-                >
-                  <i class="fas fa-cog"></i>
-                </button>
-                <form
-                  method="post"
-                  action="{% url 'stop_app' %}"
-                  class="contents"
-                >
-                  {% csrf_token %}
-                  <input
-                    type="hidden"
-                    name="manifest_folder_name"
-                    value="{{ app.folder_name }}"
-                  />
-                  <button
-                    class="py-2 bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 rounded-xl transition-colors text-xs font-bold uppercase"
-                  >
-                    <i class="fas fa-stop"></i>
-                  </button>
-                </form>
-                <button
-                  onclick="openApp('{{ app.documentation_entry_point }}')"
-                  class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase"
-                >
-                  <i class="fas fa-book"></i>
-                </button>
-              </div>
-              {% else %}
-              <form method="post" action="{% url 'start_app' %}">
-                {% csrf_token %}
-                <input
-                  type="hidden"
-                  name="manifest_folder_name"
-                  value="{{ app.folder_name }}"
-                />
-                <button
-                  class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl transition-all flex items-center justify-center gap-2"
-                >
-                  <i class="fas fa-play"></i> Reanudar
-                </button>
-              </form>
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  onclick="showLogs('{{ app.folder_name }}')"
-                  class="py-2 bg-slate-100 hover:bg-amber-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-tighter"
-                >
-                  Logs
-                </button>
-                <form
-                  method="post"
-                  action="{% url 'uninstall_app' %}"
-                  class="contents"
-                >
-                  {% csrf_token %}
-                  <input
-                    type="hidden"
-                    name="manifest_folder_name"
-                    value="{{ app.folder_name }}"
-                  />
-                  <button
-                    class="py-2 bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-600 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all"
-                  >
-                    Desinstalar
-                  </button>
-                </form>
-              </div>
-              {% endif %} {% endif %}
-            </div>
-          </div>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="msg {% if 'error' in message.tags %}error{% else %}ok{% endif %}">
+            <span class="msg-icon">{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+            {{ message }}
         </div>
         {% endfor %}
-      </div>
+    </div>
+    {% endif %}
+
+    <div class="content">
+        <div class="filter-bar">
+            <div class="filter-search-wrap">
+                <span class="filter-search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="filterSearch"
+                    class="filter-search"
+                    placeholder="Buscar módulo…"
+                    autocomplete="off"
+                    oninput="applyFilters()"
+                >
+            </div>
+            <div class="filter-pills">
+                <button class="filter-pill active all" data-filter="all" onclick="setFilter('all', this)">Todos</button>
+                <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">
+                    <span class="pill-dot" style="background:#4ade80"></span>Activos
+                </button>
+                <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">
+                    <span class="pill-dot" style="background:#fbbf24"></span>Detenidos
+                </button>
+                <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">
+                    <span class="pill-dot" style="background:#818cf8"></span>Sin instalar
+                </button>
+            </div>
+            <span class="filter-count" id="filterCount">{{ apps|length }} plugins</span>
+        </div>
+
+        <div class="apps-grid">
+            {% for app in apps %}
+            <div class="app-card"
+                data-name="{{ app.display_name|lower }}"
+                data-state="{% if not app.is_installed %}fresh{% elif app.is_running %}running{% else %}stopped{% endif %}">
+                <!-- Color strip at top indicates state -->
+                <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
+
+                <div class="card-header">
+                    <div class="card-logo-wrap">
+                        <div class="card-logo">
+                            {% if app.logo %}
+                            <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=card-logo-ph>📦</div>'">
+                            {% else %}
+                            <div class="card-logo-ph">📦</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-version">v{{ app.version }}</div>
+                        <div class="card-name" title="{{ app.display_name }}">
+                            {{ app.display_name }}
+                            {% if app.is_installed %}
+                                {% if app.is_running %}
+                                <span class="state-badge running">activo</span>
+                                {% else %}
+                                <span class="state-badge stopped">detenido</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="card-author">{{ app.author|default:"Sin autor" }}</div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <p class="card-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
+                </div>
+
+                <div class="card-actions">
+                    {% if not app.is_installed %}
+                    <!-- NOT INSTALLED -->
+                    <form method="post" action="{% url 'install_app' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                        <button type="submit" class="btn btn-red">Instalar módulo</button>
+                    </form>
+
+                    {% elif app.is_running %}
+                    <!-- RUNNING -->
+                    <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn btn-outline">
+                        ↗ Abrir aplicación
+                    </button>
+                    <div class="icon-row">
+                        <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
+                        <button onclick="openConfigEditor('{{ app.folder_name }}')" class="btn-icon" title="Editar .env">.env</button>
+                        <form method="post" action="{% url 'stop_app' %}" style="display:contents">
+                            {% csrf_token %}
+                            <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                            <button type="submit" class="btn-icon warn" title="Detener">Stop</button>
+                        </form>
+                        <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
+                    </div>
+
+                    {% else %}
+                    <!-- STOPPED / INSTALLED BUT NOT RUNNING -->
+                    <form method="post" action="{% url 'start_app' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                        <button type="submit" class="btn btn-green">▶ Reanudar</button>
+                    </form>
+                    <div class="icon-row-2">
+                        <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
+                        <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>Sin módulos detectados</h3>
+                <p>Agrega plugins en la carpeta <code>/plugins</code> o <a href="/marketplace/">descárgalos desde el Marketplace</a>.</p>
+            </div>
+            {% endfor %}
+
+            <!-- Empty state when filters return nothing -->
+            <div class="filter-empty" id="filterEmpty">
+                <div class="filter-empty-icon">🔍</div>
+                <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
+            </div>
+        </div>
     </div>
 
-    <div
-      id="appModal"
-      class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden z-50 p-4 lg:p-10"
-    >
-      <div
-        class="bg-white w-full h-full rounded-3xl shadow-2xl flex flex-col overflow-hidden"
-      >
-        <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-          <div class="flex gap-2">
-            <div class="w-3 h-3 rounded-full bg-rose-400"></div>
-            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-          </div>
-          <button
-            onclick="closeApp()"
-            class="text-slate-400 hover:text-rose-500 text-2xl font-bold"
-          >
-            &times;
-          </button>
+    <!-- ─── APP MODAL ─── -->
+    <div id="appModal" class="modal-overlay">
+        <div class="app-modal-box">
+            <div class="modal-topbar">
+                <div class="modal-dots">
+                    <div class="dot r"></div>
+                    <div class="dot y"></div>
+                    <div class="dot g"></div>
+                </div>
+                <button class="btn-modal-close" onclick="closeApp()">Cerrar ✕</button>
+            </div>
+            <iframe id="appIframe" src="" style="flex:1;border:none;width:100%;"></iframe>
         </div>
-        <iframe
-          id="appIframe"
-          src=""
-          class="flex-1 w-full border-none"
-        ></iframe>
-      </div>
     </div>
 
-    <div id="logsModal" class="fixed inset-0 bg-black/90 hidden z-[60] p-6">
-      <div class="max-w-4xl mx-auto h-full flex flex-col">
-        <div
-          class="flex justify-between items-center text-emerald-500 mb-4 font-mono"
-        >
-          <span>> STDOUT / STDERR TERMINAL</span>
-          <button
-            onclick="
-              document.getElementById('logsModal').classList.add('hidden')
-            "
-            class="text-white hover:text-rose-500"
-          >
-            CERRAR_
-          </button>
+    <!-- ─── LOGS MODAL ─── -->
+    <div id="logsModal" class="modal-overlay">
+        <div class="logs-box">
+            <div class="logs-topbar">
+                <span class="logs-title">▶ Terminal — stdout / stderr</span>
+                <button class="btn-modal-close" style="border-color:#1f2a1f;color:#4ade80;" onclick="document.getElementById('logsModal').classList.remove('open')">Cerrar ✕</button>
+            </div>
+            <pre id="logsContent">&gt; Conectando con Docker daemon...</pre>
         </div>
-        <pre
-          id="logsContent"
-          class="flex-1 bg-slate-900 p-6 rounded-2xl overflow-auto text-emerald-400 font-mono text-sm border border-slate-800 shadow-2xl shadow-emerald-500/10"
-        ></pre>
-      </div>
     </div>
 
-    <div
-      id="configModal"
-      class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[70] p-6"
-    >
-      <div class="max-w-2xl mx-auto h-full flex flex-col">
-        <div
-          class="bg-slate-800 p-4 rounded-t-2xl border-b border-slate-700 flex justify-between items-center text-white"
-        >
-          <h3 class="font-bold flex items-center gap-2">
-            <i class="fas fa-sliders-h text-indigo-400"></i>
-            Configuración:
-            <span id="configTitle" class="text-indigo-300 font-mono"></span>
-          </h3>
-          <button
-            onclick="closeConfigEditor()"
-            class="text-slate-400 hover:text-white text-2xl"
-          >
-            &times;
-          </button>
+    <!-- ─── CONFIG MODAL ─── -->
+    <div id="configModal" class="modal-overlay">
+        <div class="config-box">
+            <div class="config-topbar">
+                <div class="config-title-group">
+                    <span class="config-label">Configuración de módulo</span>
+                    <span class="config-name" id="configTitle">—</span>
+                </div>
+                <button class="btn-modal-close" onclick="closeConfigEditor()">Cerrar ✕</button>
+            </div>
+            <textarea id="envEditor" spellcheck="false" placeholder="CLAVE=VALOR&#10;OTRA_CLAVE=VALOR"></textarea>
+            <div class="config-footer">
+                <span class="config-hint">El contenedor se reiniciará al guardar</span>
+                <div class="config-btns">
+                    <button class="btn-sm-cancel" onclick="closeConfigEditor()">Cancelar</button>
+                    <button class="btn-sm-save" onclick="saveConfig(event)">Guardar y aplicar</button>
+                </div>
+            </div>
         </div>
-        <div class="flex-1 relative">
-          <textarea
-            id="envEditor"
-            class="w-full h-full bg-slate-900 text-emerald-400 p-6 font-mono text-sm outline-none resize-none border-none shadow-inner"
-            spellcheck="false"
-            placeholder="CLAVE=VALOR"
-          ></textarea>
+    </div>
+
+    <!-- ─── CONFIRM UNINSTALL MODAL ─── -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="confirm-box">
+            <div class="confirm-title">¿Desinstalar módulo?</div>
+            <p class="confirm-desc">Esta acción eliminará los contenedores, imágenes y volúmenes del módulo. No se puede deshacer.</p>
+            <div class="confirm-module" id="confirmModuleName">—</div>
+            <form method="post" action="{% url 'uninstall_app' %}" id="confirmForm">
+                {% csrf_token %}
+                <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
+                <div class="confirm-actions">
+                    <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
+                    <button type="submit" class="btn-confirm-danger">Sí, desinstalar</button>
+                </div>
+            </form>
         </div>
-        <div
-          class="bg-slate-800 p-4 rounded-b-2xl border-t border-slate-700 flex justify-between items-center"
-        >
-          <p
-            class="text-[10px] text-slate-400 uppercase font-bold tracking-widest"
-          >
-            El contenedor se reiniciará al guardar
-          </p>
-          <div class="flex gap-3">
-            <button
-              onclick="closeConfigEditor()"
-              class="px-4 py-2 text-slate-400 hover:text-white text-sm font-bold"
-            >
-              CANCELAR
-            </button>
-            <button
-              onclick="saveConfig(event)"
-              class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold shadow-lg transition-all active:scale-95"
-            >
-              GUARDAR Y APLICAR
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <script src="{% static 'js/apps.js' %}"></script>
-  </body>
+
+    <script>
+        // Confirm uninstall
+        function confirmUninstall(folder, name) {
+            document.getElementById('confirmFolderInput').value = folder;
+            document.getElementById('confirmModuleName').textContent = name + ' (' + folder + ')';
+            document.getElementById('confirmModal').classList.add('open');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.remove('open');
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('open');
+                    if (this.id === 'appModal') {
+                        document.getElementById('appIframe').src = '';
+                    }
+                }
+            });
+        });
+        // ─── FILTER LOGIC ───
+        let activeFilter = 'all';
+
+        function setFilter(filter, btn) {
+            activeFilter = filter;
+
+            // Update pill styles
+            document.querySelectorAll('.filter-pill').forEach(p => {
+                p.classList.remove('active', 'all', 'run', 'stop', 'fresh');
+            });
+            btn.classList.add('active');
+            if (filter === 'all')     btn.classList.add('all');
+            if (filter === 'running') btn.classList.add('run');
+            if (filter === 'stopped') btn.classList.add('stop');
+            if (filter === 'fresh')   btn.classList.add('fresh');
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const term = document.getElementById('filterSearch').value.trim().toLowerCase();
+            const cards = document.querySelectorAll('.app-card');
+            let visible = 0;
+
+            cards.forEach(card => {
+                const name  = card.dataset.name  || '';
+                const state = card.dataset.state || '';
+
+                const matchesName  = !term || name.includes(term);
+                const matchesState = activeFilter === 'all' || state === activeFilter;
+
+                if (matchesName && matchesState) {
+                    card.style.display = '';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update count
+            const total = cards.length;
+            const countEl = document.getElementById('filterCount');
+            if (visible === total) {
+                countEl.textContent = `${total} plugin${total !== 1 ? 's' : ''}`;
+            } else {
+                countEl.textContent = `${visible} de ${total}`;
+            }
+
+            // Toggle filter-empty state
+            const emptyEl = document.getElementById('filterEmpty');
+            const termEl  = document.getElementById('filterEmptyTerm');
+            if (visible === 0 && total > 0) {
+                emptyEl.classList.add('visible');
+                termEl.textContent = term ? `"${term}"` : 'ese estado';
+            } else {
+                emptyEl.classList.remove('visible');
+            }
+        }
+    </script>
+</body>
 </html>

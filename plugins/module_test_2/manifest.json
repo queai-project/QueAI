@@ -6,7 +6,7 @@
     "documentation_entry_point": "/api/module2/docs",
     "healthcheck_entry_point": "/api/module2/health",
     "version": "5.0.0",
-    "logo": "logo2.png",
+    "logo": "tts_logo.png",
     "description": "This is a module two",
     "author": "Alejandro Fonseca && Juana Iris",
     "license": "MIT"

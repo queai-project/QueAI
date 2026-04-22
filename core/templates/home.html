@@ -1,41 +1,440 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueAI - Home</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>QueAI — Kernel</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:            #161616;
+            --bg-card:       #232323;
+            --bg-hover:      #2a2a2a;
+            --surface:       #2e2e2e;
+            --border:        #383838;
+            --border-subtle: #2c2c2c;
+            --text:          #eaeae6;
+            --text-muted:    #909090;
+            --text-dim:      #585856;
+            --red:           #e8180c;
+            --red-soft:      rgba(232,24,12,0.1);
+            --red-border:    rgba(232,24,12,0.22);
+            --green:         #22c55e;
+            --radius:        14px;
+            --radius-sm:     9px;
+        }
+
+        html, body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(26,26,26,0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 18px;
+            font-weight: 500;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .logo-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .logo-name em { color: var(--red); font-style: normal; }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            transition: color 0.15s, background 0.15s;
+        }
+
+        nav a:hover { color: var(--text); background: var(--surface); }
+        nav a.active {
+            color: var(--text);
+            background: var(--surface);
+            box-shadow: inset 0 -2px 0 var(--red);
+        }
+
+        /* ─── MAIN ─── */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 72px 32px 96px;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--red-soft);
+            border: 1px solid var(--red-border);
+            color: var(--red);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+
+        h1 {
+            font-size: clamp(36px, 5vw, 54px);
+            font-weight: 600;
+            line-height: 1.18;
+            letter-spacing: -1.5px;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        h1 .accent { color: var(--red); }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto 40px;
+            line-height: 1.65;
+            font-weight: 400;
+        }
+
+        .hero-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--red);
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 11px 22px;
+            border-radius: var(--radius-sm);
+            transition: opacity 0.15s, transform 0.15s;
+        }
+
+        .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 11px 22px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .btn-ghost:hover { background: var(--surface); color: var(--text); border-color: #404040; }
+
+        /* ─── NAV CARDS ─── */
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            animation: fadeUp 0.5s 0.1s ease both;
+        }
+
+        .nav-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.45), inset 0 0.5px 0 rgba(255,255,255,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s ease;
+        }
+
+        .nav-card:hover {
+            background: var(--bg-hover);
+            border-color: #454545;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
+        }
+
+        .nav-card:hover::after { transform: scaleX(1); }
+
+        .card-icon {
+            font-size: 26px;
+            line-height: 1;
+        }
+
+        .card-num {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--red);
+            letter-spacing: 1px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .card-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            flex: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .card-link-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dim);
+            transition: color 0.15s;
+        }
+
+        .nav-card:hover .card-link-text { color: var(--red); }
+
+        .card-arrow {
+            color: var(--text-dim);
+            font-size: 16px;
+            transition: color 0.15s, transform 0.15s;
+        }
+
+        .nav-card:hover .card-arrow { color: var(--red); transform: translateX(3px); }
+
+        /* ─── DIVIDER ─── */
+        .divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 56px 0;
+        }
+
+        /* ─── STATUS BAR ─── */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 22px;
+            animation: fadeUp 0.5s 0.2s ease both;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        .status-label { color: var(--text); font-weight: 500; }
+
+        .status-meta {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 800px) {
+            .nav-cards { grid-template-columns: 1fr; gap: 14px; }
+            main { padding: 48px 20px 64px; }
+            header { padding: 0 20px; }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-    <main class="max-w-6xl mx-auto px-6 py-16">
-        <section class="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-10 md:p-14 shadow-2xl">
-            <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-3xl"></div>
-            <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl"></div>
+<body>
+    <header>
+        <a href="/" class="logo">
+            <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
+            <span class="logo-name">Que<em>AI</em></span>
+        </a>
+        <nav>
+            <a href="/manager/">Hub</a>
+            <a href="/marketplace/">Marketplace</a>
+            <a href="/monitor/">Monitor</a>
+        </nav>
+    </header>
 
-            <div class="relative z-10">
-                <p class="inline-flex items-center rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold tracking-widest text-indigo-300 uppercase">
-                    QueAI Kernel
-                </p>
-                <h1 class="mt-5 text-4xl md:text-5xl font-black tracking-tight">
-                    Centro de Control de Módulos de IA
-                </h1>
-                <p class="mt-4 max-w-2xl text-slate-300 leading-relaxed">
-                    Gestiona instalación, ejecución, configuración y monitoreo de tus módulos desde una sola interfaz.
-                </p>
-
-                <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="/manager/" class="rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-500 transition-colors">
-                        Ir al App Store
-                    </a>
-                    <a href="/marketplace/" class="rounded-xl border border-slate-700 bg-slate-900/60 px-6 py-3 font-bold text-slate-200 hover:border-indigo-400 hover:text-indigo-300 transition-colors">
-                        Marketplace
-                    </a>
-                    <a href="/monitor/" class="rounded-xl border border-slate-700 bg-slate-900/60 px-6 py-3 font-bold text-slate-200 hover:border-emerald-400 hover:text-emerald-300 transition-colors">
-                        Monitoreo
-                    </a>
-                </div>
+    <main>
+        <section class="hero">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Kernel v2 · Orquestación de IA
+            </div>
+            <h1>Gestiona tus módulos<br>de <span class="accent">inteligencia artificial</span></h1>
+            <p class="hero-sub">
+                Instala, configura y monitorea aplicaciones de IA desacopladas desde una sola interfaz. Sin fricciones.
+            </p>
+            <div class="hero-cta">
+                <a href="/manager/" class="btn-primary">Ir al Hub →</a>
+                <a href="/marketplace/" class="btn-ghost">Explorar Marketplace</a>
+                <a href="/monitor/" class="btn-ghost">Ver Monitor</a>
             </div>
         </section>
+
+        <div class="nav-cards">
+            <a href="/manager/" class="nav-card">
+                <div class="card-icon">📦</div>
+                <span class="card-num">01 · App Store</span>
+                <div class="card-title">Hub de módulos</div>
+                <p class="card-desc">Instala, detén, configura y consulta logs de todos tus plugins desde un solo lugar.</p>
+                <div class="card-footer">
+                    <span class="card-link-text">Abrir Hub</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+            <a href="/marketplace/" class="nav-card">
+                <div class="card-icon">🛒</div>
+                <span class="card-num">02 · Marketplace</span>
+                <div class="card-title">Nuevos plugins</div>
+                <p class="card-desc">Descarga módulos del repositorio oficial o añade cualquier plugin desde una URL de Git.</p>
+                <div class="card-footer">
+                    <span class="card-link-text">Explorar</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+            <a href="/monitor/" class="nav-card">
+                <div class="card-icon">📊</div>
+                <span class="card-num">03 · Monitor</span>
+                <div class="card-title">Métricas en vivo</div>
+                <p class="card-desc">CPU, RAM y red en tiempo real para cada contenedor activo. Actualización cada 3 segundos.</p>
+                <div class="card-footer">
+                    <span class="card-link-text">Ver dashboard</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-dot"></div>
+                <span class="status-label">Docker Engine</span>
+                <span>activo y listo</span>
+            </div>
+            <span class="status-meta">QueAI Kernel · Sistema de orquestación de IA local</span>
+        </div>
     </main>
 </body>
 </html>
