@@ -137,7 +137,11 @@
             border-radius: 20px;
             margin-left: 8px;
         }
-
+        .queai-version {
+            font-size: 14px;
+            font-family: 'DM Mono', monospace;
+            color: var(--text-dim);
+        }
         .docker-dot {
             width: 6px; height: 6px;
             border-radius: 50%;
@@ -912,16 +916,23 @@
                 <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
                 <span class="logo-name">Que<em>AI</em></span>
             </a>
+                {% if queai_version %}
+                <div class="queai-version" title="Versión actual de QueAI">
+                    v{{ queai_version }}
+                </div>
+                {% endif %}
             <span class="page-title">App Store</span>
+            
         </div>
-        <div class="header-nav">
-            <a href="/marketplace/">Marketplace</a>
-            <a href="/monitor/">Monitor</a>
-            <div class="docker-pill">
-                <div class="docker-dot"></div>
-                Docker activo
+            <div class="header-nav">
+                <a href="/marketplace/">Marketplace</a>
+                <a href="/monitor/">Monitor</a>
+
+                <div class="docker-pill">
+                    <div class="docker-dot"></div>
+                    Docker activo
+                </div>
             </div>
-        </div>
     </header>
 
     {% if messages %}

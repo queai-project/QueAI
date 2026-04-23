@@ -59,6 +59,86 @@ def _is_app_running(compose_path):
     except Exception:
         return False
 
+def _run_command(command):
+    return subprocess.run(command, capture_output=True, text=True, check=False)
+
+
+def _docker_ids_by_label(resource_type, label):
+    """
+    Devuelve IDs de recursos Docker filtrados por label.
+    resource_type: container | network | volume | image
+    """
+    resource_map = {
+        "container": ["docker", "ps", "-aq", "--filter", f"label={label}"],
+        "network": ["docker", "network", "ls", "-q", "--filter", f"label={label}"],
+        "volume": ["docker", "volume", "ls", "-q", "--filter", f"label={label}"],
+        "image": ["docker", "image", "ls", "-q", "--filter", f"label={label}"],
+    }
+
+    cmd = resource_map.get(resource_type)
+    if not cmd:
+        return []
+
+    res = _run_command(cmd)
+    if res.returncode != 0:
+        return []
+
+    return [line.strip() for line in res.stdout.splitlines() if line.strip()]
+
+
+def _cleanup_missing_plugin_docker_artifacts(folder_name):
+    """
+    Limpia recursos Docker de un módulo aunque ya no exista su docker-compose.yml,
+    apoyándose en el nombre de proyecto que Compose genera en labels.
+
+    Esto intenta eliminar:
+    - contenedores
+    - redes
+    - volúmenes
+    - imágenes
+    """
+    project_candidates = _compose_project_candidates(folder_name)
+
+    container_ids = set()
+    network_ids = set()
+    volume_ids = set()
+    image_ids = set()
+
+    for project_name in project_candidates:
+        label = f"com.docker.compose.project={project_name}"
+
+        for cid in _docker_ids_by_label("container", label):
+            container_ids.add(cid)
+
+        for nid in _docker_ids_by_label("network", label):
+            network_ids.add(nid)
+
+        for vid in _docker_ids_by_label("volume", label):
+            volume_ids.add(vid)
+
+        for iid in _docker_ids_by_label("image", label):
+            image_ids.add(iid)
+
+    # Extraer imágenes reales desde los contenedores encontrados
+    image_ids.update(_docker_image_ids_from_containers(container_ids))
+
+    # 1) Contenedores
+    if container_ids:
+        _run_command(["docker", "rm", "-f", *sorted(container_ids)])
+
+    # 2) Redes
+    if network_ids:
+        _run_command(["docker", "network", "rm", *sorted(network_ids)])
+
+    # 3) Volúmenes
+    if volume_ids:
+        _run_command(["docker", "volume", "rm", "-f", *sorted(volume_ids)])
+
+    # 4) Imágenes
+    if image_ids:
+        _run_command(["docker", "rmi", "-f", *sorted(image_ids)])
+
+
 
 def _compose_down_full(compose_path):
     """
@@ -104,6 +184,9 @@ def get_apps(request):
     - Deben tener manifest.json válido
     - Deben tener docker-compose.yml
     Las carpetas vacías o corruptas no aparecen en el hub.
+
+    Además, si un módulo existía en BD pero desapareció del directorio,
+    se intentan limpiar sus recursos Docker asociados.
     """
     plugins_dir = settings.PLUGINS_DIR
 
@@ -143,6 +226,17 @@ def get_apps(request):
 
             AvailableApp.objects.update_or_create(name=app_name, defaults=defaults)
 
+        # Detectar módulos que estaban en BD pero ya no existen en disco
+        missing_apps = list(AvailableApp.objects.exclude(name__in=manifest_names))
+
+        for app in missing_apps:
+            try:
+                if app.folder_name:
+                    _cleanup_missing_plugin_docker_artifacts(app.folder_name)
+            except Exception as e:
+                print(f"DEBUG cleanup missing plugin '{app.folder_name}': {e}")
+
+        # Luego sí eliminamos los registros huérfanos de la BD
         AvailableApp.objects.exclude(name__in=manifest_names).delete()
 
     apps = AvailableApp.objects.all().order_by("display_name")
@@ -151,7 +245,49 @@ def get_apps(request):
         if app.is_installed:
             app.is_running = _is_app_running(get_compose_path(app.folder_name))
 
-    return render(request, "module_manager.html", {"apps": apps})
+    return render(
+        request,
+        "module_manager.html",
+        {
+            "apps": apps,
+            "queai_version": getattr(settings, "QUEAI_VERSION", ""),
+        },
+    )
+
+
+def _compose_project_candidates(folder_name):
+    """
+    Genera posibles nombres de proyecto de Docker Compose a partir del nombre
+    de la carpeta del plugin.
+    """
+    raw = (folder_name or "").strip()
+    candidates = []
+
+    for value in [
+        raw,
+        raw.lower(),
+        raw.replace("_", "-").lower(),
+    ]:
+        if value and value not in candidates:
+            candidates.append(value)
+
+    return candidates
+
+
+def _docker_image_ids_from_containers(container_ids):
+    """
+    Extrae los image IDs reales asociados a una lista de contenedores.
+    """
+    image_ids = set()
+
+    for container_id in container_ids:
+        res = _run_command(["docker", "inspect", "--format", "{{.Image}}", container_id])
+        if res.returncode == 0:
+            image_id = res.stdout.strip()
+            if image_id:
+                image_ids.add(image_id)
+
+    return image_ids
 
 
 @require_POST
