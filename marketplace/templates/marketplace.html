@@ -28,6 +28,9 @@
             --green:         #22c55e;
             --green-soft:    rgba(34,197,94,0.08);
             --green-border:  rgba(34,197,94,0.22);
+            --amber:         #f59e0b;
+            --amber-soft:    rgba(245,158,11,0.10);
+            --amber-border:  rgba(245,158,11,0.28);
             --radius:        14px;
             --radius-sm:     9px;
         }
@@ -41,7 +44,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ─── HEADER ─── */
         header {
             position: sticky;
             top: 0;
@@ -63,20 +65,6 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 32px; height: 32px;
-            background: var(--red);
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'DM Mono', monospace;
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            flex-shrink: 0;
         }
 
         .logo-name { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
@@ -105,7 +93,6 @@
 
         .btn-back:hover { color: var(--text); background: var(--surface); border-color: #444; }
 
-        /* ─── MESSAGES ─── */
         .messages { max-width: 1100px; margin: 0 auto; padding: 16px 28px 0; }
 
         .msg {
@@ -121,10 +108,8 @@
         .msg.error { background: var(--red-soft); border: 1px solid var(--red-border); color: #ff6b6b; }
         .msg.ok    { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
 
-        /* ─── CONTENT ─── */
         .content { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
 
-        /* ─── DIRECT INSTALL PANEL ─── */
         .install-panel {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -142,9 +127,7 @@
             margin-bottom: 16px;
         }
 
-        .panel-icon {
-            font-size: 20px;
-        }
+        .panel-icon { font-size: 20px; }
 
         .panel-title {
             font-size: 16px;
@@ -196,7 +179,6 @@
 
         .btn-install:hover { opacity: 0.88; }
 
-        /* ─── SECTION HEADER ─── */
         .section-header {
             display: flex;
             align-items: center;
@@ -213,7 +195,6 @@
 
         .section-count { font-size: 13px; color: var(--text-muted); }
 
-        /* ─── PLUGINS GRID ─── */
         .plugins-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -221,7 +202,6 @@
             animation: fadeUp 0.4s 0.1s ease both;
         }
 
-        /* ─── PLUGIN CARD ─── */
         .plugin-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -291,6 +271,13 @@
             margin-top: 3px;
         }
 
+        .plugin-local-version {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--amber);
+            margin-top: 6px;
+        }
+
         .plugin-body {
             padding: 0 22px 16px;
             flex: 1;
@@ -307,9 +294,9 @@
             border-top: 1px solid var(--border-subtle);
         }
 
-        .btn-add {
+        .btn-add,
+        .btn-update {
             width: 100%;
-            background: var(--red);
             border: none;
             color: #fff;
             font-family: 'DM Sans', sans-serif;
@@ -321,7 +308,18 @@
             transition: opacity 0.15s;
         }
 
+        .btn-add {
+            background: var(--red);
+        }
+
         .btn-add:hover { opacity: 0.88; }
+
+        .btn-update {
+            background: var(--amber);
+            color: #161616;
+        }
+
+        .btn-update:hover { opacity: 0.9; }
 
         .btn-downloaded {
             width: 100%;
@@ -340,7 +338,6 @@
             cursor: default;
         }
 
-        /* Empty */
         .empty-state {
             grid-column: 1/-1;
             padding: 80px 24px;
@@ -394,7 +391,6 @@
 
     <div class="content">
 
-        <!-- Direct install -->
         <div class="install-panel">
             <div class="panel-header">
                 <span class="panel-icon">🔗</span>
@@ -412,7 +408,6 @@
             </form>
         </div>
 
-        <!-- Official registry -->
         <div class="section-header">
             <span class="section-title">// repositorio oficial</span>
             <span class="section-count">{{ remote_plugins|length }} disponibles</span>
@@ -432,7 +427,10 @@
                     <div class="plugin-meta">
                         <div class="plugin-cat">{{ plugin.category|default:"General" }}</div>
                         <div class="plugin-name">{{ plugin.name }}</div>
-                        <div class="plugin-version">v{{ plugin.version|default:"1.0.0" }}</div>
+                        <div class="plugin-version">Registry: v{{ plugin.version|default:"1.0.0" }}</div>
+                        {% if plugin.local_version %}
+                        <div class="plugin-local-version">Local: v{{ plugin.local_version }}</div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -441,8 +439,16 @@
                 </div>
 
                 <div class="plugin-footer">
-                    {% if plugin.is_downloaded %}
+                    {% if plugin.is_update_available %}
+                    <form method="post" action="{% url 'download_plugin' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
+                        <button type="submit" class="btn-update">⟳ Actualizar módulo</button>
+                    </form>
+
+                    {% elif plugin.is_downloaded %}
                     <div class="btn-downloaded">✓ Ya descargado</div>
+
                     {% else %}
                     <form method="post" action="{% url 'download_plugin' %}">
                         {% csrf_token %}
