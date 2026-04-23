@@ -28,6 +28,10 @@ def get_manifest_path(folder_name):
     return os.path.join(settings.PLUGINS_DIR, folder_name, "manifest.json")
 
 
+def get_plugin_path(folder_name):
+    return os.path.join(settings.PLUGINS_DIR, folder_name)
+
+
 def _load_manifest(folder_name):
     manifest_path = get_manifest_path(folder_name)
     if not os.path.isfile(manifest_path):
@@ -57,7 +61,10 @@ def _is_app_running(compose_path):
 
 
 def _compose_down_full(compose_path):
-    """Hace down completo del módulo, limpiando imágenes, volúmenes y huérfanos."""
+    """
+    Hace down completo del módulo, limpiando contenedores, imágenes,
+    volúmenes y huérfanos relacionados con ese docker compose.
+    """
     if not os.path.isfile(compose_path):
         return
 
@@ -74,6 +81,12 @@ def _compose_down_full(compose_path):
         ],
         check=True,
     )
+
+
+def _delete_plugin_folder(folder_name):
+    plugin_path = get_plugin_path(folder_name)
+    if os.path.exists(plugin_path):
+        shutil.rmtree(plugin_path, ignore_errors=False)
 
 
 def plugin_logo(request, plugin_name, filename):
@@ -145,31 +158,9 @@ def get_apps(request):
 def install_app(request):
     folder = request.POST.get("manifest_folder_name")
     path = get_compose_path(folder)
-
     try:
-        if not os.path.isfile(path):
-            raise RuntimeError(f"No existe docker-compose.yml para el módulo '{folder}'.")
-
-        compose_cmd = _get_compose_command()
-
-        # Limpieza previa para evitar residuos de instalaciones anteriores
         subprocess.run(
-            compose_cmd + [
-                "-f",
-                path,
-                "down",
-                "--rmi",
-                "all",
-                "--volumes",
-                "--remove-orphans",
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        subprocess.run(
-            compose_cmd + ["-f", path, "up", "-d", "--build", "--force-recreate"],
+            ["docker-compose", "-f", path, "up", "-d", "--build", "--force-recreate"],
             check=True
         )
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=True)
@@ -177,7 +168,6 @@ def install_app(request):
     except Exception as e:
         messages.error(request, f"Error al instalar: {str(e)}")
     return redirect("get_apps")
-
 
 @require_POST
 def start_app(request):
@@ -207,14 +197,26 @@ def stop_app(request):
 
 @require_POST
 def uninstall_app(request):
+    """
+    Borra completamente el módulo desde el Hub:
+    - tumba el compose
+    - elimina contenedores, imágenes, volúmenes y orphans del compose
+    - elimina el registro de la BD
+    - elimina la carpeta completa del plugin
+    """
     folder = request.POST.get("manifest_folder_name")
     path = get_compose_path(folder)
+
     try:
-        _compose_down_full(path)
-        AvailableApp.objects.filter(folder_name=folder).update(is_installed=False)
-        messages.warning(request, f"Módulo {folder} desinstalado y limpiado.")
+        if os.path.exists(path):
+            _compose_down_full(path)
+
+        AvailableApp.objects.filter(folder_name=folder).delete()
+        _delete_plugin_folder(folder)
+
+        messages.warning(request, f"Módulo {folder} eliminado completamente del sistema.")
     except Exception as e:
-        messages.error(request, f"Error al desinstalar: {str(e)}")
+        messages.error(request, f"Error al eliminar el módulo: {str(e)}")
     return redirect("get_apps")
 
 

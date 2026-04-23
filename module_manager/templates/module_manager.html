@@ -186,7 +186,6 @@
             padding: 28px 28px 80px;
         }
 
-        /* ─── TOOLBAR ─── */
         /* ─── FILTER BAR ─── */
         .filter-bar {
             display: flex;
@@ -307,7 +306,6 @@
             color: var(--text-dim);
         }
 
-
         .apps-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -316,6 +314,7 @@
 
         /* ─── APP CARD ─── */
         .app-card {
+            position: relative;
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
@@ -330,6 +329,39 @@
         .app-card:hover {
             border-color: #484848;
             box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
+        }
+
+        /* botón eliminar superior */
+        .card-delete-form {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 3;
+            margin: 0;
+        }
+
+        .btn-card-delete {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(18,18,18,0.78);
+            backdrop-filter: blur(8px);
+            color: var(--text-dim);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .btn-card-delete:hover {
+            color: #ff8a8a;
+            border-color: var(--red-border);
+            background: rgba(232,24,12,0.10);
         }
 
         /* Status strip at top */
@@ -349,6 +381,7 @@
             display: flex;
             gap: 14px;
             align-items: flex-start;
+            padding-right: 58px;
         }
 
         .card-logo-wrap {
@@ -935,8 +968,21 @@
             <div class="app-card"
                 data-name="{{ app.display_name|lower }}"
                 data-state="{% if not app.is_installed %}fresh{% elif app.is_running %}running{% else %}stopped{% endif %}">
-                <!-- Color strip at top indicates state -->
+                
                 <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
+
+                <form method="post" action="{% url 'uninstall_app' %}" class="card-delete-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                    <button
+                        type="button"
+                        class="btn-card-delete"
+                        title="Borrar módulo"
+                        onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')"
+                    >
+                        🗑
+                    </button>
+                </form>
 
                 <div class="card-header">
                     <div class="card-logo-wrap">
@@ -1002,7 +1048,7 @@
                     </form>
                     <div class="icon-row-2">
                         <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                        <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
+                        <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
                     </div>
                     {% endif %}
                 </div>
@@ -1073,15 +1119,15 @@
     <!-- ─── CONFIRM UNINSTALL MODAL ─── -->
     <div id="confirmModal" class="modal-overlay">
         <div class="confirm-box">
-            <div class="confirm-title">¿Desinstalar módulo?</div>
-            <p class="confirm-desc">Esta acción eliminará los contenedores, imágenes y volúmenes del módulo. No se puede deshacer.</p>
+            <div class="confirm-title">¿Borrar módulo?</div>
+            <p class="confirm-desc">Esta acción detendrá y eliminará completamente el módulo, incluyendo contenedores, imágenes, volúmenes y la carpeta local. No se puede deshacer.</p>
             <div class="confirm-module" id="confirmModuleName">—</div>
             <form method="post" action="{% url 'uninstall_app' %}" id="confirmForm">
                 {% csrf_token %}
                 <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
                 <div class="confirm-actions">
                     <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
-                    <button type="submit" class="btn-confirm-danger">Sí, desinstalar</button>
+                    <button type="submit" class="btn-confirm-danger">Sí, borrar</button>
                 </div>
             </form>
         </div>
