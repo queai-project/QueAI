@@ -7,6 +7,7 @@ urlpatterns = [
     path('start/', views.start_app, name='start_app'),
     path('stop/', views.stop_app, name='stop_app'),
     path('uninstall/', views.uninstall_app, name='uninstall_app'),
+    path('delete/', views.delete_app, name='delete_app'),
     path('logo/<str:plugin_name>/<str:filename>', views.plugin_logo, name='plugin_logo'),
     path('logs/<str:folder_name>/', views.app_logs, name='app_logs'),
     path('get_env/<str:folder_name>/', views.get_env_config, name='get_env_config'),

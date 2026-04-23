@@ -45,7 +45,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ─── HEADER ─── */
         header {
             position: sticky;
             top: 0;
@@ -137,11 +136,13 @@
             border-radius: 20px;
             margin-left: 8px;
         }
+
         .queai-version {
             font-size: 14px;
             font-family: 'DM Mono', monospace;
             color: var(--text-dim);
         }
+
         .docker-dot {
             width: 6px; height: 6px;
             border-radius: 50%;
@@ -151,7 +152,6 @@
 
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-        /* ─── MESSAGES ─── */
         .messages {
             max-width: 1200px;
             margin: 0 auto;
@@ -183,14 +183,12 @@
 
         .msg-icon { font-size: 15px; flex-shrink: 0; }
 
-        /* ─── CONTENT ─── */
         .content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 28px 28px 80px;
         }
 
-        /* ─── FILTER BAR ─── */
         .filter-bar {
             display: flex;
             align-items: center;
@@ -288,7 +286,6 @@
             align-self: center;
         }
 
-        /* Empty filter state */
         .filter-empty {
             display: none;
             grid-column: 1/-1;
@@ -316,7 +313,6 @@
             gap: 18px;
         }
 
-        /* ─── APP CARD ─── */
         .app-card {
             position: relative;
             background: var(--bg-card);
@@ -335,7 +331,6 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
         }
 
-        /* botón eliminar superior */
         .card-delete-form {
             position: absolute;
             top: 12px;
@@ -368,7 +363,6 @@
             background: rgba(232,24,12,0.10);
         }
 
-        /* Status strip at top */
         .card-strip {
             height: 4px;
             background: var(--border-subtle);
@@ -379,7 +373,6 @@
         .card-strip.stopped  { background: #f59e0b; }
         .card-strip.fresh    { background: var(--border-subtle); }
 
-        /* Card header */
         .card-header {
             padding: 20px 20px 14px;
             display: flex;
@@ -412,7 +405,6 @@
 
         .card-logo-ph { font-size: 22px; color: var(--text-dim); }
 
-        /* Status badge — inline next to module name */
         .state-badge {
             display: inline-flex;
             align-items: center;
@@ -477,7 +469,6 @@
             color: var(--text-dim);
         }
 
-        /* Card body */
         .card-body {
             padding: 0 20px 16px;
             flex: 1;
@@ -493,7 +484,6 @@
             overflow: hidden;
         }
 
-        /* Card actions */
         .card-actions {
             padding: 14px 20px 18px;
             border-top: 1px solid var(--border-subtle);
@@ -502,7 +492,6 @@
             gap: 8px;
         }
 
-        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -541,7 +530,6 @@
         }
         .btn-green:hover { background: rgba(34,197,94,0.16); }
 
-        /* Icon row */
         .icon-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -586,7 +574,6 @@
             color: var(--red);
         }
 
-        /* ─── EMPTY STATE ─── */
         .empty-state {
             grid-column: 1/-1;
             padding: 80px 24px;
@@ -615,7 +602,6 @@
             text-decoration: none;
         }
 
-        /* ─── MODAL OVERLAY ─── */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -630,7 +616,6 @@
 
         .modal-overlay.open { display: flex; }
 
-        /* ─── APP MODAL ─── */
         #appModal {
             align-items: stretch;
             padding: 14px;
@@ -679,7 +664,6 @@
 
         .btn-modal-close:hover { border-color: #555; color: var(--text); }
 
-        /* ─── LOGS MODAL ─── */
         .logs-box {
             background: #0e0e0e;
             border: 1px solid #1f2a1f;
@@ -723,7 +707,6 @@
             word-break: break-all;
         }
 
-        /* ─── CONFIG MODAL ─── */
         .config-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -821,7 +804,6 @@
         .btn-sm-save:hover { opacity: 0.88; }
         .btn-sm-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ─── CONFIRM MODAL ─── */
         .confirm-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -899,7 +881,6 @@
 
         .btn-confirm-danger:hover { opacity: 0.88; }
 
-        /* Animations */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -922,17 +903,15 @@
                 </div>
                 {% endif %}
             <span class="page-title">App Store</span>
-            
         </div>
-            <div class="header-nav">
-                <a href="/marketplace/">Marketplace</a>
-                <a href="/monitor/">Monitor</a>
-
-                <div class="docker-pill">
-                    <div class="docker-dot"></div>
-                    Docker activo
-                </div>
+        <div class="header-nav">
+            <a href="/marketplace/">Marketplace</a>
+            <a href="/monitor/">Monitor</a>
+            <div class="docker-pill">
+                <div class="docker-dot"></div>
+                Docker activo
             </div>
+        </div>
     </header>
 
     {% if messages %}
@@ -982,14 +961,14 @@
                 
                 <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
 
-                <form method="post" action="{% url 'uninstall_app' %}" class="card-delete-form">
+                <form method="post" action="{% url 'delete_app' %}" class="card-delete-form">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
                     <button
                         type="button"
                         class="btn-card-delete"
                         title="Borrar módulo"
-                        onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')"
+                        onclick="confirmDelete('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')"
                     >
                         🗑
                     </button>
@@ -1027,7 +1006,6 @@
 
                 <div class="card-actions">
                     {% if not app.is_installed %}
-                    <!-- NOT INSTALLED -->
                     <form method="post" action="{% url 'install_app' %}">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
@@ -1035,7 +1013,6 @@
                     </form>
 
                     {% elif app.is_running %}
-                    <!-- RUNNING -->
                     <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn btn-outline">
                         ↗ Abrir aplicación
                     </button>
@@ -1051,7 +1028,6 @@
                     </div>
 
                     {% else %}
-                    <!-- STOPPED / INSTALLED BUT NOT RUNNING -->
                     <form method="post" action="{% url 'start_app' %}">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
@@ -1059,7 +1035,7 @@
                     </form>
                     <div class="icon-row-2">
                         <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                        <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
+                        <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
                     </div>
                     {% endif %}
                 </div>
@@ -1072,7 +1048,6 @@
             </div>
             {% endfor %}
 
-            <!-- Empty state when filters return nothing -->
             <div class="filter-empty" id="filterEmpty">
                 <div class="filter-empty-icon">🔍</div>
                 <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
@@ -1080,7 +1055,6 @@
         </div>
     </div>
 
-    <!-- ─── APP MODAL ─── -->
     <div id="appModal" class="modal-overlay">
         <div class="app-modal-box">
             <div class="modal-topbar">
@@ -1095,7 +1069,6 @@
         </div>
     </div>
 
-    <!-- ─── LOGS MODAL ─── -->
     <div id="logsModal" class="modal-overlay">
         <div class="logs-box">
             <div class="logs-topbar">
@@ -1106,7 +1079,6 @@
         </div>
     </div>
 
-    <!-- ─── CONFIG MODAL ─── -->
     <div id="configModal" class="modal-overlay">
         <div class="config-box">
             <div class="config-topbar">
@@ -1127,18 +1099,17 @@
         </div>
     </div>
 
-    <!-- ─── CONFIRM UNINSTALL MODAL ─── -->
     <div id="confirmModal" class="modal-overlay">
         <div class="confirm-box">
-            <div class="confirm-title">¿Borrar módulo?</div>
-            <p class="confirm-desc">Esta acción detendrá y eliminará completamente el módulo, incluyendo contenedores, imágenes, volúmenes y la carpeta local. No se puede deshacer.</p>
+            <div class="confirm-title" id="confirmTitle">¿Confirmar acción?</div>
+            <p class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</p>
             <div class="confirm-module" id="confirmModuleName">—</div>
-            <form method="post" action="{% url 'uninstall_app' %}" id="confirmForm">
+            <form method="post" action="" id="confirmForm">
                 {% csrf_token %}
                 <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
                 <div class="confirm-actions">
                     <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
-                    <button type="submit" class="btn-confirm-danger">Sí, borrar</button>
+                    <button type="submit" class="btn-confirm-danger" id="confirmSubmitText">Confirmar</button>
                 </div>
             </form>
         </div>
@@ -1147,18 +1118,52 @@
     <script src="{% static 'js/apps.js' %}"></script>
 
     <script>
-        // Confirm uninstall
-        function confirmUninstall(folder, name) {
+        function openConfirmModal({ title, description, actionUrl, submitText, folder, name }) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmDesc').textContent = description;
+            document.getElementById('confirmForm').action = actionUrl;
+            document.getElementById('confirmSubmitText').textContent = submitText;
             document.getElementById('confirmFolderInput').value = folder;
             document.getElementById('confirmModuleName').textContent = name + ' (' + folder + ')';
             document.getElementById('confirmModal').classList.add('open');
+        }
+
+        function confirmUninstall(folder, name) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = "{% url 'uninstall_app' %}";
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'manifest_folder_name';
+            input.value = folder;
+
+            form.appendChild(csrf);
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function confirmDelete(folder, name) {
+            openConfirmModal({
+                title: '¿Borrar este módulo?',
+                description: 'Se eliminará por completo de tu equipo. Esta acción no se puede deshacer.',
+                actionUrl: "{% url 'delete_app' %}",
+                submitText: 'Sí, borrar',
+                folder,
+                name
+            });
         }
 
         function closeConfirm() {
             document.getElementById('confirmModal').classList.remove('open');
         }
 
-        // Close modals on backdrop click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1169,13 +1174,12 @@
                 }
             });
         });
-        // ─── FILTER LOGIC ───
+
         let activeFilter = 'all';
 
         function setFilter(filter, btn) {
             activeFilter = filter;
 
-            // Update pill styles
             document.querySelectorAll('.filter-pill').forEach(p => {
                 p.classList.remove('active', 'all', 'run', 'stop', 'fresh');
             });
@@ -1208,7 +1212,6 @@
                 }
             });
 
-            // Update count
             const total = cards.length;
             const countEl = document.getElementById('filterCount');
             if (visible === total) {
@@ -1217,7 +1220,6 @@
                 countEl.textContent = `${visible} de ${total}`;
             }
 
-            // Toggle filter-empty state
             const emptyEl = document.getElementById('filterEmpty');
             const termEl  = document.getElementById('filterEmptyTerm');
             if (visible === 0 && total > 0) {

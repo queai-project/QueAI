@@ -330,9 +330,27 @@ def stop_app(request):
         messages.error(request, f"Error al detener: {str(e)}")
     return redirect("get_apps")
 
-
 @require_POST
 def uninstall_app(request):
+    """
+    Desinstala el módulo pero NO borra su carpeta local.
+    El módulo seguirá apareciendo en el Hub como disponible/sin instalar.
+    """
+    folder = request.POST.get("manifest_folder_name")
+    path = get_compose_path(folder)
+
+    try:
+        if os.path.exists(path):
+            _compose_down_full(path)
+
+        AvailableApp.objects.filter(folder_name=folder).update(is_installed=False)
+        messages.warning(request, f"Módulo {folder} desinstalado.")
+    except Exception as e:
+        messages.error(request, f"Error al desinstalar el módulo: {str(e)}")
+    return redirect("get_apps")
+
+@require_POST
+def delete_app(request):
     """
     Borra completamente el módulo desde el Hub:
     - tumba el compose
