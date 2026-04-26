@@ -1,21 +1,11 @@
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Cargar primero .env; si no existe, usar .env.example
-env_path = BASE_DIR / ".env"
-env_example_path = BASE_DIR / ".env.example"
-
-if env_path.exists():
-    load_dotenv(env_path)
-elif env_example_path.exists():
-    load_dotenv(env_example_path)
-
 PLUGINS_DIR = BASE_DIR / os.getenv('PLUGINS_DIR', 'plugins')
-QUEAI_VERSION = os.getenv('QUEAI_VERSION', '').strip()
+QUEAI_VERSION = os.getenv('VERSION', '').strip()
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
