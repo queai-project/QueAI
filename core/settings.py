@@ -5,6 +5,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 PLUGINS_DIR = BASE_DIR / os.getenv('PLUGINS_DIR', 'plugins')
+if not PLUGINS_DIR.exists():
+    PLUGINS_DIR.mkdir(parents=True, exist_ok=True)
 QUEAI_VERSION = os.getenv('VERSION', '').strip()
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key')
