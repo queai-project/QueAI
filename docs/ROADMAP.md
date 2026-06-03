@@ -169,9 +169,9 @@ D.1 — Logs SSE
 D.4 — Backup / restore light
 - [x] Módulo `core.backup` con `build_backup()`, `restore_to_staging()`, `apply_restore()`.
 - [x] Tar.gz contiene `metadata.json` + `db.sqlite3` + `.env` del kernel + `plugins/<folder>/.env`. NO incluye carpetas de plugins ni runtimes (decisión: "light").
-- [x] Endpoints: `GET /api/v1/backup`, `POST /api/v1/restore` (multipart), `POST /api/v1/restore/apply`.
-- [x] Endpoint UI con sesión `GET /backup` accesible desde `/account/` con botón de descarga.
+- [x] Endpoints: `GET /api/v1/backup`, `POST /api/v1/restore` (multipart), `POST /api/v1/restore/apply` (sólo con bearer token).
 - [x] CLI: `queai backup <dest>` y `queai restore <src> [--apply]`.
+- [x] **Decisión 2026-06-03**: backup/restore disponibles **solo desde CLI**, no desde la UI web. Razón: operación delicada, mejor mantenerla fuera del flujo casual del browser.
 - [x] `apply_restore()` guarda `db.sqlite3.pre-restore` y `.env.pre-restore` como red de seguridad. Requiere `docker compose restart django-kernel` después porque Django mantiene el handle de la BD abierto — documentado en el response.
 
 Tests / lint

@@ -6,7 +6,6 @@ from django.urls import include, path
 from .views import (
     account_view,
     audit_view,
-    backup_view,
     health_view,
     home_view,
     welcome_dismiss,
@@ -27,7 +26,6 @@ urlpatterns = [
     path("welcome/", welcome_view, name="welcome"),
     path("welcome/dismiss/", welcome_dismiss, name="welcome_dismiss"),
     path("audit/", audit_view, name="audit"),
-    path("backup", backup_view, name="backup"),
     path("admin/", admin.site.urls),
     path("manager/", include("module_manager.urls")),
     path("marketplace/", include("marketplace.urls")),

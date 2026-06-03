@@ -35,20 +35,6 @@ def welcome_dismiss(request: HttpRequest):
 
 
 @login_required
-def backup_view(request: HttpRequest):
-    """Descarga del backup con auth de sesión (UI)."""
-    from django.http import HttpResponse
-
-    from . import backup as backup_module
-
-    payload = backup_module.build_backup()
-    response = HttpResponse(payload, content_type="application/gzip")
-    response["Content-Disposition"] = f'attachment; filename="{backup_module.backup_filename()}"'
-    response["Content-Length"] = str(len(payload))
-    return response
-
-
-@login_required
 def audit_view(request: HttpRequest):
     """Tabla de audit log con filtros + paginación."""
     qs = AuditEvent.objects.select_related("user")
