@@ -11,6 +11,7 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from core import healthcheck as hc_module
 from core.audit import record as audit_record
 
 from .models import AvailableApp
@@ -336,6 +337,7 @@ def install_app(request):
         )
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=True)
         _invalidate_running_cache(folder)
+        hc_module.mark_starting(folder)
         messages.success(request, f"Módulo {folder} instalado y activado.")
     except Exception as e:
         messages.error(request, f"Error al instalar: {str(e)}")
@@ -351,6 +353,7 @@ def start_app(request):
         compose_cmd = _get_compose_command()
         subprocess.run(compose_cmd + ["-f", path, "start"], check=True)
         _invalidate_running_cache(folder)
+        hc_module.mark_starting(folder)
         messages.success(request, f"Módulo {folder} reanudado.")
     except Exception as e:
         messages.error(request, f"Error al iniciar: {str(e)}")
@@ -540,6 +543,7 @@ def save_env_config(request):
                 check=True
             )
             _invalidate_running_cache(folder_name)
+            hc_module.mark_starting(folder_name)
             messages.success(request, f"Configuración de {folder_name} actualizada y aplicada.")
 
         return JsonResponse({"status": "ok"})

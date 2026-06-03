@@ -165,6 +165,7 @@ def plugin_install(request: HttpRequest, folder_name: str):
         )
         AvailableApp.objects.filter(folder_name=real).update(is_installed=True)
         _invalidate_running_cache(real)
+        healthcheck.mark_starting(real)
     except subprocess.CalledProcessError as e:
         return _server_error(f"docker compose up falló: {e}")
     return _ok({"status": "installed", "folder_name": real}, status=202)
@@ -183,6 +184,7 @@ def plugin_start(request: HttpRequest, folder_name: str):
     try:
         subprocess.run(_get_compose_command() + ["-f", path, "start"], check=True)
         _invalidate_running_cache(real)
+        healthcheck.mark_starting(real)
     except subprocess.CalledProcessError as e:
         return _server_error(f"docker compose start falló: {e}")
     return _ok({"status": "started", "folder_name": real})
@@ -399,9 +401,29 @@ def _compute_healthcheck(app) -> dict:
         return {"folder_name": real, "healthy": None, "error": "no_healthcheck_endpoint", "checked_at": None}
 
     if not app.is_installed or not _is_app_running_cached(real):
+        # Si el container está parado, ya no estamos arrancando.
+        healthcheck.clear_starting(real)
         return {"folder_name": real, "healthy": False, "error": "not_running", "checked_at": int(time.time())}
 
     result = healthcheck.cached_probe(real, endpoint_path)
+
+    # Si la app aún no responde pero estamos dentro del grace de arranque,
+    # reportamos "starting" en vez de "down" para que el usuario no piense
+    # que el módulo está roto durante el boot inicial del contenedor.
+    if not result.get("healthy") and healthcheck.is_starting(real):
+        return {
+            "folder_name": real,
+            "healthy": None,
+            "error": "starting",
+            "checked_at": int(time.time()),
+            "latency_ms": result.get("latency_ms"),
+            "status_code": result.get("status_code"),
+        }
+
+    # Si responde sano, cancelamos la marca de starting.
+    if result.get("healthy"):
+        healthcheck.clear_starting(real)
+
     return {**result, "folder_name": real}
 
 
@@ -574,6 +596,7 @@ def plugin_env(request: HttpRequest, folder_name: str):
                 check=True,
             )
             _invalidate_running_cache(real)
+            healthcheck.mark_starting(real)
         except subprocess.CalledProcessError as e:
             return _server_error(f".env guardado pero falló el recreate: {e}")
 

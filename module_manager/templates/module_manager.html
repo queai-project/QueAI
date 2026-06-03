@@ -72,13 +72,12 @@
     .filter-empty {
         display: none;
         grid-column: 1/-1;
-        padding: 60px 24px;
+        padding: 36px 24px;
         text-align: center;
     }
     .filter-empty.visible { display: block; }
-    .filter-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
-    .filter-empty p { font-size: 15px; color: var(--text-muted); }
-    .filter-empty span { font-family: 'DM Mono', monospace; color: var(--text-dim); }
+    .filter-empty p { font-size: 13.5px; color: var(--text-dim); }
+    .filter-empty span { font-family: 'DM Mono', monospace; color: var(--text); }
 
     .apps-grid {
         display: grid;
@@ -158,7 +157,10 @@
     .health-pill .h-dot { display: none; }
     .health-pill[data-state="healthy"]   { color: var(--ok); }
     .health-pill[data-state="unhealthy"] { color: var(--warn); }
+    .health-pill[data-state="starting"]  { color: var(--warn); }
+    .health-pill[data-state="starting"]  { animation: hc-pulse 1.4s ease-in-out infinite; }
     .health-pill[data-state="loading"]   { color: var(--text-dim); }
+    @keyframes hc-pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
 
     .card-body { padding: 0 18px 14px; flex: 1; }
     .card-desc {
@@ -527,7 +529,6 @@
         {% endfor %}
 
         <div class="filter-empty" id="filterEmpty">
-            <div class="filter-empty-icon">🔍</div>
             <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
         </div>
     </div>
@@ -678,18 +679,29 @@
 
     // ───── Healthcheck polling ─────
     const HEALTH_INTERVAL_MS = 8000;
+    const HEALTH_INTERVAL_FAST_MS = 2000;   // cuando hay alguno arrancando.
+    let _healthTimer = null;
 
     function setHealthPill(pill, payload) {
         const label = pill.querySelector('.h-label');
         const healthy = payload && payload.healthy;
         const err = payload && payload.error;
 
-        // healthy=null → no hay endpoint o manifest → no se muestra nada.
-        if (healthy === null || err === 'no_healthcheck_endpoint' || err === 'manifest_missing') {
+        // Casos donde simplemente ocultamos el pill (no aplica healthcheck).
+        if (err === 'no_healthcheck_endpoint' || err === 'manifest_missing') {
             pill.hidden = true;
             return;
         }
         pill.hidden = false;
+
+        // Grace tras install/start/save_env: el container está vivo pero la
+        // app aún no responde. Mostramos "iniciando" en vez de "down".
+        if (err === 'starting') {
+            pill.dataset.state = 'starting';
+            label.textContent = '· iniciando…';
+            pill.title = 'El contenedor está arrancando, esperando respuesta del healthcheck.';
+            return;
+        }
 
         if (err === 'not_running') {
             pill.dataset.state = 'unhealthy';
@@ -709,7 +721,11 @@
             pill.dataset.state = 'unhealthy';
             label.textContent = '· ' + (payload.error === 'timeout' ? 'timeout' : 'down');
             pill.title = payload.error || 'unhealthy';
+            return;
         }
+
+        // healthy=null sin error reconocido → ocultar.
+        pill.hidden = true;
     }
 
     async function pollHealth(pill) {
@@ -728,17 +744,22 @@
         }
     }
 
-    function tickHealth() {
-        document.querySelectorAll('.health-pill').forEach(pollHealth);
+    async function tickHealth() {
+        const pills = Array.from(document.querySelectorAll('.health-pill'));
+        await Promise.all(pills.map(pollHealth));
+        rescheduleHealth();
+    }
+
+    function rescheduleHealth() {
+        const anyStarting = document.querySelector('.health-pill[data-state="starting"]');
+        const delay = anyStarting ? HEALTH_INTERVAL_FAST_MS : HEALTH_INTERVAL_MS;
+        clearTimeout(_healthTimer);
+        _healthTimer = setTimeout(tickHealth, delay);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Estado inicial discreto.
-        document.querySelectorAll('.health-pill').forEach(pill => {
-            pill.hidden = true;
-        });
+        document.querySelectorAll('.health-pill').forEach(pill => { pill.hidden = true; });
         tickHealth();
-        setInterval(tickHealth, HEALTH_INTERVAL_MS);
     });
 
     // Refresh asíncrono del catálogo

@@ -87,6 +87,9 @@ QUEAI_INTERNAL_TRAEFIK_URL = os.getenv("QUEAI_INTERNAL_TRAEFIK_URL", "http://tra
 # --- Healthcheck por plugin ------------------------------------------------
 QUEAI_HEALTHCHECK_TIMEOUT = float(os.getenv("QUEAI_HEALTHCHECK_TIMEOUT", "3"))
 QUEAI_HEALTHCHECK_CACHE_TTL = int(os.getenv("QUEAI_HEALTHCHECK_CACHE_TTL", "5"))
+# Grace period tras install/start/save_env durante el cual una respuesta
+# fallida del healthcheck se reporta como "starting" en vez de "down".
+QUEAI_STARTING_GRACE_SECONDS = int(os.getenv("QUEAI_STARTING_GRACE_SECONDS", "60"))
 
 # --- Audit log -------------------------------------------------------------
 # Cuando AuditEvent.objects.count() supera MAX_EVENTS, se borran los

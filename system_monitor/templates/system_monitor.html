@@ -70,8 +70,13 @@
 
     .status-pill { display: none; }  /* eliminado el pill — el dot ya transmite el estado */
 
-    .card-metrics { padding: 6px 18px 14px; display: flex; flex-direction: column; gap: 14px; }
-    .metric-row { display: flex; flex-direction: column; gap: 6px; }
+    .card-metrics {
+        padding: 6px 18px 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+    }
+    .metric-row { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .metric-label-row { display: flex; align-items: baseline; justify-content: space-between; }
     .metric-name {
         font-size: 11px;

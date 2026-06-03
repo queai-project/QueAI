@@ -14,6 +14,25 @@ from django.conf import settings
 from django.core.cache import cache
 
 CACHE_PREFIX = "queai:hc:"
+STARTING_PREFIX = "queai:starting:"
+
+
+def mark_starting(folder_name: str):
+    """Marca el plugin como 'arrancando' por QUEAI_STARTING_GRACE_SECONDS."""
+    grace = getattr(settings, "QUEAI_STARTING_GRACE_SECONDS", 60)
+    if grace > 0:
+        cache.set(f"{STARTING_PREFIX}{folder_name}", True, grace)
+        # También limpiamos el cache del último resultado para que se
+        # vuelva a probar inmediatamente.
+        cache.delete(f"{CACHE_PREFIX}{folder_name}")
+
+
+def is_starting(folder_name: str) -> bool:
+    return bool(cache.get(f"{STARTING_PREFIX}{folder_name}"))
+
+
+def clear_starting(folder_name: str):
+    cache.delete(f"{STARTING_PREFIX}{folder_name}")
 
 
 def probe(folder_name: str, endpoint_path: str) -> dict:

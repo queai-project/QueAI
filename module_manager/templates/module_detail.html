@@ -239,36 +239,12 @@
     </div>
 
     <div class="tabs" role="tablist">
-        <button class="tab active" data-tab="overview">Overview</button>
-        <button class="tab" data-tab="env" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>.env</button>
+        <button class="tab {% if app.is_installed %}active{% endif %}" data-tab="env" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>.env</button>
         <button class="tab" data-tab="logs" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>Logs</button>
-        <button class="tab" data-tab="danger">Avanzado</button>
+        <button class="tab {% if not app.is_installed %}active{% endif %}" data-tab="danger">Avanzado</button>
     </div>
 
-    <div class="tab-content active" id="tab-overview">
-        {% if app.is_installed and app.is_running and app.ui_entry_point %}
-        <div class="iframe-wrap">
-            <iframe src="{{ app.ui_entry_point }}" title="{{ app.display_name }}"></iframe>
-        </div>
-        {% elif app.is_installed and not app.is_running %}
-        <div class="panel">
-            <h3>Módulo detenido</h3>
-            <p style="color:var(--text-muted);font-size:13.5px;">
-                El contenedor está parado. Inícialo desde el
-                <a href="{% url 'get_apps' %}" style="color:var(--red);text-decoration:none">Hub</a> para abrir su interfaz.
-            </p>
-        </div>
-        {% elif not app.is_installed %}
-        <div class="panel">
-            <h3>Aún no instalado</h3>
-            <p style="color:var(--text-muted);font-size:13.5px;">
-                Instálalo desde el <a href="{% url 'get_apps' %}" style="color:var(--red);text-decoration:none">Hub</a> para ver su UI aquí.
-            </p>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="tab-content" id="tab-env">
+    <div class="tab-content {% if app.is_installed %}active{% endif %}" id="tab-env">
         <div class="panel">
             <h3>.env del módulo</h3>
             <textarea id="detailEnv" spellcheck="false" placeholder="# Cargando…"></textarea>
@@ -294,7 +270,7 @@
         </div>
     </div>
 
-    <div class="tab-content" id="tab-danger">
+    <div class="tab-content {% if not app.is_installed %}active{% endif %}" id="tab-danger">
         <div class="panel danger-panel">
             <h3>Zona avanzada</h3>
             <p style="color:var(--text-muted);font-size:13px;line-height:1.55;">
@@ -348,6 +324,12 @@
             if (name === 'logs') loadDetailLogs();
             if (name === 'env')  loadDetailEnv();
         });
+    });
+
+    // Cargar .env eager si es la pestaña activa al entrar (módulo instalado).
+    document.addEventListener('DOMContentLoaded', () => {
+        const active = document.querySelector('.tab.active');
+        if (active && active.dataset.tab === 'env') loadDetailEnv();
     });
 
     async function loadDetailEnv() {
