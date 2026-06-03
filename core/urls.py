@@ -22,6 +22,7 @@ urlpatterns = [
     path("manager/", include("module_manager.urls")),
     path("marketplace/", include("marketplace.urls")),
     path("monitor/", include("system_monitor.urls")),
+    path("api/v1/", include("core.api.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

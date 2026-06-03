@@ -1,7 +1,7 @@
 # Roadmap QueAI hacia v1.0 (lanzamiento Open Source)
 
 > Documento de planificación. Vivo — actualizar conforme se avance.
-> Última revisión: 2026-06-03 (Fase 0 + alineación + Fase 1 + **Fase 2 bloque A completados**).
+> Última revisión: 2026-06-03 (Fase 0 + alineación + Fase 1 + **Fase 2 bloques A + C completados**).
 
 ## Contexto
 
@@ -138,11 +138,14 @@ Trabajo adicional ejecutado después de Fase 0 para cerrar la brecha entre lo qu
 - [x] **Vista de detalle por plugin** `/manager/app/<folder>/` con tabs Overview (iframe del módulo) / `.env` (editor) / Logs (lectura asíncrona). El link está en el header de cada card del catálogo.
 - [x] 2 nuevos tests para el wizard (13 totales pasando), ruff limpio.
 
-#### Bloque C — API REST + CLI `queai` (pendiente)
-- [ ] Endpoints REST bajo `/api/v1/`: `GET /plugins/`, `POST /install/`, `/start/`, `/stop/`, `/uninstall/`, `GET /stats/<folder>/`, `GET /health`.
-- [ ] Auth por bearer token único (`QUEAI_API_TOKEN` desde env o autogenerado).
-- [ ] OpenAPI schema en `/api/v1/openapi.json` + Swagger UI en `/api/v1/docs`.
-- [ ] CLI `queai` (Python, pipx): `list`, `install`, `start`, `logs`, `stats`. Config en `~/.config/queai/config.toml`.
+#### Bloque C — API REST + CLI `queai` ✅ COMPLETADA (2026-06-03)
+- [x] **Token único `QUEAI_API_TOKEN`** desde `.env`. Si está vacío y `DEBUG=True` se autogenera por sesión; si `DEBUG=False` el kernel se niega a arrancar.
+- [x] Decorator `@api_token_required` con `hmac.compare_digest` (timing-safe).
+- [x] **Endpoints REST** bajo `/api/v1/` (14 + meta): catálogo, lifecycle (install/start/stop/uninstall/delete), logs, stats, env (GET/PUT), marketplace (lista + download), health, openapi.json, docs.
+- [x] **OpenAPI 3.0** construido a mano en `core/api/openapi.py` (sin DRF). Swagger UI cargado desde `unpkg`.
+- [x] **CLI `queai`** en `cli/`: paquete Python con `pyproject.toml`, comandos `login`/`logout`/`list`/`show`/`install`/`start`/`stop`/`uninstall`/`delete`/`logs`/`stats`/`env [--edit]`/`marketplace`/`download`/`health`. Config en `~/.config/queai/config.toml` con permisos 0600.
+- [x] **9 tests nuevos del API** (22 totales pasando): auth (token correcto/inválido/ausente), health/openapi públicos, plugins list/detail, lifecycle install/stop.
+- [x] Excluido `cli/*` del ruff del kernel (la CLI mantiene su propio `requires-python`).
 
 #### Bloque D — Operación y observabilidad (pendiente)
 - [ ] Logs en tiempo real por SSE (sustituye el tail estático actual).

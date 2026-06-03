@@ -9,6 +9,7 @@ exclude = [
     "*/migrations/*",
     "plugins/*",
     "staticfiles",
+    "cli/*",   # la CLI tiene su propio pyproject.toml con requires-python distinto
 ]
 
 [tool.ruff.lint]

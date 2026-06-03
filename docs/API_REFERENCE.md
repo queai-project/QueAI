@@ -4,6 +4,13 @@ Base URL local: `http://localhost:8080` (configurable vía `QUEAI_PORT`).
 
 Las URLs están organizadas por la app Django que las sirve. La **fuente de verdad** de las rutas son los `urls.py` de cada app (`core/urls.py`, `module_manager/urls.py`, `marketplace/urls.py`, `system_monitor/urls.py`).
 
+## Dos superficies de API
+
+El kernel expone dos superficies distintas:
+
+1. **UI web** (todo lo siguiente) — auth por sesión Django, devuelve HTML.
+2. **API REST `/api/v1/`** — auth por bearer token (`QUEAI_API_TOKEN`), devuelve JSON. Pensada para scripts, CI y la CLI `queai`. Documentada al final.
+
 ## Generales (`core/`)
 - `GET /` — Home del kernel (`home.html`).
 - `GET /admin/` — Admin de Django (deshabilitable en producción).
@@ -62,6 +69,53 @@ Las URLs están organizadas por la app Django que las sirve. La **fuente de verd
 
 - `GET /monitor/stats/<folder_name>/`
   - Respuesta JSON con CPU, RAM, red e ID de cada contenedor del módulo. Fuente: `docker ps --filter label=com.docker.compose.project=<folder.lower()>` + `docker stats --no-stream`.
+
+## API REST (`/api/v1/`)
+
+Autenticación con header `Authorization: Bearer <QUEAI_API_TOKEN>` en cada request (excepto health y openapi.json). El token se define en `.env`; si está vacío y `DEBUG=True`, el kernel genera uno efímero por sesión y lo imprime en logs.
+
+UI navegable en `GET /api/v1/docs` (Swagger UI, requiere navegar y luego pulsar **Authorize**). Schema crudo en `GET /api/v1/openapi.json`.
+
+### Meta
+- `GET /api/v1/health` — público. JSON con `status`, `version`, `plugins`.
+- `GET /api/v1/openapi.json` — schema OpenAPI 3.
+- `GET /api/v1/docs` — Swagger UI.
+
+### Catálogo y ciclo de vida
+- `GET  /api/v1/plugins/` — lista todos los plugins con su estado.
+- `GET  /api/v1/plugins/<folder>/` — detalle.
+- `POST /api/v1/plugins/<folder>/install` — `docker compose up --build`. Status 202.
+- `POST /api/v1/plugins/<folder>/start` — inicia el contenedor.
+- `POST /api/v1/plugins/<folder>/stop` — detiene.
+- `POST /api/v1/plugins/<folder>/uninstall` — down con `--rmi all --volumes` (conserva carpeta).
+- `POST /api/v1/plugins/<folder>/delete` — uninstall + borrado de la carpeta del plugin.
+
+### Logs y métricas
+- `GET /api/v1/plugins/<folder>/logs?tail=N` — últimas N líneas (default 150, máx 2000).
+- `GET /api/v1/plugins/<folder>/stats` — CPU/RAM/red por contenedor.
+
+### Configuración
+- `GET /api/v1/plugins/<folder>/env` — lee el `.env` (lo crea desde `.env.example` si no existe).
+- `PUT /api/v1/plugins/<folder>/env` — body JSON `{ "content": "KEY=VAL\n...", "apply": true }`. Si `apply=true`, recrea el contenedor.
+
+### Marketplace
+- `GET  /api/v1/marketplace/` — lista del registry remoto cruzada con estado local.
+- `POST /api/v1/marketplace/download` — body JSON `{ "git_url": "https://..." }`. Status 201 si el clone es exitoso y el manifest válido.
+
+### Códigos de error
+
+| Status | error                  | Significado |
+|--------|------------------------|-------------|
+| 400    | `bad_request`          | Body o query inválidos. |
+| 401    | `unauthorized`         | Falta header Authorization. |
+| 403    | `forbidden`            | Token inválido. |
+| 404    | `not_found`            | Plugin no existe. |
+| 500    | `internal`             | Subprocess falló u otro error servidor. |
+| 503    | `degraded`             | (`/health` cuando la DB no responde). |
+
+### CLI cliente
+
+Ver [`cli/README.md`](../cli/README.md) — `queai login`, `queai list`, `queai install`, etc.
 
 ## Contrato esperado para plugins
 Para interoperar correctamente, cada plugin debería exponer:

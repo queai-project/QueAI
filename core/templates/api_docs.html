@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}API docs{% endblock %}
+{% block page_label %}<span class="page-title">API docs</span>{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+<style>
+    #swagger { background: #fff; padding: 12px 0; }
+    .swagger-host {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 18px 28px 60px;
+    }
+    .api-banner {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin-bottom: 18px;
+        display: flex; gap: 14px; align-items: flex-start;
+    }
+    .api-banner .b-icon { font-size: 22px; }
+    .api-banner code {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 4px;
+        color: var(--text);
+        font-family: 'DM Mono', monospace;
+        font-size: 12.5px;
+    }
+    .api-banner a { color: var(--red); text-decoration: none; }
+    .swagger-card {
+        background: #fff;
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="swagger-host">
+    <div class="api-banner">
+        <div class="b-icon">🔑</div>
+        <div>
+            Click en <strong>Authorize</strong> y pega tu <code>QUEAI_API_TOKEN</code>
+            (lo encuentras en el <code>.env</code> del kernel). Después puedes
+            probar cada endpoint directamente desde esta UI.
+            <br>
+            Schema crudo: <a href="{% url 'api_openapi' %}">/api/v1/openapi.json</a>
+        </div>
+    </div>
+    <div class="swagger-card">
+        <div id="swagger"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+<script>
+    window.addEventListener('load', () => {
+        window.ui = SwaggerUIBundle({
+            url: "{% url 'api_openapi' %}",
+            dom_id: '#swagger',
+            deepLinking: true,
+            presets: [SwaggerUIBundle.presets.apis],
+            persistAuthorization: true,
+            tryItOutEnabled: true,
+        });
+    });
+</script>
+{% endblock %}

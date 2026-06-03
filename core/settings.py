@@ -57,6 +57,27 @@ SECRET_KEY = _secret
 ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", "localhost,127.0.0.1,*")
 CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:8080")
 
+# --- API REST token --------------------------------------------------------
+# El kernel expone /api/v1/ autenticado con un bearer token único.
+# - Si QUEAI_API_TOKEN está en .env, se usa tal cual.
+# - Si está vacío y DEBUG=True, se autogenera por sesión (logueado).
+# - Si está vacío y DEBUG=False, el kernel se niega a arrancar.
+_api_token = os.getenv("QUEAI_API_TOKEN", "").strip()
+if not _api_token:
+    if not DEBUG:
+        raise RuntimeError(
+            "QUEAI_API_TOKEN no está definido. Genera uno con:\n"
+            "  python -c \"import secrets; print(secrets.token_urlsafe(40))\"\n"
+            "y guárdalo en el .env antes de arrancar."
+        )
+    _api_token = secrets.token_urlsafe(40)
+    logger.warning(
+        "DEBUG=True y QUEAI_API_TOKEN ausente: usando un token efímero para esta "
+        "sesión. Mira el valor desde Mi cuenta o regenera. Token: %s",
+        _api_token,
+    )
+QUEAI_API_TOKEN = _api_token
+
 # Endurecimiento extra cuando DEBUG=False (producción / self-host).
 if not DEBUG:
     SESSION_COOKIE_HTTPONLY = True
