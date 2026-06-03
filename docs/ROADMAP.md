@@ -13,7 +13,7 @@ QueAI está en una etapa madura como kernel (descubrir, instalar, ejecutar, moni
 
 | Landing dice | Realidad actual |
 |---|---|
-| `curl -fsSL https://get.queai.dev \| bash` | Dominio/instalador **no existe** todavía. |
+| `curl -fsSL https://get.queai.dev \| bash` | Decisión 2026-06-03: usamos `raw.githubusercontent.com/queai-project/QueAI/main/install.sh` directamente. El dominio bonito queda para futuro. |
 | Dashboard en `localhost:8080` | `:8080` es **Traefik**. El hub está en `localhost/manager/`. |
 | "5+ AI Modules" | Hay **3** en el registry (OCR, STT, TTS). |
 | "Linux · macOS · Windows WSL2" | `install.sh` es **solo Debian/Ubuntu** (`apt-get`). |
@@ -63,7 +63,7 @@ Faltan: `LICENSE` en root del kernel, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `
 
 ### Fase 0 — Cerrar la brecha con la landing ✅ COMPLETADA (2026-06-02)
 
-- [x] **Reescribir `install.sh`** no destructivo: detecta Docker existente, soporta Linux (apt/dnf/yum/pacman) + macOS (brew), opciones `--dry-run`, `--unattended`, `--dir`, `--branch`. Sintaxis verificada y smoke test pasado. **Pendiente**: servirlo desde `get.queai.dev` (DNS + redirect).
+- [x] **Reescribir `install.sh`** no destructivo: detecta Docker existente, soporta Linux (apt/dnf/yum/pacman) + macOS (brew), opciones `--dry-run`, `--unattended`, `--dir`, `--branch`. Sintaxis verificada y smoke test pasado. Servido directamente desde el raw de GitHub.
 - [x] **Alinear puertos**: kernel movido a `:8080` (vía Traefik), Traefik dashboard movido a `:9090`. Ambos configurables (`QUEAI_PORT`, `QUEAI_TRAEFIK_DASHBOARD_PORT`).
 - [x] **Sincronizar docs**: `README.md`, `docs/ARCHITECTURE.md`, `docs/OPERATIONS.md`, `docs/PLUGIN_DEVELOPMENT.md`, `docs/API_REFERENCE.md` con rutas reales (`/manager/`, `/marketplace/`, `/monitor/`) y puerto `:8080`.
 - [x] **Red `odoo_network` → `queai_network`**: migrados kernel + plugins en `plugins/` (OCR, STT, TTS) + repo hermano `QueAI-RAG-LOCAL-MS/` + `QueAI_Plugin_Template/` (template + ejemplo). Quitado `external: true` en el kernel (ahora la crea Compose). ⚠️ Plugins de terceros publicados antes de v1.0 deberán migrar manualmente — documentado en `OPERATIONS.md`.
@@ -75,9 +75,9 @@ Faltan: `LICENSE` en root del kernel, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `
 - `.env.example` reescrito con `QUEAI_PORT`, `QUEAI_TRAEFIK_DASHBOARD_PORT`, `SECRET_KEY`, `ALLOWED_HOSTS` documentados.
 - `core/settings.py`: `SECRET_KEY` default cambiado de `'your-secret-key'` a `'dev-insecure-change-me'`; `ALLOWED_HOSTS` parsea con trim de espacios y default `localhost,127.0.0.1`.
 
-**Deuda residual de Fase 0** (no bloquea Fase 1, pero **sí bloquea publicación pública v1.0**):
-- Configurar `get.queai.dev` para servir el `install.sh` (requiere acceso a DNS del dominio). Sin esto, el comando `curl -fsSL https://get.queai.dev | bash` que aparece en la landing **no funciona**. Alternativa: cambiar la landing al raw de GitHub mientras tanto.
-- Crear el repo `queai-project/QueAI` (el código local apunta a esta URL, falta confirmar que existe en GitHub y migrar el push remoto).
+**Deuda residual de Fase 0** (resueltas):
+- ✅ Comando de instalación: usamos `raw.githubusercontent.com/queai-project/QueAI/main/install.sh` directamente. `get.queai.dev` puede configurarse más adelante como mejora estética (no es bloqueante).
+- ✅ Repo `queai-project/QueAI` confirmado existe y sincronizado con local.
 
 ### Alineación landing ↔ kernel ↔ template ✅ COMPLETADA (2026-06-02)
 
