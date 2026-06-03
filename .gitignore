@@ -1,19 +1,51 @@
+# Entornos virtuales
 venv/
+.venv/
+env/
+
+# Variables de entorno locales
 .env
+.env.local
+.env.*.local
+
+# Bases de datos locales
 db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+*.db
+
+# Bytecode y caches de Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+.python-version
+
+# Tests y coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs y temporales
 *.log
-*.sqlite3
-*.db
 *.bak
 *.swp
-.DS_Store
+
+# Django
+staticfiles/
+media/
+
+# Editores e IDEs
 .idea/
 .vscode/
 *.iml
+.DS_Store
+
+# Scratch local del proyecto
 .scope/
 Img_QueAi/
+
+# Plugins son repos independientes (no se versionan en el kernel)
 plugins/*
+!plugins/.gitkeep
