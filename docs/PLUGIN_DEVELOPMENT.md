@@ -81,7 +81,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ## docker-compose del plugin
 Puntos críticos:
 
-- Conectar a red externa `odoo_network`.
+- Conectar a la red externa **`queai_network`** (la crea el `docker-compose.yml` del kernel).
 - Habilitar Traefik.
 - Definir router con `PathPrefix('/api/<tu_modulo>')`.
 - Definir puerto interno del servicio (`8000`).
@@ -89,14 +89,12 @@ Puntos críticos:
 Ejemplo:
 
 ```yaml
-version: '3.8'
-
 services:
   my_module:
     build: .
     container_name: my_module_service
     networks:
-      - odoo_network
+      - queai_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.my_module.rule=PathPrefix(`/api/my_module`)"
@@ -104,9 +102,11 @@ services:
       - "traefik.http.services.my_module.loadbalancer.server.port=8000"
 
 networks:
-  odoo_network:
+  queai_network:
     external: true
 ```
+
+> No declares `version:` — la directiva está obsoleta en Compose v2 y genera warnings.
 
 ## Variables de entorno
 Si incluyes `.env.example`, el kernel puede usarlo como plantilla al abrir configuración del módulo por primera vez.
@@ -118,13 +118,13 @@ Buenas prácticas:
 - Validar defaults seguros en tiempo de arranque del módulo.
 
 ## Flujo de prueba
-1. Crear estructura del módulo.
-2. Levantar el kernel (`docker compose up -d --build`).
-3. Entrar a `http://localhost/store/`.
+1. Crear estructura del módulo en `plugins/<tu_modulo>/`.
+2. Levantar el kernel: `docker compose up -d --build`.
+3. Entrar a `http://localhost:8080/manager/`.
 4. Verificar que aparece en el catálogo.
-5. Instalar módulo desde UI.
-6. Abrir UI del módulo y endpoint `/health`.
-7. Revisar logs y dashboard de monitoreo.
+5. Instalar el módulo desde la UI.
+6. Abrir UI del módulo (`/api/<modulo>/ui`) y el endpoint `/health`.
+7. Revisar logs y dashboard de monitoreo en `/monitor/`.
 
 ## Checklist de compatibilidad
 Antes de publicar un plugin:

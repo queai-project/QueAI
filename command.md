@@ -1,1 +1,1 @@
-curl -sSL https://raw.githubusercontent.com/alejandrofonsecacuza/QueAI/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/queai-project/QueAI/main/install.sh | bash

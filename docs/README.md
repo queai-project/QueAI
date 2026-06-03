@@ -5,3 +5,4 @@
 - [Guía para crear plugins](./PLUGIN_DEVELOPMENT.md)
 - [Operación y despliegue](./OPERATIONS.md)
 - [Referencia de API del kernel](./API_REFERENCE.md)
+- [Roadmap hacia v1.0 Open Source](./ROADMAP.md)
