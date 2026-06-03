@@ -1,16 +1,22 @@
 
-import subprocess
 import json
-from django.shortcuts import render
+import subprocess
+
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import render
+
 from module_manager.models import AvailableApp
+
+
+@login_required
 def app_stats(request, folder_name):
     """Obtiene métricas de CPU y RAM de los contenedores de una app específica."""
     try:
         # 1. Buscamos los contenedores que pertenecen a este proyecto
         cmd_ids = [
-            "docker", "ps", 
-            "--filter", f"label=com.docker.compose.project={folder_name.lower()}", 
+            "docker", "ps",
+            "--filter", f"label=com.docker.compose.project={folder_name.lower()}",
             "--format", "{{.ID}}"
         ]
         res_ids = subprocess.run(cmd_ids, capture_output=True, text=True)
@@ -22,12 +28,12 @@ def app_stats(request, folder_name):
 
         # 2. Obtenemos las stats
         cmd_stats = [
-            "docker", "stats", "--no-stream", 
+            "docker", "stats", "--no-stream",
             "--format", '{"id":"{{.ID}}","cpu":"{{.CPUPerc}}","mem":"{{.MemUsage}}","net":"{{.NetIO}}"}'
         ] + container_ids
-        
+
         res_stats = subprocess.run(cmd_stats, capture_output=True, text=True)
-        
+
         raw_lines = res_stats.stdout.strip().split('\n')
         # Limpiamos líneas vacías para evitar errores de JSON
         stats_data = [json.loads(line) for line in raw_lines if line.strip()]
@@ -36,14 +42,15 @@ def app_stats(request, folder_name):
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
 
+@login_required
 def stats_dashboard(request):
     """Renderiza la página de monitoreo pasando los datos limpios."""
     # Filtramos las apps instaladas
     apps = AvailableApp.objects.filter(is_installed=True)
     # Lista de nombres de carpetas para el JavaScript
     apps_folders = list(apps.values_list('folder_name', flat=True))
-    
+
     return render(request, "system_monitor.html", {
-        "apps": apps, 
+        "apps": apps,
         "apps_folders": apps_folders
     })

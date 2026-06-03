@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "*/migrations/*",
+    "plugins/*",
+    "staticfiles",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear (subset)
+]
+ignore = [
+    "E501",  # line-too-long (settings.py tiene strings largos)
+    "B008",  # function calls in default args (Django patterns)
+]
+
+[tool.ruff.format]
+quote-style = "double"

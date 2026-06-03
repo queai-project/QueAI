@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
@@ -68,7 +69,7 @@ def _load_local_manifest(folder_name):
     if not os.path.isfile(manifest_path):
         return None
     try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return None
@@ -138,6 +139,7 @@ def _cleanup_existing_plugin_installation(folder_name):
         shutil.rmtree(plugin_path, ignore_errors=False)
 
 
+@login_required
 def marketplace(request):
     """Muestra los plugins disponibles en la nube con estado real local."""
     remote_plugins = []
@@ -183,6 +185,7 @@ def marketplace(request):
     return response
 
 
+@login_required
 @require_POST
 def download_plugin(request):
     """

@@ -5,11 +5,36 @@ import subprocess
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from .models import AvailableApp
+
+RUNNING_CACHE_TTL = 5  # segundos
+RUNNING_CACHE_PREFIX = "queai:running:"
+
+
+def _invalidate_running_cache(folder_name: str | None = None):
+    """Invalida el cache de estado running. Sin argumento invalida todo."""
+    if folder_name is None:
+        cache.clear()
+    else:
+        cache.delete(f"{RUNNING_CACHE_PREFIX}{folder_name}")
+
+
+def _is_app_running_cached(folder_name: str) -> bool:
+    """Lookup cacheado de `_is_app_running` por folder_name."""
+    key = f"{RUNNING_CACHE_PREFIX}{folder_name}"
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+    compose_path = get_compose_path(folder_name)
+    state = _is_app_running(compose_path)
+    cache.set(key, state, RUNNING_CACHE_TTL)
+    return state
 
 
 def _get_compose_command():
@@ -37,7 +62,7 @@ def _load_manifest(folder_name):
     if not os.path.isfile(manifest_path):
         return None
     try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return None
@@ -178,6 +203,7 @@ def plugin_logo(request, plugin_name, filename):
     raise Http404("Logo no encontrado")
 
 
+@login_required
 def get_apps(request):
     """
     Sincroniza disco con BD usando SOLO plugins válidos:
@@ -221,7 +247,7 @@ def get_apps(request):
                 "lic": manifest.get("license", ""),
             }
 
-            if _is_app_running(compose_path):
+            if _is_app_running_cached(folder):
                 defaults["is_installed"] = True
 
             AvailableApp.objects.update_or_create(name=app_name, defaults=defaults)
@@ -243,7 +269,7 @@ def get_apps(request):
     for app in apps:
         app.is_running = False
         if app.is_installed:
-            app.is_running = _is_app_running(get_compose_path(app.folder_name))
+            app.is_running = _is_app_running_cached(app.folder_name)
 
     return render(
         request,
@@ -290,6 +316,7 @@ def _docker_image_ids_from_containers(container_ids):
     return image_ids
 
 
+@login_required
 @require_POST
 def install_app(request):
     folder = request.POST.get("manifest_folder_name")
@@ -300,11 +327,13 @@ def install_app(request):
             check=True
         )
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=True)
+        _invalidate_running_cache(folder)
         messages.success(request, f"Módulo {folder} instalado y activado.")
     except Exception as e:
         messages.error(request, f"Error al instalar: {str(e)}")
     return redirect("get_apps")
 
+@login_required
 @require_POST
 def start_app(request):
     folder = request.POST.get("manifest_folder_name")
@@ -312,12 +341,14 @@ def start_app(request):
     try:
         compose_cmd = _get_compose_command()
         subprocess.run(compose_cmd + ["-f", path, "start"], check=True)
+        _invalidate_running_cache(folder)
         messages.success(request, f"Módulo {folder} reanudado.")
     except Exception as e:
         messages.error(request, f"Error al iniciar: {str(e)}")
     return redirect("get_apps")
 
 
+@login_required
 @require_POST
 def stop_app(request):
     folder = request.POST.get("manifest_folder_name")
@@ -325,11 +356,13 @@ def stop_app(request):
     try:
         compose_cmd = _get_compose_command()
         subprocess.run(compose_cmd + ["-f", path, "stop"], check=True)
+        _invalidate_running_cache(folder)
         messages.info(request, f"Módulo {folder} detenido.")
     except Exception as e:
         messages.error(request, f"Error al detener: {str(e)}")
     return redirect("get_apps")
 
+@login_required
 @require_POST
 def uninstall_app(request):
     """
@@ -344,11 +377,13 @@ def uninstall_app(request):
             _compose_down_full(path)
 
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=False)
+        _invalidate_running_cache(folder)
         messages.warning(request, f"Módulo {folder} desinstalado.")
     except Exception as e:
         messages.error(request, f"Error al desinstalar el módulo: {str(e)}")
     return redirect("get_apps")
 
+@login_required
 @require_POST
 def delete_app(request):
     """
@@ -367,6 +402,7 @@ def delete_app(request):
 
         AvailableApp.objects.filter(folder_name=folder).delete()
         _delete_plugin_folder(folder)
+        _invalidate_running_cache(folder)
 
         messages.warning(request, f"Módulo {folder} eliminado completamente del sistema.")
     except Exception as e:
@@ -374,6 +410,7 @@ def delete_app(request):
     return redirect("get_apps")
 
 
+@login_required
 def app_logs(request, folder_name):
     path = get_compose_path(folder_name)
     try:
@@ -388,6 +425,7 @@ def app_logs(request, folder_name):
         return JsonResponse({"status": "error", "message": str(e)})
 
 
+@login_required
 def get_env_config(request, folder_name):
     """Lee el .env, clonando el .env.example si es la primera vez."""
     plugin_path = os.path.join(settings.PLUGINS_DIR, folder_name)
@@ -405,13 +443,14 @@ def get_env_config(request, folder_name):
             return JsonResponse({"status": "error", "message": f"Error de permisos al crear .env: {str(e)}"})
 
     try:
-        with open(env_path, "r", encoding="utf-8") as f:
+        with open(env_path, encoding="utf-8") as f:
             content = f.read()
         return JsonResponse({"status": "ok", "content": content})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
 
 
+@login_required
 @require_POST
 def save_env_config(request):
     """Guarda el .env y aplica cambios recreando el contenedor."""
@@ -430,8 +469,16 @@ def save_env_config(request):
                 compose_cmd + ["-f", path, "up", "-d", "--force-recreate"],
                 check=True
             )
+            _invalidate_running_cache(folder_name)
             messages.success(request, f"Configuración de {folder_name} actualizada y aplicada.")
 
         return JsonResponse({"status": "ok"})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+
+@login_required
+@require_POST
+def refresh_catalog(request):
+    """Invalida el cache de estado running para forzar un re-scan completo."""
+    _invalidate_running_cache()
+    return redirect("get_apps")

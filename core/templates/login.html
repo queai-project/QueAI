@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueAI — Iniciar sesión</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #161616;
+            --bg-card: #232323;
+            --surface: #2e2e2e;
+            --border: #383838;
+            --text: #eaeae6;
+            --text-muted: #909090;
+            --red: #e8180c;
+            --red-soft: rgba(232,24,12,0.1);
+            --radius: 14px;
+        }
+        html, body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+        }
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .card {
+            width: 100%;
+            max-width: 360px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2.2rem 2rem 2rem;
+        }
+        .brand {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.78rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 1.6rem;
+            letter-spacing: -0.01em;
+        }
+        h1 em { color: var(--red); font-style: normal; }
+        label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        input[type=text], input[type=password] {
+            width: 100%;
+            padding: 0.72rem 0.9rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        input:focus { border-color: var(--red); }
+        button {
+            width: 100%;
+            padding: 0.78rem;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            margin-top: 0.4rem;
+            transition: opacity 0.15s;
+        }
+        button:hover { opacity: 0.92; }
+        .errors {
+            background: var(--red-soft);
+            border: 1px solid rgba(232,24,12,0.25);
+            color: var(--red);
+            padding: 0.7rem 0.85rem;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            margin-bottom: 1.1rem;
+        }
+        .footer-note {
+            margin-top: 1.4rem;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.06em;
+        }
+    </style>
+</head>
+<body>
+    <form class="card" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="brand">QueAI Kernel</div>
+        <h1>Iniciar <em>sesión</em></h1>
+
+        {% if form.errors %}
+            <div class="errors">Usuario o contraseña incorrectos.</div>
+        {% endif %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <label for="id_username">Usuario</label>
+        <input id="id_username" type="text" name="username" autocomplete="username" autofocus required>
+
+        <label for="id_password">Contraseña</label>
+        <input id="id_password" type="password" name="password" autocomplete="current-password" required>
+
+        <button type="submit">Entrar</button>
+
+        <div class="footer-note">Local · Private · Self-hosted</div>
+    </form>
+</body>
+</html>

@@ -1,8 +1,10 @@
-from . import views
 from django.urls import path
+
+from . import views
 
 urlpatterns = [
     path('', views.get_apps, name='get_apps'),
+    path('refresh/', views.refresh_catalog, name='refresh_catalog'),
     path('install/', views.install_app, name='install_app'),
     path('start/', views.start_app, name='start_app'),
     path('stop/', views.stop_app, name='stop_app'),

@@ -1,36 +1,66 @@
-version: '3.8'
-
 services:
   traefik:
-    image: traefik:latest
-    container_name: traefik_router
+    image: traefik:v3.1
+    container_name: queai_traefik
+    restart: unless-stopped
     command:
-      - "--api.insecure=true"
+      - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=queai_network"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.dashboard.address=:8080"
     ports:
-      - "80:80"
-      - "8080:8080"
+      - "${QUEAI_PORT:-8080}:80"
+      - "${QUEAI_TRAEFIK_DASHBOARD_PORT:-9090}:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro # Traefik lee los contenedores
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - odoo_network
+      - queai_network
+    labels:
+      - "traefik.enable=true"
+      # Dashboard interno, protegido por basic-auth.
+      # Genera el hash con: docker run --rm httpd:2.4-alpine htpasswd -nbB admin <password>
+      # y guarda el resultado en QUEAI_TRAEFIK_DASHBOARD_AUTH del .env.
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${QUEAI_TRAEFIK_DASHBOARD_AUTH:-admin:$$apr1$$Qd1nXrFf$$NyrJxQp9oVUEy0Lp9SQID/}"
+      - "traefik.http.routers.traefik-dashboard.rule=PathPrefix(`/dashboard`) || PathPrefix(`/api`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=dashboard"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth"
 
   django-kernel:
     build: .
-    container_name: django_kernel
+    container_name: queai_kernel
+    restart: unless-stopped
     volumes:
       - .:/app
-      # ESTO ES LO QUE FALTA: Conecta Django con el Docker de tu PC
-      - /var/run/docker.sock:/var/run/docker.sock 
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - HOST_PROJECT_PATH=${PWD}
-      - HOST_UID=${UID:-1000}  # Toma tu ID de usuario de Linux
-      - HOST_GID=${GID:-1000}  # Toma tu ID de grupo de Linux
+      - HOST_UID=${UID:-1000}
+      - HOST_GID=${GID:-1000}
       - VERSION=${VERSION:-0.0.0}
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,*}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-http://localhost:8080}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - QUEAI_DEV=${QUEAI_DEV:-false}
+      - QUEAI_GUNICORN_WORKERS=${QUEAI_GUNICORN_WORKERS:-3}
+      - QUEAI_GUNICORN_THREADS=${QUEAI_GUNICORN_THREADS:-2}
+      - QUEAI_GUNICORN_TIMEOUT=${QUEAI_GUNICORN_TIMEOUT:-120}
+      - QUEAI_ADMIN_USER=${QUEAI_ADMIN_USER:-}
+      - QUEAI_ADMIN_PASSWORD=${QUEAI_ADMIN_PASSWORD:-}
+      - QUEAI_ADMIN_EMAIL=${QUEAI_ADMIN_EMAIL:-admin@queai.local}
+      - QUEAI_ADMIN_ROTATE_PASSWORD=${QUEAI_ADMIN_ROTATE_PASSWORD:-false}
     networks:
-      - odoo_network
+      - queai_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').getcode()==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kernel.rule=PathPrefix(`/`)"
@@ -38,5 +68,6 @@ services:
       - "traefik.http.services.kernel.loadbalancer.server.port=8000"
 
 networks:
-  odoo_network:
-    name: odoo_network # Red externa compartida
+  queai_network:
+    name: queai_network
+    driver: bridge
