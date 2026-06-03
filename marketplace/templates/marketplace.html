@@ -1,471 +1,338 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueAI — Marketplace</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
-            --bg:            #161616;
-            --bg-card:       #232323;
-            --bg-hover:      #2a2a2a;
-            --surface:       #2e2e2e;
-            --surface2:      #363636;
-            --border:        #383838;
-            --border-subtle: #2c2c2c;
-            --text:          #eaeae6;
-            --text-muted:    #909090;
-            --text-dim:      #585856;
-            --red:           #e8180c;
-            --red-soft:      rgba(232,24,12,0.1);
-            --red-border:    rgba(232,24,12,0.22);
-            --green:         #22c55e;
-            --green-soft:    rgba(34,197,94,0.08);
-            --green-border:  rgba(34,197,94,0.22);
-            --amber:         #f59e0b;
-            --amber-soft:    rgba(245,158,11,0.10);
-            --amber-border:  rgba(245,158,11,0.28);
-            --radius:        14px;
-            --radius-sm:     9px;
-        }
+{% block title %}Marketplace{% endblock %}
+{% block page_label %}<span class="page-title">Marketplace</span>{% endblock %}
 
-        html, body {
-            min-height: 100vh;
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            -webkit-font-smoothing: antialiased;
-        }
+{% block extra_styles %}
+<style>
+    .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 28px 28px 80px;
+    }
 
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(26,26,26,0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-        }
+    .install-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        margin-bottom: 28px;
+        animation: fadeUp 0.4s ease both;
+    }
 
-        .header-left { display: flex; align-items: center; gap: 16px; }
+    .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .panel-icon { font-size: 20px; }
+    .panel-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .panel-subtitle { font-size: 13px; color: var(--text-muted); margin-left: auto; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
+    .install-form { display: flex; gap: 10px; align-items: center; }
+    .install-input {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: 'DM Mono', monospace;
+        font-size: 13px;
+        padding: 11px 16px;
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .install-input:focus { border-color: var(--red); }
+    .install-input::placeholder { color: var(--text-dim); }
 
-        .logo-name { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-        .logo-name em { color: var(--red); font-style: normal; }
+    .btn-install {
+        background: var(--red); border: none; color: #fff;
+        font-weight: 600; padding: 11px 22px;
+        border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;
+        transition: opacity 0.15s; font-size: 14px;
+    }
+    .btn-install:hover { opacity: 0.88; }
 
-        .page-title {
-            font-size: 13px;
-            color: var(--text-dim);
-            padding-left: 16px;
-            border-left: 1px solid var(--border);
-        }
+    /* Filter bar (mismo patrón que /manager/) */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .filter-search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .filter-search-icon {
+        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+        font-size: 14px; color: var(--text-dim); pointer-events: none;
+    }
+    .filter-search {
+        width: 100%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 14px;
+        padding: 9px 14px 9px 36px;
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    .filter-search:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px rgba(232,24,12,0.1);
+    }
+    .filter-search::placeholder { color: var(--text-dim); }
 
-        .btn-back {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 13.5px;
-            font-weight: 500;
-            padding: 7px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: all 0.15s;
-        }
+    .filter-pills { display: flex; gap: 6px; flex-shrink: 0; }
+    .filter-pill {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .filter-pill:hover { border-color: #484848; color: var(--text); }
+    .filter-pill.active { background: var(--surface); border-color: #484848; color: var(--text); }
+    .filter-pill.active.update { border-color: #d97706; color: #fcd34d; background: #451a03; }
+    .filter-pill.active.downloaded { border-color: #16a34a; color: #86efac; background: #14532d; }
+    .filter-pill.active.fresh { border-color: #5b6ad0; color: #a5b4fc; background: #1e1e4a; }
+    .filter-pill .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .filter-count { font-size: 12px; color: var(--text-dim); margin-left: 4px; font-family: 'DM Mono', monospace; }
 
-        .btn-back:hover { color: var(--text); background: var(--surface); border-color: #444; }
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    .section-title { font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.3px; }
+    .section-count { font-size: 13px; color: var(--text-muted); }
 
-        .messages { max-width: 1100px; margin: 0 auto; padding: 16px 28px 0; }
+    .plugins-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+        animation: fadeUp 0.4s 0.1s ease both;
+    }
 
-        .msg {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 13.5px;
-            margin-bottom: 8px;
-        }
+    .plugin-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .plugin-card:hover {
+        border-color: #3d3d3d;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        transform: translateY(-2px);
+    }
+    .plugin-top { padding: 22px 22px 16px; display: flex; gap: 14px; align-items: flex-start; }
+    .plugin-logo {
+        width: 75px; height: 75px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .plugin-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .plugin-logo-ph { font-size: 22px; }
+    .plugin-meta { flex: 1; min-width: 0; }
+    .plugin-cat {
+        font-family: 'DM Mono', monospace; font-size: 10px;
+        color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+    .plugin-name {
+        font-size: 17px; font-weight: 600;
+        color: var(--text); letter-spacing: -0.3px; line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .plugin-version { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+    .plugin-local-version { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--amber); margin-top: 6px; }
 
-        .msg.error { background: var(--red-soft); border: 1px solid var(--red-border); color: #ff6b6b; }
-        .msg.ok    { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
+    .plugin-body { padding: 0 22px 16px; flex: 1; }
+    .plugin-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.55; }
+    .plugin-footer { padding: 14px 22px 18px; border-top: 1px solid var(--border-subtle); }
 
-        .content { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+    .btn-add, .btn-update {
+        width: 100%; border: none; color: #fff;
+        font-size: 13.5px; font-weight: 600; padding: 10px;
+        border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-add { background: var(--red); }
+    .btn-add:hover { opacity: 0.88; }
+    .btn-update { background: var(--amber); color: #161616; }
+    .btn-update:hover { opacity: 0.9; }
 
-        .install-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px 28px;
-            margin-bottom: 40px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-            animation: fadeUp 0.4s ease both;
-        }
+    .btn-downloaded {
+        width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+        background: var(--green-soft);
+        border: 1px solid var(--green-border);
+        color: var(--green);
+        font-size: 13.5px; font-weight: 600;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        cursor: default;
+    }
 
-        .panel-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
+    .empty-state {
+        grid-column: 1/-1;
+        padding: 80px 24px;
+        text-align: center;
+        background: var(--bg-card);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; color: var(--text-dim); }
 
-        .panel-icon { font-size: 20px; }
+    form { margin: 0; }
+</style>
+{% endblock %}
 
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-        }
+{% block content %}
+<div class="content">
 
-        .panel-subtitle {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-left: auto;
-        }
-
-        .install-form {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .install-input {
-            flex: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'DM Mono', monospace;
-            font-size: 13px;
-            padding: 11px 16px;
-            border-radius: var(--radius-sm);
-            outline: none;
-            transition: border-color 0.15s;
-        }
-
-        .install-input:focus { border-color: var(--red); }
-        .install-input::placeholder { color: var(--text-dim); }
-
-        .btn-install {
-            background: var(--red);
-            border: none;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 11px 22px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: opacity 0.15s;
-        }
-
-        .btn-install:hover { opacity: 0.88; }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 13px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 0.3px;
-        }
-
-        .section-count { font-size: 13px; color: var(--text-muted); }
-
-        .plugins-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 18px;
-            animation: fadeUp 0.4s 0.1s ease both;
-        }
-
-        .plugin-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-        }
-
-        .plugin-card:hover {
-            border-color: #3d3d3d;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-            transform: translateY(-2px);
-        }
-
-        .plugin-top {
-            padding: 22px 22px 16px;
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-        }
-
-        .plugin-logo {
-            width: 75px;
-            height: 75px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .plugin-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .plugin-logo-ph { font-size: 22px; }
-
-        .plugin-meta { flex: 1; min-width: 0; }
-
-        .plugin-cat {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-
-        .plugin-name {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.3px;
-            line-height: 1.2;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .plugin-version {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: var(--text-dim);
-            margin-top: 3px;
-        }
-
-        .plugin-local-version {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: var(--amber);
-            margin-top: 6px;
-        }
-
-        .plugin-body {
-            padding: 0 22px 16px;
-            flex: 1;
-        }
-
-        .plugin-desc {
-            font-size: 13.5px;
-            color: var(--text-muted);
-            line-height: 1.55;
-        }
-
-        .plugin-footer {
-            padding: 14px 22px 18px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .btn-add,
-        .btn-update {
-            width: 100%;
-            border: none;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13.5px;
-            font-weight: 600;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-
-        .btn-add {
-            background: var(--red);
-        }
-
-        .btn-add:hover { opacity: 0.88; }
-
-        .btn-update {
-            background: var(--amber);
-            color: #161616;
-        }
-
-        .btn-update:hover { opacity: 0.9; }
-
-        .btn-downloaded {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            color: var(--green);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13.5px;
-            font-weight: 600;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            cursor: default;
-        }
-
-        .empty-state {
-            grid-column: 1/-1;
-            padding: 80px 24px;
-            text-align: center;
-            background: var(--bg-card);
-            border: 1px dashed var(--border);
-            border-radius: var(--radius);
-        }
-
-        .empty-icon { font-size: 48px; margin-bottom: 16px; }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .empty-state p { font-size: 14px; color: var(--text-dim); }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        form { margin: 0; }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="header-left">
-            <a href="/" class="logo">
-                <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
-                <span class="logo-name">Que<em>AI</em></span>
-            </a>
-            <span class="page-title">Marketplace</span>
+    <div class="install-panel">
+        <div class="panel-header">
+            <span class="panel-icon">🔗</span>
+            <span class="panel-title">Instalación directa desde Git</span>
+            <span class="panel-subtitle">Pega cualquier URL de repositorio</span>
         </div>
-        <a href="{% url 'get_apps' %}" class="btn-back">← Volver al Hub</a>
-    </header>
-
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="msg {% if 'error' in message.tags %}error{% else %}ok{% endif %}">
-            <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="content">
-
-        <div class="install-panel">
-            <div class="panel-header">
-                <span class="panel-icon">🔗</span>
-                <span class="panel-title">Instalación directa desde Git</span>
-                <span class="panel-subtitle">Pega cualquier URL de repositorio</span>
+        <form method="post" action="{% url 'download_plugin' %}">
+            {% csrf_token %}
+            <div class="install-form">
+                <input type="text" name="git_url" required
+                    class="install-input"
+                    placeholder="https://github.com/usuario/mi-plugin.git">
+                <button type="submit" class="btn-install">↓ Descargar</button>
             </div>
-            <form method="post" action="{% url 'download_plugin' %}">
-                {% csrf_token %}
-                <div class="install-form">
-                    <input type="text" name="git_url" required
-                        class="install-input"
-                        placeholder="https://github.com/usuario/mi-plugin.git">
-                    <button type="submit" class="btn-install">↓ Descargar</button>
-                </div>
-            </form>
+        </form>
+    </div>
+
+    <div class="filter-bar">
+        <div class="filter-search-wrap">
+            <span class="filter-search-icon">🔍</span>
+            <input type="text" id="mpSearch" class="filter-search"
+                   placeholder="Buscar por nombre, autor o descripción…"
+                   autocomplete="off" oninput="applyMpFilters()">
         </div>
-
-        <div class="section-header">
-            <span class="section-title">// repositorio oficial</span>
-            <span class="section-count">{{ remote_plugins|length }} disponibles</span>
+        <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all" onclick="setMpFilter('all', this)">Todos</button>
+            <button class="filter-pill" data-filter="update" onclick="setMpFilter('update', this)">
+                <span class="pill-dot" style="background:#fbbf24"></span>Con actualización
+            </button>
+            <button class="filter-pill" data-filter="downloaded" onclick="setMpFilter('downloaded', this)">
+                <span class="pill-dot" style="background:#4ade80"></span>Descargados
+            </button>
+            <button class="filter-pill" data-filter="fresh" onclick="setMpFilter('fresh', this)">
+                <span class="pill-dot" style="background:#818cf8"></span>Sin descargar
+            </button>
         </div>
+        <span class="filter-count" id="mpFilterCount">{{ remote_plugins|length }} plugins</span>
+    </div>
 
-        <div class="plugins-grid">
-            {% for plugin in remote_plugins %}
-            <div class="plugin-card">
-                <div class="plugin-top">
-                    <div class="plugin-logo">
-                        {% if plugin.logo_url %}
-                        <img src="{{ plugin.logo_url }}" alt="{{ plugin.name }}" onerror="this.parentElement.innerHTML='<div class=plugin-logo-ph>📦</div>'">
-                        {% else %}
-                        <div class="plugin-logo-ph">📦</div>
-                        {% endif %}
-                    </div>
-                    <div class="plugin-meta">
-                        <div class="plugin-cat">{{ plugin.category|default:"General" }}</div>
-                        <div class="plugin-name">{{ plugin.name }}</div>
-                        <div class="plugin-version">Registry: v{{ plugin.version|default:"1.0.0" }}</div>
-                        {% if plugin.local_version %}
-                        <div class="plugin-local-version">Local: v{{ plugin.local_version }}</div>
-                        {% endif %}
-                    </div>
-                </div>
+    <div class="section-header">
+        <span class="section-title">// registro oficial</span>
+        <span class="section-count">{{ remote_plugins|length }} disponibles</span>
+    </div>
 
-                <div class="plugin-body">
-                    <p class="plugin-desc">{{ plugin.description }}</p>
-                </div>
-
-                <div class="plugin-footer">
-                    {% if plugin.is_update_available %}
-                    <form method="post" action="{% url 'download_plugin' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                        <button type="submit" class="btn-update">⟳ Actualizar módulo</button>
-                    </form>
-
-                    {% elif plugin.is_downloaded %}
-                    <div class="btn-downloaded">✓ Ya descargado</div>
-
+    <div class="plugins-grid" id="mpGrid">
+        {% for plugin in remote_plugins %}
+        <div class="plugin-card"
+             data-name="{{ plugin.name|lower }} {{ plugin.author|default:''|lower }} {{ plugin.description|default:''|lower }}"
+             data-state="{% if plugin.is_update_available %}update{% elif plugin.is_downloaded %}downloaded{% else %}fresh{% endif %}">
+            <div class="plugin-top">
+                <div class="plugin-logo">
+                    {% if plugin.logo_url %}
+                    <img src="{{ plugin.logo_url }}" alt="{{ plugin.name }}" onerror="this.parentElement.innerHTML='<div class=plugin-logo-ph>📦</div>'">
                     {% else %}
-                    <form method="post" action="{% url 'download_plugin' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                        <button type="submit" class="btn-add">↓ Añadir al Hub</button>
-                    </form>
+                    <div class="plugin-logo-ph">📦</div>
+                    {% endif %}
+                </div>
+                <div class="plugin-meta">
+                    <div class="plugin-cat">{{ plugin.category|default:"General" }}</div>
+                    <div class="plugin-name">{{ plugin.name }}</div>
+                    <div class="plugin-version">Registry: v{{ plugin.version|default:"1.0.0" }}</div>
+                    {% if plugin.local_version %}
+                    <div class="plugin-local-version">Local: v{{ plugin.local_version }}</div>
                     {% endif %}
                 </div>
             </div>
-            {% empty %}
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>Repositorio oficial vacío</h3>
-                <p>No hay plugins disponibles en este momento. Usa la instalación directa desde Git.</p>
+
+            <div class="plugin-body">
+                <p class="plugin-desc">{{ plugin.description }}</p>
             </div>
-            {% endfor %}
+
+            <div class="plugin-footer">
+                {% if plugin.is_update_available %}
+                <form method="post" action="{% url 'download_plugin' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
+                    <button type="submit" class="btn-update">⟳ Actualizar módulo</button>
+                </form>
+                {% elif plugin.is_downloaded %}
+                <div class="btn-downloaded">✓ Ya descargado</div>
+                {% else %}
+                <form method="post" action="{% url 'download_plugin' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
+                    <button type="submit" class="btn-add">↓ Añadir al Hub</button>
+                </form>
+                {% endif %}
+            </div>
         </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>Registro oficial vacío</h3>
+            <p>No hay plugins disponibles. Usa la instalación directa desde Git.</p>
+        </div>
+        {% endfor %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let _mpFilter = 'all';
+
+    function setMpFilter(name, btn) {
+        _mpFilter = name;
+        document.querySelectorAll('.filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        applyMpFilters();
+    }
+
+    function applyMpFilters() {
+        const q = (document.getElementById('mpSearch').value || '').trim().toLowerCase();
+        const cards = document.querySelectorAll('#mpGrid .plugin-card');
+        let visible = 0;
+        cards.forEach(card => {
+            const matchQ = !q || card.dataset.name.includes(q);
+            const matchF = _mpFilter === 'all' || card.dataset.state === _mpFilter;
+            const show = matchQ && matchF;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        const counter = document.getElementById('mpFilterCount');
+        if (counter) counter.textContent = `${visible} plugin${visible === 1 ? '' : 's'}`;
+    }
+</script>
+{% endblock %}

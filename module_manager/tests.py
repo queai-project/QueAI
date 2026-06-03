@@ -39,6 +39,11 @@ class CatalogScanTests(TestCase):
         )
         self.client = Client()
         self.client.force_login(user)
+        # El wizard de onboarding redirige cuando no hay plugins; aquí
+        # queremos probar la vista del catálogo directamente.
+        session = self.client.session
+        session["welcome_dismissed"] = True
+        session.save()
 
     def test_get_apps_discovers_valid_plugin(self):
         with TemporaryDirectory() as tmp:
@@ -100,6 +105,29 @@ class LifecycleActionsTests(TestCase):
         )
         invoked_cmd = run_mock.call_args.args[0]
         self.assertIn("stop", invoked_cmd)
+
+
+class WelcomeOnboardingTests(TestCase):
+    def setUp(self):
+        user = get_user_model().objects.create_user(
+            username="op", password="op", is_staff=True, is_superuser=True
+        )
+        self.client = Client()
+        self.client.force_login(user)
+
+    def test_get_apps_redirects_to_welcome_when_empty(self):
+        # Sin plugins en BD y sin descartar el wizard → redirect a /welcome/.
+        response = self.client.get("/manager/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/welcome", response["Location"])
+
+    def test_dismiss_sets_session_flag_and_redirects(self):
+        response = self.client.post("/welcome/dismiss/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/manager", response["Location"])
+        # Y ya no debe redirigir al wizard.
+        response2 = self.client.get("/manager/")
+        self.assertEqual(response2.status_code, 200)
 
 
 class RefreshEndpointTests(TestCase):

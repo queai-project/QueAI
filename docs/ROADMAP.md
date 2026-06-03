@@ -1,7 +1,7 @@
 # Roadmap QueAI hacia v1.0 (lanzamiento Open Source)
 
 > Documento de planificación. Vivo — actualizar conforme se avance.
-> Última revisión: 2026-06-03 (Fase 0 + alineación + **Fase 1 completada**).
+> Última revisión: 2026-06-03 (Fase 0 + alineación + Fase 1 + **Fase 2 bloque A completados**).
 
 ## Contexto
 
@@ -122,7 +122,35 @@ Trabajo adicional ejecutado después de Fase 0 para cerrar la brecha entre lo qu
 - HTTPS / Let's Encrypt → post-v1.0 (decisión confirmada).
 - `ruff format --check` en CI → opcional, expandiría scope a 22 archivos del código existente.
 
-### Fase 2 — Completar el ecosistema prometido (3-4 semanas)
+### Fase 2 — UX del kernel + API + observabilidad (sin módulos)
+
+**Decisión 2026-06-03**: la Fase 2 original (CHAT/RAG/cloud) se mueve fuera del scope del kernel. La Fase 2 se reenfoca a tres bloques puramente del kernel: A (UX), C (API REST + CLI) y D (observabilidad). Single-user, sin gestión de usuarios. El bloque B (multiusuario) se descarta porque no aporta valor para QueAI self-hosted.
+
+#### Bloque A — UX del hub ✅ COMPLETADA (2026-06-03)
+- [x] `core/templates/base.html` con header + footer + toasts + user-menu + nav unificado. Variables CSS y componentes comunes consolidados (eliminada la duplicación de ~2600 líneas entre los 4 templates).
+- [x] Context processor `core.context_processors.queai` que inyecta `queai_version` en todos los templates sin tocar las views. **La versión ahora se ve en TODAS las pantallas** (header + footer).
+- [x] Migrados `home.html`, `module_manager.html`, `marketplace.html`, `system_monitor.html` a `{% extends 'base.html' %}`. Cada uno solo define `{% block content %}`, `{% block extra_styles %}` y `{% block extra_js %}`.
+- [x] Sistema de **toast notifications** con auto-dismiss (4s), animación, icono por nivel y API global `window.toast(msg, kind)`. Sustituye las barras inline de `{% if messages %}`.
+- [x] **Filtros y búsqueda en `/marketplace/`** con el mismo patrón que `/manager/`: search por nombre/autor/descripción + pills por estado (Con actualización / Descargados / Sin descargar).
+- [x] **Botón Refresh asíncrono** en `/manager/` que invoca `POST /manager/refresh/` y recarga la grid con feedback visual.
+- [x] **Página `/account/`** con cambio de password vía `PasswordChangeForm`, manteniendo la sesión (`update_session_auth_hash`).
+- [x] **Wizard de primer arranque** `/welcome/`: si no hay plugins en BD y la sesión no marcó `welcome_dismissed`, redirige automáticamente. Botón "Saltar al Hub" lo descarta.
+- [x] **Vista de detalle por plugin** `/manager/app/<folder>/` con tabs Overview (iframe del módulo) / `.env` (editor) / Logs (lectura asíncrona). El link está en el header de cada card del catálogo.
+- [x] 2 nuevos tests para el wizard (13 totales pasando), ruff limpio.
+
+#### Bloque C — API REST + CLI `queai` (pendiente)
+- [ ] Endpoints REST bajo `/api/v1/`: `GET /plugins/`, `POST /install/`, `/start/`, `/stop/`, `/uninstall/`, `GET /stats/<folder>/`, `GET /health`.
+- [ ] Auth por bearer token único (`QUEAI_API_TOKEN` desde env o autogenerado).
+- [ ] OpenAPI schema en `/api/v1/openapi.json` + Swagger UI en `/api/v1/docs`.
+- [ ] CLI `queai` (Python, pipx): `list`, `install`, `start`, `logs`, `stats`. Config en `~/.config/queai/config.toml`.
+
+#### Bloque D — Operación y observabilidad (pendiente)
+- [ ] Logs en tiempo real por SSE (sustituye el tail estático actual).
+- [ ] Healthcheck real por plugin (consulta `healthcheck_entry_point` del manifest, color en el catálogo).
+- [ ] Backup/restore desde UI (`.tar.gz` con `plugins/` + `db.sqlite3` + envs).
+- [ ] Audit log mínimo: `AuditEvent(timestamp, action, target, success)`.
+
+### Fase 3+ — diferido
 
 - [ ] **Módulo CHAT/LLM**: Ollama local + adaptadores OpenAI/Anthropic cloud. Es el más visible de la landing y hoy **no existe**.
 - [ ] **Publicar RAG**: integrar `QueAI-RAG-LOCAL-MS` (carpeta hermana del repo) al registry oficial.

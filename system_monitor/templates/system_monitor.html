@@ -1,505 +1,251 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueAI — Monitor</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+{% extends 'base.html' %}
 
-        :root {
-            --bg:            #1a1a1a;
-            --bg-card:       #222222;
-            --bg-hover:      #272727;
-            --surface:       #2c2c2c;
-            --border:        #333333;
-            --border-subtle: #282828;
-            --text:          #e8e8e4;
-            --text-muted:    #888884;
-            --text-dim:      #555552;
-            --red:           #e8180c;
-            --red-soft:      rgba(232,24,12,0.1);
-            --green:         #22c55e;
-            --green-soft:    rgba(34,197,94,0.1);
-            --green-border:  rgba(34,197,94,0.2);
-            --purple:        #818cf8;
-            --purple-soft:   rgba(129,140,248,0.1);
-            --radius:        12px;
-            --radius-sm:     8px;
-        }
+{% block title %}Monitor{% endblock %}
+{% block page_label %}<span class="page-title">Monitor</span>{% endblock %}
 
-        html, body {
-            min-height: 100vh;
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            -webkit-font-smoothing: antialiased;
-        }
+{% block extra_styles %}
+<style>
+    :root { --purple: #a78bfa; }
 
-        /* ─── HEADER ─── */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(26,26,26,0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-        }
+    .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 28px 28px 80px;
+    }
 
-        .header-left { display: flex; align-items: center; gap: 16px; }
+    .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+    }
+    .toolbar-title { font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.3px; }
+    .refresh-info {
+        display: flex; align-items: center; gap: 8px;
+        font-family: 'DM Mono', monospace; font-size: 12px;
+        color: var(--text-muted);
+    }
+    .refresh-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2.5s infinite; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 18px;
+    }
 
-        .logo-icon {
-            width: 32px; height: 32px;
-            background: var(--red);
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'DM Mono', monospace;
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            flex-shrink: 0;
-        }
+    .metric-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        transition: border-color 0.3s, opacity 0.4s;
+        animation: fadeUp 0.4s ease both;
+    }
+    .metric-card.offline { opacity: 0.45; }
+    .metric-card.running { opacity: 1; border-color: #2e2e2e; }
 
-        .logo-name { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-        .logo-name em { color: var(--red); font-style: normal; }
+    .card-strip { height: 3px; background: var(--border-subtle); transition: background 0.4s; }
+    .metric-card.running .card-strip { background: var(--green); }
 
-        .page-title {
-            font-size: 13px;
-            color: var(--text-dim);
-            padding-left: 16px;
-            border-left: 1px solid var(--border);
-        }
+    .card-top {
+        padding: 18px 20px 14px;
+        display: flex; align-items: flex-start; justify-content: space-between;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .module-name { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 3px; }
+    .module-folder { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); }
 
-        .header-right { display: flex; align-items: center; gap: 10px; }
+    .status-pill {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px; font-weight: 500;
+        padding: 4px 10px; border-radius: 20px;
+        letter-spacing: 0.3px;
+        transition: all 0.3s;
+    }
+    .status-pill.offline { background: var(--surface); color: var(--text-dim); }
+    .status-pill.running { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
 
-        .engine-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-family: 'DM Mono', monospace;
-            color: var(--green);
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
+    .card-metrics { padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+    .metric-row { display: flex; flex-direction: column; gap: 7px; }
+    .metric-label-row { display: flex; align-items: center; justify-content: space-between; }
+    .metric-name { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .metric-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; transition: color 0.3s; }
+    .metric-val.cpu { color: var(--purple); }
+    .metric-val.ram { color: var(--green); }
 
-        .engine-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: blink 2.5s infinite;
-        }
+    .bar-bg { height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; }
+    .bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+    .bar-fill.cpu { background: var(--purple); }
+    .bar-fill.ram { background: var(--green); }
 
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .card-info-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1px solid var(--border-subtle);
+    }
+    .info-cell { padding: 12px 20px; border-right: 1px solid var(--border-subtle); }
+    .info-cell:last-child { border-right: none; }
+    .info-label { font-size: 11px; color: var(--text-dim); margin-bottom: 3px; font-weight: 500; }
+    .info-val {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-        .btn-back {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 13.5px;
-            font-weight: 500;
-            padding: 7px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: all 0.15s;
-        }
+    .empty-state {
+        grid-column: 1/-1;
+        padding: 80px 24px;
+        text-align: center;
+        background: var(--bg-card);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; color: var(--text-dim); }
+    .empty-state a { color: var(--red); text-decoration: none; }
+</style>
+{% endblock %}
 
-        .btn-back:hover { color: var(--text); background: var(--surface); border-color: #444; }
-
-        /* ─── CONTENT ─── */
-        .content { max-width: 1200px; margin: 0 auto; padding: 32px 28px 80px; }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .toolbar-title {
-            font-size: 13px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-        }
-
-        .refresh-info {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 12px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-        }
-
-        .refresh-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: refreshPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes refreshPulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
-
-        /* ─── METRICS GRID ─── */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            gap: 18px;
-        }
-
-        /* ─── METRIC CARD ─── */
-        .metric-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-            transition: border-color 0.3s, opacity 0.4s;
-            animation: fadeUp 0.4s ease both;
-        }
-
-        .metric-card.offline { opacity: 0.45; }
-        .metric-card.running { opacity: 1; border-color: #2e2e2e; }
-
-        /* Top strip */
-        .card-strip {
-            height: 3px;
-            background: var(--border-subtle);
-            transition: background 0.4s;
-        }
-
-        .metric-card.running .card-strip { background: var(--green); }
-
-        /* Card top */
-        .card-top {
-            padding: 18px 20px 14px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .module-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.3px;
-            margin-bottom: 3px;
-        }
-
-        .module-folder {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--text-dim);
-        }
-
-        .status-pill {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            font-weight: 500;
-            padding: 4px 10px;
-            border-radius: 20px;
-            letter-spacing: 0.3px;
-            transition: all 0.3s;
-        }
-
-        .status-pill.offline {
-            background: var(--surface);
-            color: var(--text-dim);
-        }
-
-        .status-pill.running {
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            color: var(--green);
-        }
-
-        /* Metrics body */
-        .card-metrics {
-            padding: 18px 20px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .metric-row { display: flex; flex-direction: column; gap: 7px; }
-
-        .metric-label-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .metric-name {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .metric-val {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .metric-val.cpu  { color: var(--purple); }
-        .metric-val.ram  { color: var(--green); }
-
-        .bar-bg {
-            height: 4px;
-            background: var(--surface);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .bar-fill.cpu  { background: var(--purple); }
-        .bar-fill.ram  { background: var(--green); }
-
-        /* Info footer */
-        .card-info-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .info-cell {
-            padding: 12px 20px;
-            border-right: 1px solid var(--border-subtle);
-        }
-
-        .info-cell:last-child { border-right: none; }
-
-        .info-label {
-            font-size: 11px;
-            color: var(--text-dim);
-            margin-bottom: 3px;
-            font-weight: 500;
-        }
-
-        .info-val {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            color: var(--text-muted);
-            transition: all 0.3s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Empty */
-        .empty-state {
-            grid-column: 1/-1;
-            padding: 80px 24px;
-            text-align: center;
-            background: var(--bg-card);
-            border: 1px dashed var(--border);
-            border-radius: var(--radius);
-        }
-
-        .empty-icon { font-size: 48px; margin-bottom: 16px; }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .empty-state p { font-size: 14px; color: var(--text-dim); }
-        .empty-state a { color: var(--red); text-decoration: none; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="header-left">
-            <a href="/" class="logo">
-                <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
-                <span class="logo-name">Que<em>AI</em></span>
-            </a>
-            <span class="page-title">Monitor</span>
-        </div>
-        <div class="header-right">
-            <div class="engine-badge">
-                <div class="engine-dot"></div>
-                Docker activo
-            </div>
-            <a href="{% url 'get_apps' %}" class="btn-back">← Hub</a>
-        </div>
-    </header>
-
-    <div class="content">
-        <div class="toolbar">
-            <span class="toolbar-title">// métricas en tiempo real</span>
-            <div class="refresh-info">
-                <div class="refresh-dot"></div>
-                actualiza cada 3s
-            </div>
-        </div>
-
-        <div class="metrics-grid" id="stats-grid">
-            {% for app in apps %}
-            <div id="card-{{ app.folder_name }}" class="metric-card offline">
-                <div class="card-strip"></div>
-                <div class="card-top">
-                    <div>
-                        <div class="module-name">{{ app.display_name }}</div>
-                        <div class="module-folder">{{ app.folder_name }}</div>
-                    </div>
-                    <div id="status-tag-{{ app.folder_name }}" class="status-pill offline">offline</div>
-                </div>
-
-                <div class="card-metrics">
-                    <div class="metric-row">
-                        <div class="metric-label-row">
-                            <span class="metric-name">CPU</span>
-                            <span id="cpu-text-{{ app.folder_name }}" class="metric-val cpu">—</span>
-                        </div>
-                        <div class="bar-bg">
-                            <div id="cpu-bar-{{ app.folder_name }}" class="bar-fill cpu"></div>
-                        </div>
-                    </div>
-
-                    <div class="metric-row">
-                        <div class="metric-label-row">
-                            <span class="metric-name">Memoria RAM</span>
-                            <span id="ram-text-{{ app.folder_name }}" class="metric-val ram">—</span>
-                        </div>
-                        <div class="bar-bg">
-                            <div id="ram-bar-{{ app.folder_name }}" class="bar-fill ram"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-info-row">
-                    <div class="info-cell">
-                        <div class="info-label">Red I/O</div>
-                        <div id="net-text-{{ app.folder_name }}" class="info-val">—</div>
-                    </div>
-                    <div class="info-cell">
-                        <div class="info-label">Container ID</div>
-                        <div id="id-text-{{ app.folder_name }}" class="info-val">—</div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="empty-state">
-                <div class="empty-icon">📊</div>
-                <h3>Sin módulos instalados</h3>
-                <p>Instala módulos desde el <a href="{% url 'get_apps' %}">Hub</a> para comenzar a monitorearlos aquí.</p>
-            </div>
-            {% endfor %}
+{% block content %}
+<div class="content">
+    <div class="toolbar">
+        <span class="toolbar-title">// métricas en tiempo real</span>
+        <div class="refresh-info">
+            <div class="refresh-dot"></div>
+            actualiza cada 3s
         </div>
     </div>
 
-    {{ apps_folders|json_script:"apps-data" }}
+    <div class="metrics-grid" id="stats-grid">
+        {% for app in apps %}
+        <div id="card-{{ app.folder_name }}" class="metric-card offline">
+            <div class="card-strip"></div>
+            <div class="card-top">
+                <div>
+                    <div class="module-name">{{ app.display_name }}</div>
+                    <div class="module-folder">{{ app.folder_name }}</div>
+                </div>
+                <div id="status-tag-{{ app.folder_name }}" class="status-pill offline">offline</div>
+            </div>
 
-    <script>
-        function parseMem(memStr) {
-            if (!memStr) return 0;
-            const val = parseFloat(memStr);
-            if (memStr.includes('GiB')) return val * 1024;
-            if (memStr.includes('KiB')) return val / 1024;
-            return val;
-        }
+            <div class="card-metrics">
+                <div class="metric-row">
+                    <div class="metric-label-row">
+                        <span class="metric-name">CPU</span>
+                        <span id="cpu-text-{{ app.folder_name }}" class="metric-val cpu">—</span>
+                    </div>
+                    <div class="bar-bg">
+                        <div id="cpu-bar-{{ app.folder_name }}" class="bar-fill cpu"></div>
+                    </div>
+                </div>
 
-        async function fetchStats(folder) {
-            try {
-                const response = await fetch(`/monitor/stats/${folder}/`);
-                const data = await response.json();
-                console.log(`Stats for ${folder}:`, data);
-                const card = document.getElementById(`card-${folder}`);
-                const statusTag = document.getElementById(`status-tag-${folder}`);
+                <div class="metric-row">
+                    <div class="metric-label-row">
+                        <span class="metric-name">Memoria RAM</span>
+                        <span id="ram-text-{{ app.folder_name }}" class="metric-val ram">—</span>
+                    </div>
+                    <div class="bar-bg">
+                        <div id="ram-bar-{{ app.folder_name }}" class="bar-fill ram"></div>
+                    </div>
+                </div>
+            </div>
 
-                if (data.status === "ok" && data.stats && data.stats.length > 0) {
-                    const stats = data.stats[0];
+            <div class="card-info-row">
+                <div class="info-cell">
+                    <div class="info-label">Red I/O</div>
+                    <div id="net-text-{{ app.folder_name }}" class="info-val">—</div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Container ID</div>
+                    <div id="id-text-{{ app.folder_name }}" class="info-val">—</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>Sin módulos instalados</h3>
+            <p>Instala módulos desde el <a href="{% url 'get_apps' %}">Hub</a> para comenzar a monitorearlos aquí.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-                    card.classList.remove("offline");
-                    card.classList.add("running");
-                    statusTag.className = "status-pill running";
-                    statusTag.textContent = "activo";
+{{ apps_folders|json_script:"apps-data" }}
+{% endblock %}
 
-                    const cpuPerc = parseFloat(stats.cpu.replace("%", "")) || 0;
-                    document.getElementById(`cpu-text-${folder}`).textContent = stats.cpu;
-                    document.getElementById(`cpu-bar-${folder}`).style.width = `${Math.min(cpuPerc, 100)}%`;
+{% block extra_js %}
+<script>
+    function parseMem(memStr) {
+        if (!memStr) return 0;
+        const val = parseFloat(memStr);
+        if (memStr.includes('GiB')) return val * 1024;
+        if (memStr.includes('KiB')) return val / 1024;
+        return val;
+    }
 
-                    document.getElementById(`ram-text-${folder}`).textContent = stats.mem;
-                    const memParts = stats.mem.split(" / ");
-                    if (memParts.length === 2) {
-                        const used = parseMem(memParts[0]);
-                        const limit = parseMem(memParts[1]);
-                        const perc = limit > 0 ? (used / limit) * 100 : 0;
-                        document.getElementById(`ram-bar-${folder}`).style.width = `${Math.min(perc, 100)}%`;
-                    }
+    async function fetchStats(folder) {
+        try {
+            const response = await fetch(`/monitor/stats/${folder}/`);
+            const data = await response.json();
+            const card = document.getElementById(`card-${folder}`);
+            const statusTag = document.getElementById(`status-tag-${folder}`);
 
-                    document.getElementById(`net-text-${folder}`).textContent = stats.net || "—";
-                    const rawId = stats.id || "";
-                    document.getElementById(`id-text-${folder}`).textContent = rawId ? rawId.substring(0, 12) : "—";
-                } else {
-                    card.classList.remove("running");
-                    card.classList.add("offline");
-                    statusTag.className = "status-pill offline";
-                    statusTag.textContent = "offline";
-                    document.getElementById(`cpu-bar-${folder}`).style.width = "0%";
-                    document.getElementById(`ram-bar-${folder}`).style.width = "0%";
-                    document.getElementById(`cpu-text-${folder}`).textContent = "—";
-                    document.getElementById(`ram-text-${folder}`).textContent = "—";
-                    document.getElementById(`net-text-${folder}`).textContent = "—";
-                    document.getElementById(`id-text-${folder}`).textContent = "—";
+            if (data.status === "ok" && data.stats && data.stats.length > 0) {
+                const stats = data.stats[0];
+
+                card.classList.remove("offline");
+                card.classList.add("running");
+                statusTag.className = "status-pill running";
+                statusTag.textContent = "activo";
+
+                const cpuPerc = parseFloat(stats.cpu.replace("%", "")) || 0;
+                document.getElementById(`cpu-text-${folder}`).textContent = stats.cpu;
+                document.getElementById(`cpu-bar-${folder}`).style.width = `${Math.min(cpuPerc, 100)}%`;
+
+                document.getElementById(`ram-text-${folder}`).textContent = stats.mem;
+                const memParts = stats.mem.split(" / ");
+                if (memParts.length === 2) {
+                    const used = parseMem(memParts[0]);
+                    const limit = parseMem(memParts[1]);
+                    const perc = limit > 0 ? (used / limit) * 100 : 0;
+                    document.getElementById(`ram-bar-${folder}`).style.width = `${Math.min(perc, 100)}%`;
                 }
-            } catch (error) {
-                console.error(`Error fetching ${folder}:`, error);
-            }
-        }
 
-        window.onload = () => {
-            const dataNode = document.getElementById("apps-data");
-            if (!dataNode) return;
-            const appFolders = JSON.parse(dataNode.textContent);
-            console.log("Módulos a monitorear:", appFolders);
-            if (!appFolders.length) return;
-            const refreshAll = () => appFolders.forEach(folder => fetchStats(folder));
-            setInterval(refreshAll, 3000);
-            refreshAll();
-        };
-    </script>
-</body>
-</html>
+                document.getElementById(`net-text-${folder}`).textContent = stats.net || "—";
+                const rawId = stats.id || "";
+                document.getElementById(`id-text-${folder}`).textContent = rawId ? rawId.substring(0, 12) : "—";
+            } else {
+                card.classList.remove("running");
+                card.classList.add("offline");
+                statusTag.className = "status-pill offline";
+                statusTag.textContent = "offline";
+                ["cpu-bar","ram-bar"].forEach(p => document.getElementById(`${p}-${folder}`).style.width = "0%");
+                ["cpu-text","ram-text","net-text","id-text"].forEach(p => document.getElementById(`${p}-${folder}`).textContent = "—");
+            }
+        } catch (error) {
+            console.error(`Error fetching ${folder}:`, error);
+        }
+    }
+
+    window.addEventListener('load', () => {
+        const dataNode = document.getElementById("apps-data");
+        if (!dataNode) return;
+        const appFolders = JSON.parse(dataNode.textContent);
+        if (!appFolders.length) return;
+        const refreshAll = () => appFolders.forEach(folder => fetchStats(folder));
+        setInterval(refreshAll, 3000);
+        refreshAll();
+    });
+</script>
+{% endblock %}

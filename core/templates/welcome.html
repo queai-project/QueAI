@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bienvenida{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .welcome-wrap {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 60px 28px 80px;
+    }
+
+    .welcome-intro { text-align: center; margin-bottom: 48px; }
+    .welcome-intro h1 {
+        font-size: clamp(28px, 4vw, 38px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        margin-bottom: 10px;
+    }
+    .welcome-intro h1 em { color: var(--red); font-style: normal; }
+    .welcome-intro p {
+        color: var(--text-muted);
+        font-size: 16px;
+        max-width: 540px;
+        margin: 0 auto;
+    }
+
+    .step-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 36px;
+    }
+
+    .step {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px 22px 22px;
+        position: relative;
+        animation: fadeUp 0.4s ease both;
+    }
+    .step:nth-child(2) { animation-delay: 0.06s; }
+    .step:nth-child(3) { animation-delay: 0.12s; }
+
+    .step-num {
+        position: absolute;
+        top: 24px;
+        right: 22px;
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: var(--text-dim);
+        letter-spacing: 0.08em;
+    }
+
+    .step-icon { font-size: 26px; margin-bottom: 12px; }
+    .step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+    .step p { color: var(--text-muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 16px; }
+
+    .step a.step-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--red);
+        text-decoration: none;
+        font-weight: 500;
+        font-family: 'DM Mono', monospace;
+    }
+    .step a.step-cta:hover { text-decoration: underline; }
+
+    .welcome-cta {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .welcome-cta a, .welcome-cta button {
+        padding: 11px 22px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid transparent;
+        transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .welcome-cta .primary { background: var(--red); color: #fff; border-color: var(--red); }
+    .welcome-cta .primary:hover { opacity: 0.92; }
+    .welcome-cta .ghost {
+        background: var(--bg-card);
+        border-color: var(--border);
+        color: var(--text);
+    }
+    .welcome-cta .ghost:hover { background: var(--bg-hover); border-color: #484848; }
+
+    @media (max-width: 800px) {
+        .step-grid { grid-template-columns: 1fr; }
+        .welcome-wrap { padding: 40px 20px 60px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-wrap">
+    <div class="welcome-intro">
+        <h1>Bienvenido a <em>QueAI</em></h1>
+        <p>
+            El kernel está listo. Tres pasos para empezar a usarlo —
+            puedes saltarlos y volver más tarde cuando quieras.
+        </p>
+    </div>
+
+    <div class="step-grid">
+        <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-icon">📦</div>
+            <h3>¿Qué hace el kernel?</h3>
+            <p>
+                QueAI gestiona módulos de IA empaquetados como contenedores Docker.
+                Cada módulo es independiente, expone su propia UI y se instala con
+                un click desde el Hub.
+            </p>
+            <a class="step-cta" href="https://github.com/queai-project/QueAI/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">
+                Ver arquitectura →
+            </a>
+        </div>
+
+        <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-icon">🛒</div>
+            <h3>Instala tu primer módulo</h3>
+            <p>
+                En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,
+                instálalos desde el Hub y empieza a usarlos en local.
+            </p>
+            <a class="step-cta" href="{% url 'marketplace' %}">Ir al Marketplace →</a>
+        </div>
+
+        <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-icon">🔌</div>
+            <h3>Crea tu propio plugin</h3>
+            <p>
+                Cualquier microservicio con un <code>manifest.json</code> y un
+                <code>docker-compose.yml</code> puede ser un plugin de QueAI.
+                Hay una plantilla lista para clonar.
+            </p>
+            <a class="step-cta" href="https://github.com/queai-project/QueAI/blob/main/docs/PLUGIN_DEVELOPMENT.md" target="_blank" rel="noopener">
+                Guía de plugins →
+            </a>
+        </div>
+    </div>
+
+    <div class="welcome-cta">
+        <a class="primary" href="{% url 'marketplace' %}">Explorar Marketplace</a>
+        <form method="post" action="{% url 'welcome_dismiss' %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="ghost">Saltar al Hub</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

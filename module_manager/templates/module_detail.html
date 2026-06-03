@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ app.display_name }}{% endblock %}
+{% block page_label %}
+    <span class="page-title">{{ app.display_name }}</span>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .detail-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 28px 80px; }
+
+    .detail-head {
+        display: flex; gap: 22px; align-items: flex-start;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 18px;
+    }
+    .detail-logo {
+        width: 84px; height: 84px;
+        background: var(--surface);
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; flex-shrink: 0;
+    }
+    .detail-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-logo-ph { font-size: 28px; color: var(--text-dim); }
+
+    .detail-meta { flex: 1; min-width: 0; }
+    .detail-name {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        margin-bottom: 4px;
+        display: flex; align-items: center; gap: 12px;
+    }
+    .detail-folder { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
+    .detail-desc { color: var(--text-muted); font-size: 14px; max-width: 720px; }
+
+    .detail-kv {
+        display: flex; gap: 26px; flex-wrap: wrap;
+        margin-top: 16px; font-size: 12.5px;
+    }
+    .detail-kv .kv-item { display: flex; flex-direction: column; gap: 2px; }
+    .detail-kv .kv-label { color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .detail-kv .kv-val { color: var(--text); font-family: 'DM Mono', monospace; }
+
+    .state-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 11px; font-weight: 600;
+        font-family: 'DM Mono', monospace;
+        padding: 3px 9px; border-radius: 6px;
+    }
+    .state-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .state-badge.running { background: #14532d; border: 1px solid #166534; color: #86efac; }
+    .state-badge.running::before { background: #4ade80; }
+    .state-badge.stopped { background: #451a03; border: 1px solid #78350f; color: #fcd34d; }
+    .state-badge.stopped::before { background: #fbbf24; }
+    .state-badge.fresh   { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); }
+    .state-badge.fresh::before { background: var(--text-dim); }
+
+    .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+    }
+    .tab {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 500;
+        padding: 11px 16px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: color 0.15s, border-color 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--red); }
+
+    .tab-content { display: none; animation: fadeUp 0.2s ease both; }
+    .tab-content.active { display: block; }
+
+    .panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+    }
+
+    .panel h3 { font-size: 14px; font-weight: 500; margin-bottom: 12px; color: var(--text); }
+
+    .iframe-wrap {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        height: 600px;
+        position: relative;
+    }
+    .iframe-wrap iframe {
+        width: 100%; height: 100%;
+        border: none;
+        background: #0e0e0e;
+    }
+    .iframe-empty {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        height: 100%; color: var(--text-muted);
+        gap: 8px; padding: 24px; text-align: center;
+    }
+    .iframe-empty .icon { font-size: 40px; opacity: 0.4; }
+
+    #detailLogs {
+        background: #0e0e0e;
+        color: #86efac;
+        font-family: 'DM Mono', monospace;
+        font-size: 12.5px;
+        line-height: 1.7;
+        padding: 18px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 600px;
+        overflow: auto;
+    }
+
+    #detailEnv {
+        width: 100%;
+        min-height: 480px;
+        background: #111;
+        color: #a5b4fc;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-family: 'DM Mono', monospace;
+        font-size: 13.5px;
+        line-height: 1.85;
+        padding: 18px;
+        resize: vertical;
+        outline: none;
+    }
+    #detailEnv:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,24,12,0.1); }
+
+    .panel-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+    .pa-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 9px 18px;
+        font-size: 13px; font-weight: 500;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .pa-btn:hover { background: var(--bg-hover); border-color: #484848; }
+    .pa-btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+    .pa-btn.primary:hover { opacity: 0.88; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-decoration: none;
+        margin-bottom: 16px;
+        font-family: 'DM Mono', monospace;
+    }
+    .back-link:hover { color: var(--text); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap">
+    <a class="back-link" href="{% url 'get_apps' %}">← volver al hub</a>
+
+    <div class="detail-head">
+        <div class="detail-logo">
+            {% if app.logo %}
+            <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=detail-logo-ph>📦</div>'">
+            {% else %}
+            <div class="detail-logo-ph">📦</div>
+            {% endif %}
+        </div>
+        <div class="detail-meta">
+            <div class="detail-name">
+                {{ app.display_name }}
+                {% if not app.is_installed %}
+                    <span class="state-badge fresh">sin instalar</span>
+                {% elif app.is_running %}
+                    <span class="state-badge running">activo</span>
+                {% else %}
+                    <span class="state-badge stopped">detenido</span>
+                {% endif %}
+            </div>
+            <div class="detail-folder">{{ app.folder_name }}</div>
+            <p class="detail-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
+
+            <div class="detail-kv">
+                <div class="kv-item"><span class="kv-label">Versión</span><span class="kv-val">v{{ app.version }}</span></div>
+                <div class="kv-item"><span class="kv-label">Autor</span><span class="kv-val">{{ app.author|default:"—" }}</span></div>
+                <div class="kv-item"><span class="kv-label">Licencia</span><span class="kv-val">{{ app.lic|default:"—" }}</span></div>
+                <div class="kv-item"><span class="kv-label">Slug</span><span class="kv-val">{{ app.name }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="env" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>.env</button>
+        <button class="tab" data-tab="logs" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>Logs</button>
+    </div>
+
+    <div class="tab-content active" id="tab-overview">
+        {% if app.is_installed and app.is_running and app.ui_entry_point %}
+        <div class="iframe-wrap">
+            <iframe src="{{ app.ui_entry_point }}" title="{{ app.display_name }}"></iframe>
+        </div>
+        {% elif app.is_installed and not app.is_running %}
+        <div class="panel">
+            <h3>Módulo detenido</h3>
+            <p style="color:var(--text-muted);font-size:13.5px;">
+                El contenedor está parado. Inícialo desde el
+                <a href="{% url 'get_apps' %}" style="color:var(--red);text-decoration:none">Hub</a> para abrir su interfaz.
+            </p>
+        </div>
+        {% elif not app.is_installed %}
+        <div class="panel">
+            <h3>Aún no instalado</h3>
+            <p style="color:var(--text-muted);font-size:13.5px;">
+                Instálalo desde el <a href="{% url 'get_apps' %}" style="color:var(--red);text-decoration:none">Hub</a> para ver su UI aquí.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="tab-content" id="tab-env">
+        <div class="panel">
+            <h3>.env del módulo</h3>
+            <textarea id="detailEnv" spellcheck="false" placeholder="# Cargando…"></textarea>
+            <div class="panel-actions">
+                <button class="pa-btn" onclick="loadDetailEnv()">↻ Recargar</button>
+                <button class="pa-btn primary" onclick="saveDetailEnv(event)">Guardar y aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-logs">
+        <div class="panel">
+            <h3>Últimas 150 líneas de logs</h3>
+            <pre id="detailLogs">&gt; cargando…</pre>
+            <div class="panel-actions">
+                <button class="pa-btn" onclick="loadDetailLogs()">↻ Recargar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const FOLDER = "{{ app.folder_name|escapejs }}";
+
+    function csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            if (tab.disabled) return;
+            const name = tab.dataset.tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`tab-${name}`).classList.add('active');
+            if (name === 'logs') loadDetailLogs();
+            if (name === 'env')  loadDetailEnv();
+        });
+    });
+
+    async function loadDetailEnv() {
+        const ta = document.getElementById('detailEnv');
+        ta.value = '# Cargando…';
+        try {
+            const r = await fetch(`/manager/get_env/${FOLDER}/`);
+            const d = await r.json();
+            ta.value = d.status === 'ok' ? d.content : '# ERROR: ' + d.message;
+        } catch (e) {
+            ta.value = '# ERROR: ' + e.message;
+        }
+    }
+
+    async function saveDetailEnv(ev) {
+        const ta = document.getElementById('detailEnv');
+        const btn = ev.currentTarget;
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Aplicando…';
+        try {
+            const data = new FormData();
+            data.append('folder_name', FOLDER);
+            data.append('content', ta.value);
+            data.append('csrfmiddlewaretoken', csrf());
+            const r = await fetch('/manager/save_env/', { method: 'POST', body: data });
+            const d = await r.json();
+            if (d.status === 'ok') {
+                if (window.toast) window.toast('.env aplicado, el contenedor se recreó', 'success');
+            } else {
+                if (window.toast) window.toast('Error: ' + d.message, 'error');
+            }
+        } catch (e) {
+            if (window.toast) window.toast('Error de red: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = original;
+        }
+    }
+
+    async function loadDetailLogs() {
+        const pre = document.getElementById('detailLogs');
+        pre.textContent = '> cargando…';
+        try {
+            const r = await fetch(`/manager/logs/${FOLDER}/`);
+            const d = await r.json();
+            pre.textContent = d.status === 'ok' ? (d.logs || '> sin logs') : '> ERROR: ' + d.message;
+        } catch (e) {
+            pre.textContent = '> ERROR: ' + e.message;
+        }
+    }
+</script>
+{% endblock %}

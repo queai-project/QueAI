@@ -214,6 +214,11 @@ def get_apps(request):
     Además, si un módulo existía en BD pero desapareció del directorio,
     se intentan limpiar sus recursos Docker asociados.
     """
+    # Onboarding: si el catálogo está vacío y el usuario no descartó el wizard,
+    # mandamos a /welcome/ para guiar el primer arranque.
+    if not request.session.get("welcome_dismissed") and not AvailableApp.objects.exists():
+        return redirect("welcome")
+
     plugins_dir = settings.PLUGINS_DIR
 
     if os.path.isdir(plugins_dir):
@@ -408,6 +413,27 @@ def delete_app(request):
     except Exception as e:
         messages.error(request, f"Error al eliminar el módulo: {str(e)}")
     return redirect("get_apps")
+
+
+@login_required
+def app_detail(request, folder_name):
+    """Página de detalle por plugin: tabs Overview / .env / Logs."""
+    from django.http import Http404
+
+    try:
+        app = AvailableApp.objects.get(folder_name=folder_name)
+    except AvailableApp.DoesNotExist as err:
+        raise Http404("Plugin no encontrado") from err
+
+    app.is_running = False
+    if app.is_installed:
+        app.is_running = _is_app_running_cached(folder_name)
+
+    return render(
+        request,
+        "module_detail.html",
+        {"app": app},
+    )
 
 
 @login_required

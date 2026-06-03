@@ -1,1234 +1,675 @@
+{% extends 'base.html' %}
 {% load static %}
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="csrf-token" content="{{ csrf_token }}" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueAI — Hub</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
-            --bg:            #161616;
-            --bg-card:       #232323;
-            --bg-hover:      #2a2a2a;
-            --surface:       #2e2e2e;
-            --surface2:      #363636;
-            --border:        #383838;
-            --border-subtle: #2c2c2c;
-            --text:          #eaeae6;
-            --text-muted:    #909090;
-            --text-dim:      #585856;
-            --red:           #e8180c;
-            --red-soft:      rgba(232,24,12,0.1);
-            --red-border:    rgba(232,24,12,0.22);
-            --green:         #22c55e;
-            --green-soft:    rgba(34,197,94,0.1);
-            --green-border:  rgba(34,197,94,0.22);
-            --amber:         #f59e0b;
-            --amber-soft:    rgba(245,158,11,0.1);
-            --radius:        14px;
-            --radius-sm:     9px;
-        }
-
-        html, body {
-            min-height: 100vh;
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 200;
-            background: rgba(26,26,26,0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-        }
-
-        .header-left { display: flex; align-items: center; gap: 16px; }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--red);
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'DM Mono', monospace;
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .logo-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.3px;
-        }
-
-        .logo-name em { color: var(--red); font-style: normal; }
-
-        .page-title {
-            font-size: 13px;
-            color: var(--text-dim);
-            padding-left: 16px;
-            border-left: 1px solid var(--border);
-            font-weight: 400;
-        }
-
-        .header-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .header-nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 13.5px;
-            font-weight: 500;
-            padding: 6px 13px;
-            border-radius: var(--radius-sm);
-            transition: color 0.15s, background 0.15s;
-        }
-
-        .header-nav a:hover { color: var(--text); background: var(--surface); }
-        .header-nav a.active {
-            color: var(--text);
-            background: var(--surface);
-            box-shadow: inset 0 -2px 0 var(--red);
-        }
-
-        .docker-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-family: 'DM Mono', monospace;
-            color: var(--green);
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            padding: 4px 12px;
-            border-radius: 20px;
-            margin-left: 8px;
-        }
-
-        .queai-version {
-            font-size: 14px;
-            font-family: 'DM Mono', monospace;
-            color: var(--text-dim);
-        }
-
-        .docker-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: blink 2.5s infinite;
-        }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
-
-        .messages {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 16px 28px 0;
-        }
-
-        .msg {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 13.5px;
-            margin-bottom: 8px;
-            animation: fadeUp 0.3s ease both;
-        }
-
-        .msg.error {
-            background: var(--red-soft);
-            border: 1px solid var(--red-border);
-            color: #ff6b6b;
-        }
-
-        .msg.ok {
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            color: var(--green);
-        }
-
-        .msg-icon { font-size: 15px; flex-shrink: 0; }
-
-        .content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 28px 28px 80px;
-        }
-
-        .filter-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .filter-search-wrap {
-            position: relative;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-search-icon {
-            position: absolute;
-            left: 13px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            color: var(--text-dim);
-            pointer-events: none;
-        }
-
-        .filter-search {
-            width: 100%;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            padding: 9px 14px 9px 36px;
-            border-radius: var(--radius-sm);
-            outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-        }
-
-        .filter-search:focus {
-            border-color: var(--red);
-            box-shadow: 0 0 0 3px rgba(232,24,12,0.1);
-        }
-
-        .filter-search::placeholder { color: var(--text-dim); }
-
-        .filter-pills {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .filter-pill {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .filter-pill:hover { border-color: #484848; color: var(--text); }
-
-        .filter-pill.active {
-            background: var(--surface);
-            border-color: #484848;
-            color: var(--text);
-        }
-
-        .filter-pill.active.all   { border-color: var(--text-dim); color: var(--text); }
-        .filter-pill.active.run   { border-color: #16a34a; color: #86efac; background: #14532d; }
-        .filter-pill.active.stop  { border-color: #d97706; color: #fcd34d; background: #451a03; }
-        .filter-pill.active.fresh { border-color: #5b6ad0; color: #a5b4fc; background: #1e1e4a; }
-
-        .pill-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .filter-count {
-            font-size: 12px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-            margin-left: auto;
-            flex-shrink: 0;
-            align-self: center;
-        }
-
-        .filter-empty {
-            display: none;
-            grid-column: 1/-1;
-            padding: 60px 24px;
-            text-align: center;
-        }
-
-        .filter-empty.visible { display: block; }
-
-        .filter-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
-
-        .filter-empty p {
-            font-size: 15px;
-            color: var(--text-muted);
-        }
-
-        .filter-empty span {
-            font-family: 'DM Mono', monospace;
-            color: var(--text-dim);
-        }
-
-        .apps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 18px;
-        }
-
-        .app-card {
-            position: relative;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.45), inset 0 0.5px 0 rgba(255,255,255,0.04);
-            animation: fadeUp 0.4s ease both;
-        }
-
-        .app-card:hover {
-            border-color: #484848;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
-        }
-
-        .card-delete-form {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 3;
-            margin: 0;
-        }
-
-        .btn-card-delete {
-            width: 30px;
-            height: 30px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(18,18,18,0.78);
-            backdrop-filter: blur(8px);
-            color: var(--text-dim);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.28);
-            font-size: 13px;
-            line-height: 1;
-        }
-
-        .btn-card-delete:hover {
-            color: #ff8a8a;
-            border-color: var(--red-border);
-            background: rgba(232,24,12,0.10);
-        }
-
-        .card-strip {
-            height: 4px;
-            background: var(--border-subtle);
-            transition: background 0.3s;
-        }
-
-        .card-strip.running  { background: #22c55e; }
-        .card-strip.stopped  { background: #f59e0b; }
-        .card-strip.fresh    { background: var(--border-subtle); }
-
-        .card-header {
-            padding: 20px 20px 14px;
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-            padding-right: 58px;
-        }
-
-        .card-logo-wrap {
-            flex-shrink: 0;
-        }
-
-        .card-logo {
-            width: 75px;
-            height: 75px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .card-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .card-logo-ph { font-size: 22px; color: var(--text-dim); }
-
-        .state-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 10px;
-            font-weight: 600;
-            font-family: 'DM Mono', monospace;
-            padding: 2px 8px;
-            border-radius: 6px;
-            letter-spacing: 0.2px;
-            white-space: nowrap;
-            vertical-align: middle;
-            margin-left: 6px;
-            position: relative;
-            top: -1px;
-        }
-
-        .state-badge::before {
-            content: '';
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .state-badge.running {
-            background: #14532d;
-            border: 1px solid #166534;
-            color: #86efac;
-        }
-
-        .state-badge.running::before { background: #4ade80; }
-
-        .state-badge.stopped {
-            background: #451a03;
-            border: 1px solid #78350f;
-            color: #fcd34d;
-        }
-
-        .state-badge.stopped::before { background: #fbbf24; }
-
-        .card-info { flex: 1; min-width: 0; }
-
-        .card-version {
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: var(--text-dim);
-            margin-bottom: 4px;
-        }
-
-        .card-name {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.3px;
-            line-height: 1.25;
-            margin-bottom: 3px;
-        }
-
-        .card-author {
-            font-size: 12.5px;
-            color: var(--text-dim);
-        }
-
-        .card-body {
-            padding: 0 20px 16px;
-            flex: 1;
-        }
-
-        .card-desc {
-            font-size: 13.5px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .card-actions {
-            padding: 14px 20px 18px;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13.5px;
-            font-weight: 600;
-            padding: 10px 16px;
-            border-radius: var(--radius-sm);
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: all 0.15s;
-            width: 100%;
-            text-decoration: none;
-        }
-
-        .btn-red {
-            background: var(--red);
-            color: #fff;
-            border-color: var(--red);
-        }
-        .btn-red:hover { opacity: 0.88; }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--text);
-            border-color: var(--border);
-        }
-        .btn-outline:hover { background: var(--surface); border-color: #444; }
-
-        .btn-green {
-            background: var(--green-soft);
-            color: var(--green);
-            border-color: var(--green-border);
-        }
-        .btn-green:hover { background: rgba(34,197,94,0.16); }
-
-        .icon-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-        }
-
-        .icon-row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .btn-icon {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            border-radius: var(--radius-sm);
-            padding: 9px 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 0.3px;
-        }
-
-        .btn-icon:hover { background: var(--surface2); color: var(--text); border-color: #444; }
-
-        .btn-icon.warn:hover {
-            background: var(--amber-soft);
-            border-color: rgba(245,158,11,0.3);
-            color: var(--amber);
-        }
-
-        .btn-icon.danger:hover {
-            background: var(--red-soft);
-            border-color: var(--red-border);
-            color: var(--red);
-        }
-
-        .empty-state {
-            grid-column: 1/-1;
-            padding: 80px 24px;
-            text-align: center;
-            background: var(--bg-card);
-            border: 1px dashed var(--border);
-            border-radius: var(--radius);
-        }
-
-        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            color: var(--text-dim);
-        }
-
-        .empty-state a {
-            color: var(--red);
-            text-decoration: none;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(6px);
-            z-index: 500;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-overlay.open { display: flex; }
-
-        #appModal {
-            align-items: stretch;
-            padding: 14px;
-        }
-
-        .app-modal-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-        }
-
-        .modal-topbar {
-            height: 46px;
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            flex-shrink: 0;
-            background: var(--bg-card);
-        }
-
-        .modal-dots { display: flex; gap: 7px; }
-        .dot { width: 11px; height: 11px; border-radius: 50%; }
-        .dot.r { background: #ff5f57; }
-        .dot.y { background: #febc2e; }
-        .dot.g { background: #28c840; }
-
-        .btn-modal-close {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 12.5px;
-            font-weight: 500;
-            font-family: 'DM Sans', sans-serif;
-            padding: 5px 14px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-modal-close:hover { border-color: #555; color: var(--text); }
-
-        .logs-box {
-            background: #0e0e0e;
-            border: 1px solid #1f2a1f;
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 860px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-            overflow: hidden;
-        }
-
-        .logs-topbar {
-            background: #111;
-            border-bottom: 1px solid #1f2a1f;
-            padding: 11px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        .logs-title {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            color: #4ade80;
-            letter-spacing: 0.5px;
-        }
-
-        #logsContent {
-            flex: 1;
-            padding: 18px;
-            overflow: auto;
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            color: #86efac;
-            line-height: 1.75;
-            background: #0e0e0e;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .config-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 920px;
-            height: 92vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-            overflow: hidden;
-        }
-
-        .config-topbar {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        .config-title-group { display: flex; flex-direction: column; gap: 2px; }
-
-        .config-label {
-            font-size: 11px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 0.5px;
-        }
-
-        .config-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        #envEditor {
-            flex: 1;
-            background: #111;
-            color: #a5b4fc;
-            padding: 22px 24px;
-            font-family: 'DM Mono', monospace;
-            font-size: 13.5px;
-            line-height: 1.85;
-            border: none;
-            outline: none;
-            resize: none;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .config-footer {
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .config-hint {
-            font-size: 12px;
-            color: var(--text-dim);
-            font-family: 'DM Mono', monospace;
-        }
-
-        .config-btns { display: flex; gap: 8px; }
-
-        .btn-sm-cancel {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 8px 18px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-sm-cancel:hover { border-color: #555; color: var(--text); }
-
-        .btn-sm-save {
-            background: var(--red);
-            border: 1px solid var(--red);
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 8px 22px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-
-        .btn-sm-save:hover { opacity: 0.88; }
-        .btn-sm-save:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .confirm-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 420px;
-            padding: 28px;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-        }
-
-        .confirm-icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-        }
-
-        .confirm-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        .confirm-desc {
-            font-size: 13.5px;
-            color: var(--text-muted);
-            line-height: 1.55;
-            margin-bottom: 24px;
-        }
-
-        .confirm-module {
-            font-family: 'DM Mono', monospace;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
-            color: var(--red);
-            margin-bottom: 24px;
-        }
-
-        .confirm-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-confirm-cancel {
-            flex: 1;
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-confirm-cancel:hover { border-color: #555; color: var(--text); }
-
-        .btn-confirm-danger {
-            flex: 1;
-            background: var(--red);
-            border: 1px solid var(--red);
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-
-        .btn-confirm-danger:hover { opacity: 0.88; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        form { margin: 0; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="header-left">
-            <a href="/" class="logo">
-                <img src="{% static 'logo.png' %}" alt="" width="48" height="48" style="border-radius:7px;">
-                <span class="logo-name">Que<em>AI</em></span>
-            </a>
-                {% if queai_version %}
-                <div class="queai-version" title="Versión actual de QueAI">
-                    v{{ queai_version }}
-                </div>
-                {% endif %}
-            <span class="page-title">App Store</span>
+{% block title %}Hub{% endblock %}
+{% block page_label %}<span class="page-title">Hub de módulos</span>{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 28px 28px 80px;
+    }
+
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    .filter-search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .filter-search-icon {
+        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+        font-size: 14px; color: var(--text-dim); pointer-events: none;
+    }
+    .filter-search {
+        width: 100%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 14px;
+        padding: 9px 14px 9px 36px;
+        border-radius: var(--radius-sm);
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    .filter-search:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px rgba(232,24,12,0.1);
+    }
+    .filter-search::placeholder { color: var(--text-dim); }
+
+    .filter-pills { display: flex; gap: 6px; flex-shrink: 0; }
+    .filter-pill {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .filter-pill:hover { border-color: #484848; color: var(--text); }
+    .filter-pill.active { background: var(--surface); border-color: #484848; color: var(--text); }
+    .filter-pill.active.all   { border-color: var(--text-dim); color: var(--text); }
+    .filter-pill.active.run   { border-color: #16a34a; color: #86efac; background: #14532d; }
+    .filter-pill.active.stop  { border-color: #d97706; color: #fcd34d; background: #451a03; }
+    .filter-pill.active.fresh { border-color: #5b6ad0; color: #a5b4fc; background: #1e1e4a; }
+    .filter-pill .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    .filter-count { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; align-self: center; }
+
+    .btn-refresh {
+        margin-left: auto;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-refresh:hover { border-color: #484848; color: var(--text); background: var(--bg-hover); }
+    .btn-refresh:disabled { opacity: 0.6; cursor: wait; }
+    .btn-refresh.spinning .refresh-icon { animation: spin 0.9s linear infinite; display: inline-block; }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+    .filter-empty {
+        display: none;
+        grid-column: 1/-1;
+        padding: 60px 24px;
+        text-align: center;
+    }
+    .filter-empty.visible { display: block; }
+    .filter-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+    .filter-empty p { font-size: 15px; color: var(--text-muted); }
+    .filter-empty span { font-family: 'DM Mono', monospace; color: var(--text-dim); }
+
+    .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 18px;
+    }
+
+    .app-card {
+        position: relative;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.45), inset 0 0.5px 0 rgba(255,255,255,0.04);
+        animation: fadeUp 0.4s ease both;
+    }
+    .app-card:hover {
+        border-color: #484848;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
+    }
+
+    .card-delete-form { position: absolute; top: 12px; right: 12px; z-index: 3; }
+    .btn-card-delete {
+        width: 30px; height: 30px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(18,18,18,0.78);
+        backdrop-filter: blur(8px);
+        color: var(--text-dim);
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+        font-size: 13px; line-height: 1;
+    }
+    .btn-card-delete:hover { color: #ff8a8a; border-color: var(--red-border); background: rgba(232,24,12,0.10); }
+
+    .card-strip { height: 4px; background: var(--border-subtle); transition: background 0.3s; }
+    .card-strip.running { background: #22c55e; }
+    .card-strip.stopped { background: #f59e0b; }
+    .card-strip.fresh   { background: var(--border-subtle); }
+
+    .card-header { padding: 20px 20px 14px; display: flex; gap: 14px; align-items: flex-start; padding-right: 58px; }
+    .card-logo-wrap { flex-shrink: 0; }
+    .card-logo {
+        width: 75px; height: 75px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .card-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .card-logo-ph { font-size: 22px; color: var(--text-dim); }
+
+    .state-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 10px; font-weight: 600;
+        font-family: 'DM Mono', monospace;
+        padding: 2px 8px; border-radius: 6px;
+        letter-spacing: 0.2px; white-space: nowrap;
+        margin-left: 6px; position: relative; top: -1px;
+    }
+    .state-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .state-badge.running { background: #14532d; border: 1px solid #166534; color: #86efac; }
+    .state-badge.running::before { background: #4ade80; }
+    .state-badge.stopped { background: #451a03; border: 1px solid #78350f; color: #fcd34d; }
+    .state-badge.stopped::before { background: #fbbf24; }
+
+    .card-info { flex: 1; min-width: 0; }
+    .card-version { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
+    .card-name { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.25; margin-bottom: 3px; }
+    .card-author { font-size: 12.5px; color: var(--text-dim); }
+
+    .card-body { padding: 0 20px 16px; flex: 1; }
+    .card-desc {
+        font-size: 13.5px; color: var(--text-muted); line-height: 1.5;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .card-actions {
+        padding: 14px 20px 18px;
+        border-top: 1px solid var(--border-subtle);
+        display: flex; flex-direction: column; gap: 8px;
+    }
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+        font-size: 13.5px; font-weight: 600;
+        padding: 10px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        width: 100%; text-decoration: none;
+    }
+    .btn-red { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-red:hover { opacity: 0.88; }
+    .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn-outline:hover { background: var(--surface); border-color: #444; }
+    .btn-green { background: var(--green-soft); color: var(--green); border-color: var(--green-border); }
+    .btn-green:hover { background: rgba(34,197,94,0.16); }
+
+    .icon-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .icon-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn-icon {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: var(--radius-sm);
+        padding: 9px 6px;
+        font-size: 12px; font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        font-family: 'DM Mono', monospace; letter-spacing: 0.3px;
+    }
+    .btn-icon:hover { background: var(--surface2); color: var(--text); border-color: #444; }
+    .btn-icon.warn:hover { background: var(--amber-soft); border-color: rgba(245,158,11,0.3); color: var(--amber); }
+    .btn-icon.danger:hover { background: var(--red-soft); border-color: var(--red-border); color: var(--red); }
+
+    .empty-state {
+        grid-column: 1/-1;
+        padding: 80px 24px;
+        text-align: center;
+        background: var(--bg-card);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; color: var(--text-dim); }
+    .empty-state a { color: var(--red); text-decoration: none; }
+
+    /* Modales */
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.75);
+        backdrop-filter: blur(6px);
+        z-index: 500;
+        display: none;
+        align-items: center; justify-content: center;
+        padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    #appModal { align-items: stretch; padding: 14px; }
+    .app-modal-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        width: 100%;
+        display: flex; flex-direction: column; overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .modal-topbar {
+        height: 46px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 16px; flex-shrink: 0;
+        background: var(--bg-card);
+    }
+    .modal-dots { display: flex; gap: 7px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #febc2e; }
+    .dot.g { background: #28c840; }
+
+    .btn-modal-close {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 12.5px; font-weight: 500;
+        padding: 5px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-modal-close:hover { border-color: #555; color: var(--text); }
+
+    .logs-box {
+        background: #0e0e0e;
+        border: 1px solid #1f2a1f;
+        border-radius: var(--radius);
+        width: 100%; max-width: 860px; max-height: 80vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+        overflow: hidden;
+    }
+    .logs-topbar {
+        background: #111;
+        border-bottom: 1px solid #1f2a1f;
+        padding: 11px 18px;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-shrink: 0;
+    }
+    .logs-title { font-family: 'DM Mono', monospace; font-size: 12px; color: #4ade80; letter-spacing: 0.5px; }
+    #logsContent {
+        flex: 1; padding: 18px; overflow: auto;
+        font-family: 'DM Mono', monospace; font-size: 12px;
+        color: #86efac; line-height: 1.75;
+        background: #0e0e0e;
+        white-space: pre-wrap; word-break: break-all;
+    }
+
+    .config-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        width: 100%; max-width: 920px; height: 92vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+        overflow: hidden;
+    }
+    .config-topbar { padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .config-title-group { display: flex; flex-direction: column; gap: 2px; }
+    .config-label { font-size: 11px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; }
+    .config-name { font-size: 15px; font-weight: 600; }
+    #envEditor {
+        flex: 1; background: #111; color: #a5b4fc;
+        padding: 22px 24px;
+        font-family: 'DM Mono', monospace; font-size: 13.5px; line-height: 1.85;
+        border: none; outline: none; resize: none;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .config-footer { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .config-hint { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+    .config-btns { display: flex; gap: 8px; }
+    .btn-sm-cancel {
+        background: none; border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 13px; font-weight: 500;
+        padding: 8px 18px; border-radius: var(--radius-sm);
+        cursor: pointer; transition: all 0.15s;
+    }
+    .btn-sm-cancel:hover { border-color: #555; color: var(--text); }
+    .btn-sm-save {
+        background: var(--red); border: 1px solid var(--red);
+        color: #fff; font-size: 13px; font-weight: 600;
+        padding: 8px 22px; border-radius: var(--radius-sm);
+        cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-sm-save:hover { opacity: 0.88; }
+    .btn-sm-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .confirm-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        width: 100%; max-width: 420px;
+        padding: 28px;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .confirm-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .confirm-desc { font-size: 13.5px; color: var(--text-muted); line-height: 1.55; margin-bottom: 24px; }
+    .confirm-module {
+        font-family: 'DM Mono', monospace;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: var(--red);
+        margin-bottom: 24px;
+    }
+    .confirm-actions { display: flex; gap: 8px; }
+    .btn-confirm-cancel {
+        flex: 1; background: none;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 14px; font-weight: 500;
+        padding: 10px; border-radius: var(--radius-sm);
+        cursor: pointer; transition: all 0.15s;
+    }
+    .btn-confirm-cancel:hover { border-color: #555; color: var(--text); }
+    .btn-confirm-danger {
+        flex: 1; background: var(--red);
+        border: 1px solid var(--red); color: #fff;
+        font-size: 14px; font-weight: 600;
+        padding: 10px; border-radius: var(--radius-sm);
+        cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-confirm-danger:hover { opacity: 0.88; }
+
+    form { margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="filter-bar">
+        <div class="filter-search-wrap">
+            <span class="filter-search-icon">🔍</span>
+            <input type="text" id="filterSearch" class="filter-search"
+                   placeholder="Buscar módulo…" autocomplete="off" oninput="applyFilters()">
         </div>
-        <div class="header-nav">
-            <a href="/marketplace/">Marketplace</a>
-            <a href="/monitor/">Monitor</a>
-            <div class="docker-pill">
-                <div class="docker-dot"></div>
-                Docker activo
-            </div>
+        <div class="filter-pills">
+            <button class="filter-pill active all" data-filter="all" onclick="setFilter('all', this)">Todos</button>
+            <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">
+                <span class="pill-dot" style="background:#4ade80"></span>Activos
+            </button>
+            <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">
+                <span class="pill-dot" style="background:#fbbf24"></span>Detenidos
+            </button>
+            <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">
+                <span class="pill-dot" style="background:#818cf8"></span>Sin instalar
+            </button>
         </div>
-    </header>
-
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="msg {% if 'error' in message.tags %}error{% else %}ok{% endif %}">
-            <span class="msg-icon">{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
-            {{ message }}
-        </div>
-        {% endfor %}
+        <span class="filter-count" id="filterCount">{{ apps|length }} plugins</span>
+        <button class="btn-refresh" id="btnRefresh" onclick="refreshCatalog()" title="Re-escanear plugins en disco y refrescar estado Docker">
+            <span class="refresh-icon">↻</span>
+            <span class="refresh-label">Actualizar</span>
+        </button>
     </div>
-    {% endif %}
 
-    <div class="content">
-        <div class="filter-bar">
-            <div class="filter-search-wrap">
-                <span class="filter-search-icon">🔍</span>
-                <input
-                    type="text"
-                    id="filterSearch"
-                    class="filter-search"
-                    placeholder="Buscar módulo…"
-                    autocomplete="off"
-                    oninput="applyFilters()"
-                >
+    <div class="apps-grid">
+        {% for app in apps %}
+        <div class="app-card"
+            data-name="{{ app.display_name|lower }} {{ app.author|default:''|lower }}"
+            data-state="{% if not app.is_installed %}fresh{% elif app.is_running %}running{% else %}stopped{% endif %}">
+
+            <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
+
+            <form method="post" action="{% url 'delete_app' %}" class="card-delete-form">
+                {% csrf_token %}
+                <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                <button type="button" class="btn-card-delete" title="Borrar módulo"
+                        onclick="confirmDelete('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')">🗑</button>
+            </form>
+
+            <a href="{% url 'app_detail' app.folder_name %}" class="card-header" style="text-decoration:none;color:inherit;">
+                <div class="card-logo-wrap">
+                    <div class="card-logo">
+                        {% if app.logo %}
+                        <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=card-logo-ph>📦</div>'">
+                        {% else %}
+                        <div class="card-logo-ph">📦</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-version">v{{ app.version }}</div>
+                    <div class="card-name" title="{{ app.display_name }}">
+                        {{ app.display_name }}
+                        {% if app.is_installed %}
+                            {% if app.is_running %}
+                            <span class="state-badge running">activo</span>
+                            {% else %}
+                            <span class="state-badge stopped">detenido</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="card-author">{{ app.author|default:"Sin autor" }}</div>
+                </div>
+            </a>
+
+            <div class="card-body">
+                <p class="card-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
             </div>
-            <div class="filter-pills">
-                <button class="filter-pill active all" data-filter="all" onclick="setFilter('all', this)">Todos</button>
-                <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">
-                    <span class="pill-dot" style="background:#4ade80"></span>Activos
-                </button>
-                <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">
-                    <span class="pill-dot" style="background:#fbbf24"></span>Detenidos
-                </button>
-                <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">
-                    <span class="pill-dot" style="background:#818cf8"></span>Sin instalar
-                </button>
-            </div>
-            <span class="filter-count" id="filterCount">{{ apps|length }} plugins</span>
-        </div>
 
-        <div class="apps-grid">
-            {% for app in apps %}
-            <div class="app-card"
-                data-name="{{ app.display_name|lower }}"
-                data-state="{% if not app.is_installed %}fresh{% elif app.is_running %}running{% else %}stopped{% endif %}">
-                
-                <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
-
-                <form method="post" action="{% url 'delete_app' %}" class="card-delete-form">
+            <div class="card-actions">
+                {% if not app.is_installed %}
+                <form method="post" action="{% url 'install_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button
-                        type="button"
-                        class="btn-card-delete"
-                        title="Borrar módulo"
-                        onclick="confirmDelete('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')"
-                    >
-                        🗑
-                    </button>
+                    <button type="submit" class="btn btn-red">Instalar módulo</button>
                 </form>
 
-                <div class="card-header">
-                    <div class="card-logo-wrap">
-                        <div class="card-logo">
-                            {% if app.logo %}
-                            <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=card-logo-ph>📦</div>'">
-                            {% else %}
-                            <div class="card-logo-ph">📦</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="card-info">
-                        <div class="card-version">v{{ app.version }}</div>
-                        <div class="card-name" title="{{ app.display_name }}">
-                            {{ app.display_name }}
-                            {% if app.is_installed %}
-                                {% if app.is_running %}
-                                <span class="state-badge running">activo</span>
-                                {% else %}
-                                <span class="state-badge stopped">detenido</span>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                        <div class="card-author">{{ app.author|default:"Sin autor" }}</div>
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <p class="card-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
-                </div>
-
-                <div class="card-actions">
-                    {% if not app.is_installed %}
-                    <form method="post" action="{% url 'install_app' %}">
+                {% elif app.is_running %}
+                <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn btn-outline">↗ Abrir aplicación</button>
+                <div class="icon-row">
+                    <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
+                    <button onclick="openConfigEditor('{{ app.folder_name }}')" class="btn-icon" title="Editar .env">.env</button>
+                    <form method="post" action="{% url 'stop_app' %}" style="display:contents">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                        <button type="submit" class="btn btn-red">Instalar módulo</button>
+                        <button type="submit" class="btn-icon warn" title="Detener">Stop</button>
                     </form>
-
-                    {% elif app.is_running %}
-                    <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn btn-outline">
-                        ↗ Abrir aplicación
-                    </button>
-                    <div class="icon-row">
-                        <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                        <button onclick="openConfigEditor('{{ app.folder_name }}')" class="btn-icon" title="Editar .env">.env</button>
-                        <form method="post" action="{% url 'stop_app' %}" style="display:contents">
-                            {% csrf_token %}
-                            <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                            <button type="submit" class="btn-icon warn" title="Detener">Stop</button>
-                        </form>
-                        <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
-                    </div>
-
-                    {% else %}
-                    <form method="post" action="{% url 'start_app' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                        <button type="submit" class="btn btn-green">▶ Reanudar</button>
-                    </form>
-                    <div class="icon-row-2">
-                        <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                        <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
-                    </div>
-                    {% endif %}
+                    <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
                 </div>
-            </div>
-            {% empty %}
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>Sin módulos detectados</h3>
-                <p>Agrega plugins en la carpeta <code>/plugins</code> o <a href="/marketplace/">descárgalos desde el Marketplace</a>.</p>
-            </div>
-            {% endfor %}
 
-            <div class="filter-empty" id="filterEmpty">
-                <div class="filter-empty-icon">🔍</div>
-                <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
+                {% else %}
+                <form method="post" action="{% url 'start_app' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                    <button type="submit" class="btn btn-green">▶ Reanudar</button>
+                </form>
+                <div class="icon-row-2">
+                    <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
+                    <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>Sin módulos detectados</h3>
+            <p>Agrega plugins en la carpeta <code>/plugins</code> o <a href="{% url 'marketplace' %}">descárgalos desde el Marketplace</a>.</p>
+        </div>
+        {% endfor %}
+
+        <div class="filter-empty" id="filterEmpty">
+            <div class="filter-empty-icon">🔍</div>
+            <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
+        </div>
+    </div>
+</div>
+
+{# Modales #}
+<div id="appModal" class="modal-overlay">
+    <div class="app-modal-box">
+        <div class="modal-topbar">
+            <div class="modal-dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+            <button class="btn-modal-close" onclick="closeApp()">Cerrar ✕</button>
+        </div>
+        <iframe id="appIframe" src="" style="flex:1;border:none;width:100%;"></iframe>
+    </div>
+</div>
+
+<div id="logsModal" class="modal-overlay">
+    <div class="logs-box">
+        <div class="logs-topbar">
+            <span class="logs-title">▶ Terminal — stdout / stderr</span>
+            <button class="btn-modal-close" style="border-color:#1f2a1f;color:#4ade80;" onclick="document.getElementById('logsModal').classList.remove('open')">Cerrar ✕</button>
+        </div>
+        <pre id="logsContent">&gt; Conectando con Docker daemon...</pre>
+    </div>
+</div>
+
+<div id="configModal" class="modal-overlay">
+    <div class="config-box">
+        <div class="config-topbar">
+            <div class="config-title-group">
+                <span class="config-label">Configuración de módulo</span>
+                <span class="config-name" id="configTitle">—</span>
+            </div>
+            <button class="btn-modal-close" onclick="closeConfigEditor()">Cerrar ✕</button>
+        </div>
+        <textarea id="envEditor" spellcheck="false" placeholder="CLAVE=VALOR&#10;OTRA_CLAVE=VALOR"></textarea>
+        <div class="config-footer">
+            <span class="config-hint">El contenedor se reiniciará al guardar</span>
+            <div class="config-btns">
+                <button class="btn-sm-cancel" onclick="closeConfigEditor()">Cancelar</button>
+                <button class="btn-sm-save" onclick="saveConfig(event)">Guardar y aplicar</button>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="appModal" class="modal-overlay">
-        <div class="app-modal-box">
-            <div class="modal-topbar">
-                <div class="modal-dots">
-                    <div class="dot r"></div>
-                    <div class="dot y"></div>
-                    <div class="dot g"></div>
-                </div>
-                <button class="btn-modal-close" onclick="closeApp()">Cerrar ✕</button>
+<div id="confirmModal" class="modal-overlay">
+    <div class="confirm-box">
+        <div class="confirm-title" id="confirmTitle">¿Confirmar acción?</div>
+        <p class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</p>
+        <div class="confirm-module" id="confirmModuleName">—</div>
+        <form method="post" action="" id="confirmForm">
+            {% csrf_token %}
+            <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
+            <div class="confirm-actions">
+                <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
+                <button type="submit" class="btn-confirm-danger" id="confirmSubmitText">Confirmar</button>
             </div>
-            <iframe id="appIframe" src="" style="flex:1;border:none;width:100%;"></iframe>
-        </div>
+        </form>
     </div>
+</div>
+{% endblock %}
 
-    <div id="logsModal" class="modal-overlay">
-        <div class="logs-box">
-            <div class="logs-topbar">
-                <span class="logs-title">▶ Terminal — stdout / stderr</span>
-                <button class="btn-modal-close" style="border-color:#1f2a1f;color:#4ade80;" onclick="document.getElementById('logsModal').classList.remove('open')">Cerrar ✕</button>
-            </div>
-            <pre id="logsContent">&gt; Conectando con Docker daemon...</pre>
-        </div>
-    </div>
+{% block extra_js %}
+<script src="{% static 'js/apps.js' %}"></script>
+<script>
+    function openConfirmModal({ title, description, actionUrl, submitText, folder, name }) {
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmDesc').textContent = description;
+        document.getElementById('confirmForm').action = actionUrl;
+        document.getElementById('confirmSubmitText').textContent = submitText;
+        document.getElementById('confirmFolderInput').value = folder;
+        document.getElementById('confirmModuleName').textContent = name + ' (' + folder + ')';
+        document.getElementById('confirmModal').classList.add('open');
+    }
 
-    <div id="configModal" class="modal-overlay">
-        <div class="config-box">
-            <div class="config-topbar">
-                <div class="config-title-group">
-                    <span class="config-label">Configuración de módulo</span>
-                    <span class="config-name" id="configTitle">—</span>
-                </div>
-                <button class="btn-modal-close" onclick="closeConfigEditor()">Cerrar ✕</button>
-            </div>
-            <textarea id="envEditor" spellcheck="false" placeholder="CLAVE=VALOR&#10;OTRA_CLAVE=VALOR"></textarea>
-            <div class="config-footer">
-                <span class="config-hint">El contenedor se reiniciará al guardar</span>
-                <div class="config-btns">
-                    <button class="btn-sm-cancel" onclick="closeConfigEditor()">Cancelar</button>
-                    <button class="btn-sm-save" onclick="saveConfig(event)">Guardar y aplicar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="confirmModal" class="modal-overlay">
-        <div class="confirm-box">
-            <div class="confirm-title" id="confirmTitle">¿Confirmar acción?</div>
-            <p class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</p>
-            <div class="confirm-module" id="confirmModuleName">—</div>
-            <form method="post" action="" id="confirmForm">
-                {% csrf_token %}
-                <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
-                <div class="confirm-actions">
-                    <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
-                    <button type="submit" class="btn-confirm-danger" id="confirmSubmitText">Confirmar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="{% static 'js/apps.js' %}"></script>
-
-    <script>
-        function openConfirmModal({ title, description, actionUrl, submitText, folder, name }) {
-            document.getElementById('confirmTitle').textContent = title;
-            document.getElementById('confirmDesc').textContent = description;
-            document.getElementById('confirmForm').action = actionUrl;
-            document.getElementById('confirmSubmitText').textContent = submitText;
-            document.getElementById('confirmFolderInput').value = folder;
-            document.getElementById('confirmModuleName').textContent = name + ' (' + folder + ')';
-            document.getElementById('confirmModal').classList.add('open');
-        }
-
-        function confirmUninstall(folder, name) {
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.action = "{% url 'uninstall_app' %}";
-
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = 'csrfmiddlewaretoken';
-            csrf.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'manifest_folder_name';
-            input.value = folder;
-
-            form.appendChild(csrf);
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        function confirmDelete(folder, name) {
-            openConfirmModal({
-                title: '¿Borrar este módulo?',
-                description: 'Se eliminará por completo de tu equipo. Esta acción no se puede deshacer.',
-                actionUrl: "{% url 'delete_app' %}",
-                submitText: 'Sí, borrar',
-                folder,
-                name
-            });
-        }
-
-        function closeConfirm() {
-            document.getElementById('confirmModal').classList.remove('open');
-        }
-
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('open');
-                    if (this.id === 'appModal') {
-                        document.getElementById('appIframe').src = '';
-                    }
-                }
-            });
+    function confirmUninstall(folder, name) {
+        openConfirmModal({
+            title: '¿Desinstalar este módulo?',
+            description: 'Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La carpeta del plugin se conserva.',
+            actionUrl: "{% url 'uninstall_app' %}",
+            submitText: 'Sí, desinstalar',
+            folder, name
         });
+    }
 
-        let activeFilter = 'all';
+    function confirmDelete(folder, name) {
+        openConfirmModal({
+            title: '¿Borrar este módulo?',
+            description: 'Se eliminará por completo de tu equipo (contenedores, imágenes y carpeta local). Esta acción no se puede deshacer.',
+            actionUrl: "{% url 'delete_app' %}",
+            submitText: 'Sí, borrar',
+            folder, name
+        });
+    }
 
-        function setFilter(filter, btn) {
-            activeFilter = filter;
+    function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); }
 
-            document.querySelectorAll('.filter-pill').forEach(p => {
-                p.classList.remove('active', 'all', 'run', 'stop', 'fresh');
-            });
-            btn.classList.add('active');
-            if (filter === 'all')     btn.classList.add('all');
-            if (filter === 'running') btn.classList.add('run');
-            if (filter === 'stopped') btn.classList.add('stop');
-            if (filter === 'fresh')   btn.classList.add('fresh');
-
-            applyFilters();
-        }
-
-        function applyFilters() {
-            const term = document.getElementById('filterSearch').value.trim().toLowerCase();
-            const cards = document.querySelectorAll('.app-card');
-            let visible = 0;
-
-            cards.forEach(card => {
-                const name  = card.dataset.name  || '';
-                const state = card.dataset.state || '';
-
-                const matchesName  = !term || name.includes(term);
-                const matchesState = activeFilter === 'all' || state === activeFilter;
-
-                if (matchesName && matchesState) {
-                    card.style.display = '';
-                    visible++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            const total = cards.length;
-            const countEl = document.getElementById('filterCount');
-            if (visible === total) {
-                countEl.textContent = `${total} plugin${total !== 1 ? 's' : ''}`;
-            } else {
-                countEl.textContent = `${visible} de ${total}`;
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('open');
+                if (this.id === 'appModal') document.getElementById('appIframe').src = '';
             }
+        });
+    });
 
-            const emptyEl = document.getElementById('filterEmpty');
-            const termEl  = document.getElementById('filterEmptyTerm');
-            if (visible === 0 && total > 0) {
-                emptyEl.classList.add('visible');
-                termEl.textContent = term ? `"${term}"` : 'ese estado';
-            } else {
-                emptyEl.classList.remove('visible');
-            }
+    // Filtros
+    let activeFilter = 'all';
+
+    function setFilter(filter, btn) {
+        activeFilter = filter;
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active', 'all', 'run', 'stop', 'fresh'));
+        btn.classList.add('active');
+        if (filter === 'all')     btn.classList.add('all');
+        if (filter === 'running') btn.classList.add('run');
+        if (filter === 'stopped') btn.classList.add('stop');
+        if (filter === 'fresh')   btn.classList.add('fresh');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const term = document.getElementById('filterSearch').value.trim().toLowerCase();
+        const cards = document.querySelectorAll('.app-card');
+        let visible = 0;
+        cards.forEach(card => {
+            const name = card.dataset.name || '';
+            const state = card.dataset.state || '';
+            const matchesName  = !term || name.includes(term);
+            const matchesState = activeFilter === 'all' || state === activeFilter;
+            if (matchesName && matchesState) { card.style.display = ''; visible++; }
+            else { card.style.display = 'none'; }
+        });
+        const total = cards.length;
+        const countEl = document.getElementById('filterCount');
+        if (visible === total) countEl.textContent = `${total} plugin${total !== 1 ? 's' : ''}`;
+        else countEl.textContent = `${visible} de ${total}`;
+
+        const emptyEl = document.getElementById('filterEmpty');
+        const termEl  = document.getElementById('filterEmptyTerm');
+        if (visible === 0 && total > 0) {
+            emptyEl.classList.add('visible');
+            termEl.textContent = term ? `"${term}"` : 'ese estado';
+        } else {
+            emptyEl.classList.remove('visible');
         }
-    </script>
-</body>
-</html>
+    }
+
+    // Refresh asíncrono del catálogo
+    async function refreshCatalog() {
+        const btn = document.getElementById('btnRefresh');
+        btn.classList.add('spinning');
+        btn.disabled = true;
+        const label = btn.querySelector('.refresh-label');
+        const original = label.textContent;
+        label.textContent = 'Actualizando…';
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const r = await fetch("{% url 'refresh_catalog' %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf },
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (window.toast) window.toast('Catálogo actualizado', 'success', 2400);
+            // Recargamos para que el server re-escanee y veamos los cambios.
+            setTimeout(() => window.location.reload(), 350);
+        } catch (e) {
+            if (window.toast) window.toast('Error al actualizar: ' + e.message, 'error', 5000);
+            btn.classList.remove('spinning');
+            btn.disabled = false;
+            label.textContent = original;
+        }
+    }
+</script>
+{% endblock %}
