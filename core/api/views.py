@@ -42,11 +42,19 @@ from .serializers import plugin_to_dict
 # ----------------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------------
-def _get_app_or_404(folder_name: str) -> AvailableApp | None:
+def _get_app_or_404(identifier: str) -> AvailableApp | None:
+    """Busca por folder_name (`QueAI-OCR-CPU-LOCAL-MS`) o slug (`ocr_local_cpu`).
+
+    `queai list` muestra el slug corto, así que cualquier comando que el
+    usuario escriba a partir de esa salida debe resolver al mismo plugin.
+    """
     try:
-        return AvailableApp.objects.get(folder_name=folder_name)
+        return AvailableApp.objects.get(folder_name=identifier)
     except AvailableApp.DoesNotExist:
-        return None
+        try:
+            return AvailableApp.objects.get(name=identifier)
+        except AvailableApp.DoesNotExist:
+            return None
 
 
 def _not_found(detail: str = "Plugin no encontrado.") -> JsonResponse:
@@ -129,7 +137,7 @@ def plugin_detail(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    is_running = _is_app_running_cached(folder_name) if app.is_installed else False
+    is_running = _is_app_running_cached(app.folder_name) if app.is_installed else False
     return _ok(plugin_to_dict(app, is_running=is_running))
 
 
@@ -143,17 +151,18 @@ def plugin_install(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    path = get_compose_path(folder_name)
+    real = app.folder_name
+    path = get_compose_path(real)
     try:
         subprocess.run(
             ["docker-compose", "-f", path, "up", "-d", "--build", "--force-recreate"],
             check=True,
         )
-        AvailableApp.objects.filter(folder_name=folder_name).update(is_installed=True)
-        _invalidate_running_cache(folder_name)
+        AvailableApp.objects.filter(folder_name=real).update(is_installed=True)
+        _invalidate_running_cache(real)
     except subprocess.CalledProcessError as e:
         return _server_error(f"docker compose up falló: {e}")
-    return _ok({"status": "installed", "folder_name": folder_name}, status=202)
+    return _ok({"status": "installed", "folder_name": real}, status=202)
 
 
 @csrf_exempt
@@ -163,13 +172,14 @@ def plugin_start(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    path = get_compose_path(folder_name)
+    real = app.folder_name
+    path = get_compose_path(real)
     try:
         subprocess.run(_get_compose_command() + ["-f", path, "start"], check=True)
-        _invalidate_running_cache(folder_name)
+        _invalidate_running_cache(real)
     except subprocess.CalledProcessError as e:
         return _server_error(f"docker compose start falló: {e}")
-    return _ok({"status": "started", "folder_name": folder_name})
+    return _ok({"status": "started", "folder_name": real})
 
 
 @csrf_exempt
@@ -179,13 +189,14 @@ def plugin_stop(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    path = get_compose_path(folder_name)
+    real = app.folder_name
+    path = get_compose_path(real)
     try:
         subprocess.run(_get_compose_command() + ["-f", path, "stop"], check=True)
-        _invalidate_running_cache(folder_name)
+        _invalidate_running_cache(real)
     except subprocess.CalledProcessError as e:
         return _server_error(f"docker compose stop falló: {e}")
-    return _ok({"status": "stopped", "folder_name": folder_name})
+    return _ok({"status": "stopped", "folder_name": real})
 
 
 @csrf_exempt
@@ -195,14 +206,15 @@ def plugin_uninstall(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    path = get_compose_path(folder_name)
+    real = app.folder_name
+    path = get_compose_path(real)
     try:
         _compose_down_full(path)
-        AvailableApp.objects.filter(folder_name=folder_name).update(is_installed=False)
-        _invalidate_running_cache(folder_name)
+        AvailableApp.objects.filter(folder_name=real).update(is_installed=False)
+        _invalidate_running_cache(real)
     except Exception as e:
         return _server_error(str(e))
-    return _ok({"status": "uninstalled", "folder_name": folder_name})
+    return _ok({"status": "uninstalled", "folder_name": real})
 
 
 @csrf_exempt
@@ -212,15 +224,16 @@ def plugin_delete(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
-    path = get_compose_path(folder_name)
+    real = app.folder_name
+    path = get_compose_path(real)
     try:
         _compose_down_full(path)
-        AvailableApp.objects.filter(folder_name=folder_name).delete()
-        _delete_plugin_folder(folder_name)
-        _invalidate_running_cache(folder_name)
+        AvailableApp.objects.filter(folder_name=real).delete()
+        _delete_plugin_folder(real)
+        _invalidate_running_cache(real)
     except Exception as e:
         return _server_error(str(e))
-    return _ok({"status": "deleted", "folder_name": folder_name})
+    return _ok({"status": "deleted", "folder_name": real})
 
 
 # ----------------------------------------------------------------------------
@@ -233,6 +246,7 @@ def plugin_logs(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
+    real = app.folder_name
 
     try:
         tail = int(request.GET.get("tail", "150"))
@@ -240,14 +254,14 @@ def plugin_logs(request: HttpRequest, folder_name: str):
         return _bad_request("tail debe ser un entero.")
     tail = max(1, min(tail, 2000))
 
-    path = get_compose_path(folder_name)
+    path = get_compose_path(real)
     try:
         res = subprocess.run(
             _get_compose_command() + ["-f", path, "logs", f"--tail={tail}"],
             capture_output=True,
             text=True,
         )
-        return _ok({"folder_name": folder_name, "tail": tail, "logs": res.stdout + res.stderr})
+        return _ok({"folder_name": real, "tail": tail, "logs": res.stdout + res.stderr})
     except Exception as e:
         return _server_error(str(e))
 
@@ -259,18 +273,19 @@ def plugin_stats(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
+    real = app.folder_name
     try:
         ids_res = subprocess.run(
             [
                 "docker", "ps",
-                "--filter", f"label=com.docker.compose.project={folder_name.lower()}",
+                "--filter", f"label=com.docker.compose.project={real.lower()}",
                 "--format", "{{.ID}}",
             ],
             capture_output=True, text=True,
         )
         container_ids = [c for c in ids_res.stdout.strip().splitlines() if c.strip()]
         if not container_ids:
-            return _ok({"folder_name": folder_name, "containers": []})
+            return _ok({"folder_name": real, "containers": []})
 
         stats_res = subprocess.run(
             [
@@ -282,7 +297,7 @@ def plugin_stats(request: HttpRequest, folder_name: str):
             capture_output=True, text=True,
         )
         stats = [json.loads(line) for line in stats_res.stdout.strip().splitlines() if line.strip()]
-        return _ok({"folder_name": folder_name, "containers": stats})
+        return _ok({"folder_name": real, "containers": stats})
     except Exception as e:
         return _server_error(str(e))
 
@@ -299,8 +314,9 @@ def plugin_env(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
         return _not_found()
+    real = app.folder_name
 
-    plugin_path = os.path.join(settings.PLUGINS_DIR, folder_name)
+    plugin_path = os.path.join(settings.PLUGINS_DIR, real)
     env_path = os.path.join(plugin_path, ".env")
     example_path = os.path.join(plugin_path, ".env.example")
 
@@ -316,7 +332,7 @@ def plugin_env(request: HttpRequest, folder_name: str):
                 return _server_error(f"No se pudo crear .env: {e}")
         try:
             with open(env_path, encoding="utf-8") as f:
-                return _ok({"folder_name": folder_name, "content": f.read()})
+                return _ok({"folder_name": real, "content": f.read()})
         except Exception as e:
             return _server_error(str(e))
 
@@ -337,17 +353,17 @@ def plugin_env(request: HttpRequest, folder_name: str):
     except Exception as e:
         return _server_error(f"Error escribiendo .env: {e}")
 
-    if apply_now and os.path.exists(get_compose_path(folder_name)):
+    if apply_now and os.path.exists(get_compose_path(real)):
         try:
             subprocess.run(
-                _get_compose_command() + ["-f", get_compose_path(folder_name), "up", "-d", "--force-recreate"],
+                _get_compose_command() + ["-f", get_compose_path(real), "up", "-d", "--force-recreate"],
                 check=True,
             )
-            _invalidate_running_cache(folder_name)
+            _invalidate_running_cache(real)
         except subprocess.CalledProcessError as e:
             return _server_error(f".env guardado pero falló el recreate: {e}")
 
-    return _ok({"folder_name": folder_name, "applied": apply_now})
+    return _ok({"folder_name": real, "applied": apply_now})
 
 
 # ----------------------------------------------------------------------------

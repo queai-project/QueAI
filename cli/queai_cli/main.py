@@ -89,23 +89,36 @@ def health(ctx):
 # catálogo + lifecycle
 # ----------------------------------------------------------------------------
 @cli.command(name="list")
+@click.option("--folders", is_flag=True, help="Mostrar también la columna FOLDER (nombre largo del directorio).")
 @click.pass_context
 @_handle
-def list_cmd(ctx):
-    """Lista plugins instalados y disponibles."""
+def list_cmd(ctx, folders):
+    """Lista plugins instalados y disponibles. Cualquier `NAME` o `FOLDER`
+    es válido como identificador en el resto de comandos."""
     data = _client(ctx).plugins_list()
     items = data.get("plugins", [])
     if not items:
         click.echo("(sin plugins detectados)")
         return
-    click.echo(f"{'NAME':22} {'STATE':12} {'VERSION':10} DESCRIPTION")
-    for p in items:
-        state = p["state"]
-        if state["installed"]:
-            label = "running" if state["running"] else "stopped"
-        else:
-            label = "fresh"
-        click.echo(f"{p['name'][:22]:22} {label:12} {p['version']:10} {p['description'][:60]}")
+    if folders:
+        click.echo(f"{'NAME':22} {'STATE':10} {'VERSION':10} {'FOLDER':32} DESCRIPTION")
+        for p in items:
+            label = _state_label(p["state"])
+            click.echo(
+                f"{p['name'][:22]:22} {label:10} {p['version']:10} "
+                f"{p['folder_name'][:32]:32} {p['description'][:40]}"
+            )
+    else:
+        click.echo(f"{'NAME':22} {'STATE':10} {'VERSION':10} DESCRIPTION")
+        for p in items:
+            label = _state_label(p["state"])
+            click.echo(f"{p['name'][:22]:22} {label:10} {p['version']:10} {p['description'][:60]}")
+
+
+def _state_label(state: dict) -> str:
+    if state["installed"]:
+        return "running" if state["running"] else "stopped"
+    return "fresh"
 
 
 @cli.command()

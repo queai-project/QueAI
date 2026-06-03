@@ -91,6 +91,15 @@ class APILifecycleTests(TestCase):
         response = Client().get("/api/v1/plugins/nope/", **self.headers)
         self.assertEqual(response.status_code, 404)
 
+    def test_plugin_detail_accepts_slug_name(self):
+        """El usuario puede pasar el slug corto (name) además del folder largo."""
+        with mock.patch("core.api.views._is_app_running_cached", return_value=False):
+            response = Client().get("/api/v1/plugins/demo/", **self.headers)
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        # Devuelve el folder real, no lo que mandó el cliente.
+        self.assertEqual(body["folder_name"], "QueAI-Demo-MS")
+
     @mock.patch("core.api.views.subprocess.run")
     def test_install_calls_compose_up(self, run_mock):
         run_mock.return_value = mock.Mock(returncode=0)
