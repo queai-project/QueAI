@@ -13,30 +13,39 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg:            #161616;
-            --bg-card:       #232323;
-            --bg-hover:      #2a2a2a;
-            --surface:       #2e2e2e;
-            --surface2:      #363636;
-            --border:        #383838;
-            --border-subtle: #2c2c2c;
-            --text:          #eaeae6;
-            --text-muted:    #909090;
+            /* Paleta minimalista: bg + 1 surface, 3 niveles de texto,
+               1 acento (rojo solo en focus/hover principal),
+               1 estado (verde solo en running). */
+            --bg:            #141414;
+            --bg-card:       #1c1c1c;
+            --bg-hover:      #222;
+            --surface:       #262626;
+            --border:        #2a2a2a;
+            --border-subtle: #222;
+            --text:          #ededeb;
+            --text-muted:    #8a8a87;
             --text-dim:      #585856;
-            --red:           #e8180c;
-            --red-soft:      rgba(232,24,12,0.1);
+            --accent:        #e8180c;     /* solo focus, hover principal, link */
+            --accent-soft:   rgba(232,24,12,0.08);
+            --ok:            #22c55e;     /* solo running dot */
+            --warn:          #d4a056;     /* solo errores / failures */
+            --warn-soft:     rgba(212,160,86,0.08);
+            --radius:        10px;
+            --radius-sm:     7px;
+            /* Aliases legacy para no romper templates que aún los usan */
+            --surface2:      #2c2c2c;
+            --red:            var(--accent);
+            --red-soft:       var(--accent-soft);
             --red-border:    rgba(232,24,12,0.22);
-            --green:         #22c55e;
-            --green-soft:    rgba(34,197,94,0.1);
+            --green:          var(--ok);
+            --green-soft:    rgba(34,197,94,0.08);
             --green-border:  rgba(34,197,94,0.22);
-            --amber:         #f59e0b;
-            --amber-soft:    rgba(245,158,11,0.1);
-            --amber-border:  rgba(245,158,11,0.25);
-            --blue:          #818cf8;
-            --blue-soft:     rgba(129,140,248,0.1);
-            --blue-border:   rgba(129,140,248,0.25);
-            --radius:        14px;
-            --radius-sm:     9px;
+            --amber:          var(--warn);
+            --amber-soft:     var(--warn-soft);
+            --amber-border:  rgba(212,160,86,0.22);
+            --blue:          var(--text-muted);
+            --blue-soft:     transparent;
+            --blue-border:   var(--border);
         }
 
         html { height: 100%; }
@@ -94,14 +103,10 @@
         .logo-name em { color: var(--red); font-style: normal; }
 
         .queai-version {
-            font-size: 12px;
+            font-size: 11px;
             font-family: 'DM Mono', monospace;
             color: var(--text-dim);
-            padding: 3px 8px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background: var(--bg-card);
-            letter-spacing: 0.02em;
+            letter-spacing: 0.04em;
         }
 
         .page-title {
@@ -132,32 +137,27 @@
 
         .header-nav a.active {
             color: var(--text);
-            background: var(--surface);
-            box-shadow: inset 0 -2px 0 var(--red);
+            background: transparent;
+            box-shadow: inset 0 -1px 0 var(--text);
         }
 
         .docker-pill {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
+            font-size: 11px;
             font-family: 'DM Mono', monospace;
-            color: var(--green);
-            background: var(--green-soft);
-            border: 1px solid var(--green-border);
-            padding: 4px 12px;
-            border-radius: 20px;
-            margin-left: 8px;
+            color: var(--text-dim);
+            padding: 4px 10px;
+            margin-left: 4px;
+            letter-spacing: 0.02em;
         }
 
         .docker-dot {
-            width: 6px; height: 6px;
+            width: 5px; height: 5px;
             border-radius: 50%;
-            background: var(--green);
-            animation: blink 2.5s infinite;
+            background: var(--ok);
         }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
 
         /* User menu */
         .user-menu { position: relative; }
@@ -179,15 +179,15 @@
         .user-trigger:hover { border-color: #484848; background: var(--bg-hover); }
 
         .user-avatar {
-            width: 24px; height: 24px;
+            width: 22px; height: 22px;
             border-radius: 50%;
-            background: var(--red);
-            color: #fff;
+            background: var(--surface);
+            color: var(--text);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10.5px;
+            font-weight: 500;
             text-transform: uppercase;
         }
 

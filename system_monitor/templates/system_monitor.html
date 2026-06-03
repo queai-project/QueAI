@@ -5,8 +5,6 @@
 
 {% block extra_styles %}
 <style>
-    :root { --purple: #a78bfa; }
-
     .content {
         max-width: 1200px;
         margin: 0 auto;
@@ -17,20 +15,20 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 22px;
+        margin-bottom: 18px;
     }
-    .toolbar-title { font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.3px; }
+    .toolbar-title { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
     .refresh-info {
-        display: flex; align-items: center; gap: 8px;
-        font-family: 'DM Mono', monospace; font-size: 12px;
-        color: var(--text-muted);
+        display: flex; align-items: center; gap: 6px;
+        font-family: 'DM Mono', monospace; font-size: 11px;
+        color: var(--text-dim);
     }
-    .refresh-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2.5s infinite; }
+    .refresh-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); }
 
     .metrics-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 12px;
     }
 
     .metric-card {
@@ -38,60 +36,79 @@
         border: 1px solid var(--border);
         border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         transition: border-color 0.3s, opacity 0.4s;
         animation: fadeUp 0.4s ease both;
     }
-    .metric-card.offline { opacity: 0.45; }
-    .metric-card.running { opacity: 1; border-color: #2e2e2e; }
+    .metric-card.offline { opacity: 0.5; }
+    .metric-card.running { opacity: 1; }
 
-    .card-strip { height: 3px; background: var(--border-subtle); transition: background 0.4s; }
-    .metric-card.running .card-strip { background: var(--green); }
+    .card-strip { display: none; }  /* eliminada la barra superior coloreada */
 
     .card-top {
-        padding: 18px 20px 14px;
-        display: flex; align-items: flex-start; justify-content: space-between;
-        border-bottom: 1px solid var(--border-subtle);
+        padding: 16px 18px 14px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px;
     }
-    .module-name { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 3px; }
+    .module-name {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: -0.005em;
+        margin-bottom: 2px;
+        display: flex; align-items: center; gap: 7px;
+    }
     .module-folder { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); }
 
-    .status-pill {
-        font-family: 'DM Mono', monospace;
-        font-size: 10px; font-weight: 500;
-        padding: 4px 10px; border-radius: 20px;
-        letter-spacing: 0.3px;
-        transition: all 0.3s;
+    /* Estado: solo dot inline en el nombre. */
+    .module-name .state-dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        transition: background 0.3s;
     }
-    .status-pill.offline { background: var(--surface); color: var(--text-dim); }
-    .status-pill.running { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
+    .metric-card.running .module-name .state-dot { background: var(--ok); }
 
-    .card-metrics { padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 16px; }
-    .metric-row { display: flex; flex-direction: column; gap: 7px; }
-    .metric-label-row { display: flex; align-items: center; justify-content: space-between; }
-    .metric-name { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-    .metric-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; transition: color 0.3s; }
-    .metric-val.cpu { color: var(--purple); }
-    .metric-val.ram { color: var(--green); }
+    .status-pill { display: none; }  /* eliminado el pill — el dot ya transmite el estado */
 
-    .bar-bg { height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; }
+    .card-metrics { padding: 6px 18px 14px; display: flex; flex-direction: column; gap: 14px; }
+    .metric-row { display: flex; flex-direction: column; gap: 6px; }
+    .metric-label-row { display: flex; align-items: baseline; justify-content: space-between; }
+    .metric-name {
+        font-size: 11px;
+        color: var(--text-dim);
+        font-family: 'DM Mono', monospace;
+        letter-spacing: 0.04em;
+    }
+    .metric-val {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        color: var(--text);
+        font-weight: 400;
+    }
+
+    .bar-bg { height: 2px; background: var(--surface); border-radius: 1px; overflow: hidden; }
     .bar-fill {
         height: 100%;
-        border-radius: 2px;
+        background: var(--text-muted);
+        border-radius: 1px;
         width: 0%;
         transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
     }
-    .bar-fill.cpu { background: var(--purple); }
-    .bar-fill.ram { background: var(--green); }
 
     .card-info-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         border-top: 1px solid var(--border-subtle);
     }
-    .info-cell { padding: 12px 20px; border-right: 1px solid var(--border-subtle); }
+    .info-cell { padding: 10px 18px; border-right: 1px solid var(--border-subtle); }
     .info-cell:last-child { border-right: none; }
-    .info-label { font-size: 11px; color: var(--text-dim); margin-bottom: 3px; font-weight: 500; }
+    .info-label {
+        font-size: 10.5px;
+        color: var(--text-dim);
+        font-family: 'DM Mono', monospace;
+        letter-spacing: 0.04em;
+        margin-bottom: 2px;
+    }
     .info-val {
         font-family: 'DM Mono', monospace;
         font-size: 12px;
@@ -132,10 +149,12 @@
             <div class="card-strip"></div>
             <div class="card-top">
                 <div>
-                    <div class="module-name">{{ app.display_name }}</div>
+                    <div class="module-name">
+                        <span class="state-dot"></span>
+                        <span>{{ app.display_name }}</span>
+                    </div>
                     <div class="module-folder">{{ app.folder_name }}</div>
                 </div>
-                <div id="status-tag-{{ app.folder_name }}" class="status-pill offline">offline</div>
             </div>
 
             <div class="card-metrics">
@@ -199,15 +218,12 @@
             const response = await fetch(`/monitor/stats/${folder}/`);
             const data = await response.json();
             const card = document.getElementById(`card-${folder}`);
-            const statusTag = document.getElementById(`status-tag-${folder}`);
 
             if (data.status === "ok" && data.stats && data.stats.length > 0) {
                 const stats = data.stats[0];
 
                 card.classList.remove("offline");
                 card.classList.add("running");
-                statusTag.className = "status-pill running";
-                statusTag.textContent = "activo";
 
                 const cpuPerc = parseFloat(stats.cpu.replace("%", "")) || 0;
                 document.getElementById(`cpu-text-${folder}`).textContent = stats.cpu;
@@ -228,8 +244,6 @@
             } else {
                 card.classList.remove("running");
                 card.classList.add("offline");
-                statusTag.className = "status-pill offline";
-                statusTag.textContent = "offline";
                 ["cpu-bar","ram-bar"].forEach(p => document.getElementById(`${p}-${folder}`).style.width = "0%");
                 ["cpu-text","ram-text","net-text","id-text"].forEach(p => document.getElementById(`${p}-${folder}`).textContent = "—");
             }

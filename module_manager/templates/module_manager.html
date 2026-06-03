@@ -15,71 +15,57 @@
     .filter-bar {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 24px;
+        gap: 8px;
+        margin-bottom: 22px;
         flex-wrap: wrap;
     }
     .filter-search-wrap { position: relative; flex: 1; min-width: 200px; }
-    .filter-search-icon {
-        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
-        font-size: 14px; color: var(--text-dim); pointer-events: none;
-    }
     .filter-search {
         width: 100%;
-        background: var(--bg-card);
+        background: transparent;
         border: 1px solid var(--border);
         color: var(--text);
-        font-size: 14px;
-        padding: 9px 14px 9px 36px;
+        font-size: 13.5px;
+        padding: 8px 12px;
         border-radius: var(--radius-sm);
         outline: none;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        transition: border-color 0.15s;
     }
-    .filter-search:focus {
-        border-color: var(--red);
-        box-shadow: 0 0 0 3px rgba(232,24,12,0.1);
-    }
+    .filter-search:focus { border-color: var(--text-dim); }
     .filter-search::placeholder { color: var(--text-dim); }
 
-    .filter-pills { display: flex; gap: 6px; flex-shrink: 0; }
+    .filter-pills { display: flex; gap: 2px; flex-shrink: 0; }
     .filter-pill {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        color: var(--text-muted);
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-dim);
         font-size: 13px;
-        font-weight: 500;
-        padding: 8px 14px;
+        font-weight: 400;
+        padding: 6px 12px;
         border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: all 0.15s;
-        display: flex; align-items: center; gap: 6px;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
-    .filter-pill:hover { border-color: #484848; color: var(--text); }
-    .filter-pill.active { background: var(--surface); border-color: #484848; color: var(--text); }
-    .filter-pill.active.all   { border-color: var(--text-dim); color: var(--text); }
-    .filter-pill.active.run   { border-color: #16a34a; color: #86efac; background: #14532d; }
-    .filter-pill.active.stop  { border-color: #d97706; color: #fcd34d; background: #451a03; }
-    .filter-pill.active.fresh { border-color: #5b6ad0; color: #a5b4fc; background: #1e1e4a; }
-    .filter-pill .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .filter-pill:hover { color: var(--text); }
+    .filter-pill.active { color: var(--text); border-color: var(--border); background: var(--bg-card); }
 
     .filter-count { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; align-self: center; }
 
     .btn-refresh {
         margin-left: auto;
-        background: var(--bg-card);
+        background: transparent;
         border: 1px solid var(--border);
         color: var(--text-muted);
         font-size: 13px;
-        font-weight: 500;
-        padding: 8px 14px;
+        font-weight: 400;
+        padding: 6px 12px;
         border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: all 0.15s;
+        transition: color 0.15s, border-color 0.15s;
         display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-refresh:hover { border-color: #484848; color: var(--text); background: var(--bg-hover); }
-    .btn-refresh:disabled { opacity: 0.6; cursor: wait; }
+    .btn-refresh:hover { color: var(--text); border-color: var(--text-dim); }
+    .btn-refresh:disabled { opacity: 0.5; cursor: wait; }
     .btn-refresh.spinning .refresh-icon { animation: spin 0.9s linear infinite; display: inline-block; }
     @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
@@ -97,7 +83,7 @@
     .apps-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 18px;
+        gap: 12px;
     }
 
     .app-card {
@@ -108,155 +94,161 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.45), inset 0 0.5px 0 rgba(255,255,255,0.04);
+        transition: border-color 0.15s;
         animation: fadeUp 0.4s ease both;
     }
-    .app-card:hover {
-        border-color: #484848;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.55), inset 0 0.5px 0 rgba(255,255,255,0.05);
+    .app-card:hover { border-color: #3a3a3a; }
+
+    .card-header {
+        padding: 18px 18px 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
     }
-
-    .card-delete-form { position: absolute; top: 12px; right: 12px; z-index: 3; }
-    .btn-card-delete {
-        width: 30px; height: 30px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.08);
-        background: rgba(18,18,18,0.78);
-        backdrop-filter: blur(8px);
-        color: var(--text-dim);
-        display: inline-flex; align-items: center; justify-content: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.28);
-        font-size: 13px; line-height: 1;
-    }
-    .btn-card-delete:hover { color: #ff8a8a; border-color: var(--red-border); background: rgba(232,24,12,0.10); }
-
-    .card-strip { height: 4px; background: var(--border-subtle); transition: background 0.3s; }
-    .card-strip.running { background: #22c55e; }
-    .card-strip.stopped { background: #f59e0b; }
-    .card-strip.fresh   { background: var(--border-subtle); }
-
-    .card-header { padding: 20px 20px 14px; display: flex; gap: 14px; align-items: flex-start; padding-right: 58px; }
     .card-logo-wrap { flex-shrink: 0; }
     .card-logo {
-        width: 75px; height: 75px;
-        border-radius: 10px;
+        width: 38px; height: 38px;
+        border-radius: 8px;
         overflow: hidden;
         background: var(--surface);
-        border: 1px solid var(--border);
         display: flex; align-items: center; justify-content: center;
     }
     .card-logo img { width: 100%; height: 100%; object-fit: cover; }
-    .card-logo-ph { font-size: 22px; color: var(--text-dim); }
+    .card-logo-ph { font-size: 13px; color: var(--text-dim); }
 
-    .state-badge {
-        display: inline-flex; align-items: center; gap: 5px;
-        font-size: 10px; font-weight: 600;
+    .card-info { flex: 1; min-width: 0; }
+    .card-version {
         font-family: 'DM Mono', monospace;
-        padding: 2px 8px; border-radius: 6px;
-        letter-spacing: 0.2px; white-space: nowrap;
-        margin-left: 6px; position: relative; top: -1px;
-    }
-
-    /* Healthcheck dot + latency */
-    .health-pill {
-        display: inline-flex; align-items: center; gap: 5px;
-        margin-left: 8px;
-        padding: 2px 8px 2px 7px;
-        border-radius: 999px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        font-family: 'DM Mono', monospace;
-        font-size: 10px;
+        font-size: 10.5px;
         color: var(--text-dim);
-        position: relative; top: -1px;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        letter-spacing: 0.04em;
     }
-    .health-pill[hidden] { display: none !important; }
-    .health-pill .h-dot {
-        width: 7px; height: 7px;
+    .card-name {
+        font-size: 14.5px;
+        font-weight: 500;
+        letter-spacing: -0.005em;
+        line-height: 1.3;
+        margin: 1px 0 2px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .card-author { font-size: 12px; color: var(--text-dim); }
+
+    /* Estado: solo dot inline junto al nombre. */
+    .state-dot {
+        display: inline-block;
+        width: 6px; height: 6px;
         border-radius: 50%;
         background: var(--text-dim);
         flex-shrink: 0;
-        transition: background 0.2s;
     }
-    .health-pill[data-state="healthy"] {
-        background: rgba(34,197,94,0.08);
-        border-color: rgba(34,197,94,0.25);
-        color: #86efac;
-    }
-    .health-pill[data-state="healthy"] .h-dot { background: var(--green); animation: pulse 2.2s infinite; }
-    .health-pill[data-state="unhealthy"] {
-        background: rgba(232,24,12,0.08);
-        border-color: rgba(232,24,12,0.25);
-        color: #ff8a8a;
-    }
-    .health-pill[data-state="unhealthy"] .h-dot { background: var(--red); }
-    .health-pill[data-state="loading"] {
-        background: rgba(245,158,11,0.08);
-        border-color: rgba(245,158,11,0.22);
-        color: #fcd34d;
-    }
-    .health-pill[data-state="loading"] .h-dot { background: var(--amber); animation: pulse 1.2s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
-    .state-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .state-badge.running { background: #14532d; border: 1px solid #166534; color: #86efac; }
-    .state-badge.running::before { background: #4ade80; }
-    .state-badge.stopped { background: #451a03; border: 1px solid #78350f; color: #fcd34d; }
-    .state-badge.stopped::before { background: #fbbf24; }
+    .state-dot.running { background: var(--ok); }
+    .state-dot.stopped { background: var(--warn); }
+    .state-dot.fresh   { background: transparent; border: 1px solid var(--text-dim); width: 4px; height: 4px; }
 
-    .card-info { flex: 1; min-width: 0; }
-    .card-version { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
-    .card-name { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.25; margin-bottom: 3px; }
-    .card-author { font-size: 12.5px; color: var(--text-dim); }
+    /* Healthcheck: pequeño texto monospace junto al dot. Sin pulso. */
+    .health-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: 'DM Mono', monospace;
+        font-size: 10.5px;
+        color: var(--text-dim);
+    }
+    .health-pill[hidden] { display: none !important; }
+    .health-pill .h-dot { display: none; }
+    .health-pill[data-state="healthy"]   { color: var(--ok); }
+    .health-pill[data-state="unhealthy"] { color: var(--warn); }
+    .health-pill[data-state="loading"]   { color: var(--text-dim); }
 
-    .card-body { padding: 0 20px 16px; flex: 1; }
+    .card-body { padding: 0 18px 14px; flex: 1; }
     .card-desc {
-        font-size: 13.5px; color: var(--text-muted); line-height: 1.5;
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
 
     .card-actions {
-        padding: 14px 20px 18px;
+        padding: 12px 18px 16px;
         border-top: 1px solid var(--border-subtle);
-        display: flex; flex-direction: column; gap: 8px;
+        display: flex; flex-direction: column; gap: 10px;
     }
-    .btn {
-        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-        font-size: 13.5px; font-weight: 600;
-        padding: 10px 16px;
-        border-radius: var(--radius-sm);
-        border: 1px solid transparent;
-        cursor: pointer;
-        transition: all 0.15s;
-        width: 100%; text-decoration: none;
-    }
-    .btn-red { background: var(--red); color: #fff; border-color: var(--red); }
-    .btn-red:hover { opacity: 0.88; }
-    .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
-    .btn-outline:hover { background: var(--surface); border-color: #444; }
-    .btn-green { background: var(--green-soft); color: var(--green); border-color: var(--green-border); }
-    .btn-green:hover { background: rgba(34,197,94,0.16); }
 
-    .icon-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .icon-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .btn-icon {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--text-muted);
-        border-radius: var(--radius-sm);
-        padding: 9px 6px;
-        font-size: 12px; font-weight: 600;
+    /* Acción principal: link rojo sutil con flecha. */
+    .btn-primary-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: transparent;
+        border: none;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 0;
         cursor: pointer;
-        transition: all 0.15s;
-        display: flex; align-items: center; justify-content: center; gap: 4px;
-        font-family: 'DM Mono', monospace; letter-spacing: 0.3px;
+        text-decoration: none;
+        text-align: left;
+        transition: color 0.15s;
     }
-    .btn-icon:hover { background: var(--surface2); color: var(--text); border-color: #444; }
-    .btn-icon.warn:hover { background: var(--amber-soft); border-color: rgba(245,158,11,0.3); color: var(--amber); }
-    .btn-icon.danger:hover { background: var(--red-soft); border-color: var(--red-border); color: var(--red); }
+    .btn-primary-link:hover { color: #ff5a4f; }
+    .btn-primary-link .arr { transition: transform 0.15s; }
+    .btn-primary-link:hover .arr { transform: translateX(2px); }
+
+    /* Botón install (solo cuando no instalado): full-width, outline sobrio. */
+    .btn-install-card {
+        width: 100%;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 9px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-install-card:hover { border-color: var(--text-dim); }
+
+    /* Resume cuando stopped */
+    .btn-resume-card {
+        width: 100%;
+        background: transparent;
+        border: 1px solid var(--ok);
+        color: var(--ok);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 9px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-resume-card:hover { background: rgba(34,197,94,0.06); }
+
+    /* Acciones secundarias como texto inline, separadas por · */
+    .card-secondary {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        font-size: 12.5px;
+        color: var(--text-dim);
+    }
+    .card-secondary form { display: contents; }
+    .card-secondary button,
+    .card-secondary a {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 12.5px;
+        padding: 0 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+        transition: color 0.15s;
+    }
+    .card-secondary button:first-child,
+    .card-secondary a:first-child { padding-left: 0; }
+    .card-secondary button:hover,
+    .card-secondary a:hover { color: var(--text); }
+    .card-secondary .sep { color: var(--border); font-size: 11px; }
+    .card-secondary .stop-action:hover { color: var(--warn); }
 
     .empty-state {
         grid-column: 1/-1;
@@ -428,24 +420,17 @@
 <div class="content">
     <div class="filter-bar">
         <div class="filter-search-wrap">
-            <span class="filter-search-icon">🔍</span>
             <input type="text" id="filterSearch" class="filter-search"
-                   placeholder="Buscar módulo…" autocomplete="off" oninput="applyFilters()">
+                   placeholder="Buscar módulo" autocomplete="off" oninput="applyFilters()">
         </div>
         <div class="filter-pills">
-            <button class="filter-pill active all" data-filter="all" onclick="setFilter('all', this)">Todos</button>
-            <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">
-                <span class="pill-dot" style="background:#4ade80"></span>Activos
-            </button>
-            <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">
-                <span class="pill-dot" style="background:#fbbf24"></span>Detenidos
-            </button>
-            <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">
-                <span class="pill-dot" style="background:#818cf8"></span>Sin instalar
-            </button>
+            <button class="filter-pill active" data-filter="all" onclick="setFilter('all', this)">Todos</button>
+            <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">Activos</button>
+            <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">Detenidos</button>
+            <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">Sin instalar</button>
         </div>
-        <span class="filter-count" id="filterCount">{{ apps|length }} plugins</span>
-        <button class="btn-refresh" id="btnRefresh" onclick="refreshCatalog()" title="Re-escanear plugins en disco y refrescar estado Docker">
+        <span class="filter-count" id="filterCount">{{ apps|length }} módulos</span>
+        <button class="btn-refresh" id="btnRefresh" onclick="refreshCatalog()" title="Re-escanear plugins en disco">
             <span class="refresh-icon">↻</span>
             <span class="refresh-label">Actualizar</span>
         </button>
@@ -457,42 +442,35 @@
             data-name="{{ app.display_name|lower }} {{ app.author|default:''|lower }}"
             data-state="{% if not app.is_installed %}fresh{% elif app.is_running %}running{% else %}stopped{% endif %}">
 
-            <div class="card-strip {% if app.is_installed %}{% if app.is_running %}running{% else %}stopped{% endif %}{% else %}fresh{% endif %}"></div>
-
-            <form method="post" action="{% url 'delete_app' %}" class="card-delete-form">
-                {% csrf_token %}
-                <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                <button type="button" class="btn-card-delete" title="Borrar módulo"
-                        onclick="confirmDelete('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')">🗑</button>
-            </form>
-
             <a href="{% url 'app_detail' app.folder_name %}" class="card-header" style="text-decoration:none;color:inherit;">
                 <div class="card-logo-wrap">
                     <div class="card-logo">
                         {% if app.logo %}
-                        <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=card-logo-ph>📦</div>'">
+                        <img src="{% url 'plugin_logo' app.folder_name app.logo %}" alt="{{ app.display_name }}" onerror="this.parentElement.innerHTML='<div class=card-logo-ph>—</div>'">
                         {% else %}
-                        <div class="card-logo-ph">📦</div>
+                        <div class="card-logo-ph">—</div>
                         {% endif %}
                     </div>
                 </div>
                 <div class="card-info">
                     <div class="card-version">v{{ app.version }}</div>
                     <div class="card-name" title="{{ app.display_name }}">
-                        {{ app.display_name }}
+                        <span>{{ app.display_name }}</span>
                         {% if app.is_installed %}
                             {% if app.is_running %}
-                            <span class="state-badge running">activo</span>
+                            <span class="state-dot running" title="activo"></span>
                             {% else %}
-                            <span class="state-badge stopped">detenido</span>
+                            <span class="state-dot stopped" title="detenido"></span>
                             {% endif %}
                             <span class="health-pill" data-folder="{{ app.folder_name }}" hidden>
                                 <span class="h-dot"></span>
                                 <span class="h-label">—</span>
                             </span>
+                        {% else %}
+                            <span class="state-dot fresh" title="sin instalar"></span>
                         {% endif %}
                     </div>
-                    <div class="card-author">{{ app.author|default:"Sin autor" }}</div>
+                    <div class="card-author">{{ app.author|default:"" }}</div>
                 </div>
             </a>
 
@@ -505,31 +483,37 @@
                 <form method="post" action="{% url 'install_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn btn-red">Instalar módulo</button>
+                    <button type="submit" class="btn-install-card">Instalar</button>
                 </form>
 
                 {% elif app.is_running %}
-                <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn btn-outline">↗ Abrir aplicación</button>
-                <div class="icon-row">
-                    <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                    <button onclick="openConfigEditor('{{ app.folder_name }}')" class="btn-icon" title="Editar .env">.env</button>
+                <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn-primary-link">
+                    Abrir aplicación <span class="arr">→</span>
+                </button>
+                <div class="card-secondary">
+                    <button onclick="showLogs('{{ app.folder_name }}')">Logs</button>
+                    <span class="sep">·</span>
+                    <button onclick="openConfigEditor('{{ app.folder_name }}')">.env</button>
+                    <span class="sep">·</span>
+                    <button onclick="openApp('{{ app.documentation_entry_point }}')">Docs</button>
+                    <span class="sep">·</span>
                     <form method="post" action="{% url 'stop_app' %}" style="display:contents">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                        <button type="submit" class="btn-icon warn" title="Detener">Stop</button>
+                        <button type="submit" class="stop-action">Detener</button>
                     </form>
-                    <button onclick="openApp('{{ app.documentation_entry_point }}')" class="btn-icon" title="Documentación">Docs</button>
                 </div>
 
                 {% else %}
                 <form method="post" action="{% url 'start_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn btn-green">▶ Reanudar</button>
+                    <button type="submit" class="btn-resume-card">Reanudar</button>
                 </form>
-                <div class="icon-row-2">
-                    <button onclick="showLogs('{{ app.folder_name }}')" class="btn-icon" title="Ver logs">Logs</button>
-                    <button onclick="confirmUninstall('{{ app.folder_name }}', '{{ app.display_name|escapejs }}')" class="btn-icon danger" title="Desinstalar">Desinstalar</button>
+                <div class="card-secondary">
+                    <button onclick="showLogs('{{ app.folder_name }}')">Logs</button>
+                    <span class="sep">·</span>
+                    <a href="{% url 'app_detail' app.folder_name %}">Detalle</a>
                 </div>
                 {% endif %}
             </div>
@@ -696,12 +680,11 @@
     const HEALTH_INTERVAL_MS = 8000;
 
     function setHealthPill(pill, payload) {
-        const dot   = pill.querySelector('.h-dot');
         const label = pill.querySelector('.h-label');
         const healthy = payload && payload.healthy;
         const err = payload && payload.error;
 
-        // healthy=null → no hay endpoint o el manifest no lo declara → ocultar.
+        // healthy=null → no hay endpoint o manifest → no se muestra nada.
         if (healthy === null || err === 'no_healthcheck_endpoint' || err === 'manifest_missing') {
             pill.hidden = true;
             return;
@@ -710,21 +693,21 @@
 
         if (err === 'not_running') {
             pill.dataset.state = 'unhealthy';
-            label.textContent = 'down';
+            label.textContent = '· down';
             pill.title = 'El contenedor no está corriendo.';
             return;
         }
 
         if (healthy === true) {
             pill.dataset.state = 'healthy';
-            label.textContent = (payload.latency_ms != null ? payload.latency_ms + 'ms' : 'ok');
+            label.textContent = '· ' + (payload.latency_ms != null ? payload.latency_ms + 'ms' : 'ok');
             pill.title = `${payload.url || ''} → ${payload.status_code} en ${payload.latency_ms}ms`;
             return;
         }
 
         if (healthy === false) {
             pill.dataset.state = 'unhealthy';
-            label.textContent = payload.error === 'timeout' ? 'timeout' : 'down';
+            label.textContent = '· ' + (payload.error === 'timeout' ? 'timeout' : 'down');
             pill.title = payload.error || 'unhealthy';
         }
     }
@@ -750,12 +733,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Estado inicial "loading" para los que están instalados.
+        // Estado inicial discreto.
         document.querySelectorAll('.health-pill').forEach(pill => {
-            pill.hidden = false;
-            pill.dataset.state = 'loading';
-            const label = pill.querySelector('.h-label');
-            if (label) label.textContent = '…';
+            pill.hidden = true;
         });
         tickHealth();
         setInterval(tickHealth, HEALTH_INTERVAL_MS);

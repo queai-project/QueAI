@@ -171,6 +171,35 @@
         font-family: 'DM Mono', monospace;
     }
     .back-link:hover { color: var(--text); }
+
+    /* Zona avanzada */
+    .danger-action {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-top: 1px solid var(--border-subtle);
+    }
+    .danger-action:first-of-type { border-top: none; }
+    .danger-action .d-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .danger-action .d-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 540px; }
+    .danger-action .d-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        white-space: nowrap;
+        font-family: inherit;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .danger-action .d-btn:hover { border-color: var(--text-dim); }
+    .danger-action .d-btn.danger { color: var(--accent); border-color: rgba(232,24,12,0.4); }
+    .danger-action .d-btn.danger:hover { background: var(--accent-soft); }
 </style>
 {% endblock %}
 
@@ -213,6 +242,7 @@
         <button class="tab active" data-tab="overview">Overview</button>
         <button class="tab" data-tab="env" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>.env</button>
         <button class="tab" data-tab="logs" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>Logs</button>
+        <button class="tab" data-tab="danger">Avanzado</button>
     </div>
 
     <div class="tab-content active" id="tab-overview">
@@ -260,6 +290,39 @@
                 <button class="pa-btn" id="logsSnapshotBtn" onclick="loadDetailLogs()">↻ Snapshot</button>
                 <button class="pa-btn primary" id="logsStreamBtn" onclick="toggleLogsStream()">▶ Stream en vivo</button>
                 <button class="pa-btn" onclick="clearLogs()">Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-danger">
+        <div class="panel danger-panel">
+            <h3>Zona avanzada</h3>
+            <p style="color:var(--text-muted);font-size:13px;line-height:1.55;">
+                Acciones destructivas. Pensadas para mantenimiento — no debe ser parte del uso diario.
+            </p>
+
+            <div class="danger-action">
+                <div>
+                    <div class="d-title">Desinstalar módulo</div>
+                    <div class="d-desc">Detiene el contenedor y elimina imágenes/volúmenes. La carpeta del plugin se conserva, puedes reinstalar desde el Hub.</div>
+                </div>
+                <form method="post" action="{% url 'uninstall_app' %}" onsubmit="return confirm('¿Desinstalar este módulo? Se conserva la carpeta.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                    <button type="submit" class="d-btn">Desinstalar</button>
+                </form>
+            </div>
+
+            <div class="danger-action">
+                <div>
+                    <div class="d-title">Borrar por completo</div>
+                    <div class="d-desc">Uninstall + elimina la carpeta del plugin en disco. <strong>No reversible.</strong></div>
+                </div>
+                <form method="post" action="{% url 'delete_app' %}" onsubmit="return confirm('¿Borrar TODO el módulo (contenedores + imágenes + carpeta)? No es reversible.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
+                    <button type="submit" class="d-btn danger">Borrar definitivamente</button>
+                </form>
             </div>
         </div>
     </div>
