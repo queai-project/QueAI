@@ -11,6 +11,8 @@ from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from core.audit import record as audit_record
+
 from .models import AvailableApp
 
 RUNNING_CACHE_TTL = 5  # segundos
@@ -323,6 +325,7 @@ def _docker_image_ids_from_containers(container_ids):
 
 @login_required
 @require_POST
+@audit_record("install", source="ui")
 def install_app(request):
     folder = request.POST.get("manifest_folder_name")
     path = get_compose_path(folder)
@@ -340,6 +343,7 @@ def install_app(request):
 
 @login_required
 @require_POST
+@audit_record("start", source="ui")
 def start_app(request):
     folder = request.POST.get("manifest_folder_name")
     path = get_compose_path(folder)
@@ -355,6 +359,7 @@ def start_app(request):
 
 @login_required
 @require_POST
+@audit_record("stop", source="ui")
 def stop_app(request):
     folder = request.POST.get("manifest_folder_name")
     path = get_compose_path(folder)
@@ -369,6 +374,7 @@ def stop_app(request):
 
 @login_required
 @require_POST
+@audit_record("uninstall", source="ui")
 def uninstall_app(request):
     """
     Desinstala el módulo pero NO borra su carpeta local.
@@ -390,6 +396,7 @@ def uninstall_app(request):
 
 @login_required
 @require_POST
+@audit_record("delete", source="ui")
 def delete_app(request):
     """
     Borra completamente el módulo desde el Hub:
@@ -437,6 +444,42 @@ def app_detail(request, folder_name):
 
 
 @login_required
+def app_logs_stream(request, folder_name):
+    """Stream SSE de logs con auth de sesión (UI consume esto)."""
+    from core.api.views import make_sse_response, stream_logs
+
+    try:
+        app = AvailableApp.objects.get(folder_name=folder_name)
+    except AvailableApp.DoesNotExist:
+        try:
+            app = AvailableApp.objects.get(name=folder_name)
+        except AvailableApp.DoesNotExist:
+            return JsonResponse({"error": "not_found"}, status=404)
+
+    try:
+        tail = max(1, min(int(request.GET.get("tail", "50")), 500))
+    except ValueError:
+        tail = 50
+    return make_sse_response(stream_logs(app.folder_name, tail=tail))
+
+
+@login_required
+def app_healthcheck(request, folder_name):
+    """Healthcheck del plugin para consumo desde la UI (sesión Django)."""
+    from core.api.views import _compute_healthcheck
+
+    try:
+        app = AvailableApp.objects.get(folder_name=folder_name)
+    except AvailableApp.DoesNotExist:
+        try:
+            app = AvailableApp.objects.get(name=folder_name)
+        except AvailableApp.DoesNotExist:
+            return JsonResponse({"error": "not_found"}, status=404)
+
+    return JsonResponse(_compute_healthcheck(app))
+
+
+@login_required
 def app_logs(request, folder_name):
     path = get_compose_path(folder_name)
     try:
@@ -478,6 +521,7 @@ def get_env_config(request, folder_name):
 
 @login_required
 @require_POST
+@audit_record("save_env", source="ui")
 def save_env_config(request):
     """Guarda el .env y aplica cambios recreando el contenedor."""
     folder_name = request.POST.get("folder_name")

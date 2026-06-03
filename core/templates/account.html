@@ -90,6 +90,21 @@
     </div>
 
     <div class="account-card">
+        <h2>Backup y restore</h2>
+        <p>
+            Descarga un snapshot ligero (db.sqlite3 + .env del kernel y de cada plugin).
+            El restore extrae a un staging y requiere confirmación + reinicio del kernel.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a id="downloadBackupBtn" href="{% url 'backup' %}" class="pw-submit" style="text-decoration:none;display:inline-block;">↓ Descargar backup</a>
+        </div>
+        <div class="stub-note" style="margin-top:14px;">
+            <strong>Endpoint API</strong>: <code>GET /api/v1/backup</code> · <code>POST /api/v1/restore</code> · <code>POST /api/v1/restore/apply</code>.
+            <br>Desde CLI: <code>queai backup ~/queai-$(date +%F).tar.gz</code> y <code>queai restore archivo.tar.gz --apply</code>.
+        </div>
+    </div>
+
+    <div class="account-card">
         <h2>Cambiar contraseña</h2>
         <p>Define una nueva contraseña. La sesión actual no se cerrará.</p>
 

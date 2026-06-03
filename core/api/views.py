@@ -11,13 +11,16 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import threading
+import time
 
 import requests
 from django.conf import settings
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from core.audit import record as audit_record
 from marketplace.views import (
     _fetch_registry_plugins,
     _get_folder_name_from_git_url,
@@ -31,6 +34,7 @@ from module_manager.views import (
     _get_compose_command,
     _invalidate_running_cache,
     _is_app_running_cached,
+    _load_manifest,
     get_compose_path,
 )
 
@@ -147,6 +151,7 @@ def plugin_detail(request: HttpRequest, folder_name: str):
 @csrf_exempt
 @api_token_required
 @require_POST
+@audit_record("install", source="api")
 def plugin_install(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
@@ -168,6 +173,7 @@ def plugin_install(request: HttpRequest, folder_name: str):
 @csrf_exempt
 @api_token_required
 @require_POST
+@audit_record("start", source="api")
 def plugin_start(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
@@ -185,6 +191,7 @@ def plugin_start(request: HttpRequest, folder_name: str):
 @csrf_exempt
 @api_token_required
 @require_POST
+@audit_record("stop", source="api")
 def plugin_stop(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
@@ -202,6 +209,7 @@ def plugin_stop(request: HttpRequest, folder_name: str):
 @csrf_exempt
 @api_token_required
 @require_POST
+@audit_record("uninstall", source="api")
 def plugin_uninstall(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
@@ -220,6 +228,7 @@ def plugin_uninstall(request: HttpRequest, folder_name: str):
 @csrf_exempt
 @api_token_required
 @require_POST
+@audit_record("delete", source="api")
 def plugin_delete(request: HttpRequest, folder_name: str):
     app = _get_app_or_404(folder_name)
     if app is None:
@@ -266,6 +275,76 @@ def plugin_logs(request: HttpRequest, folder_name: str):
         return _server_error(str(e))
 
 
+# ----------------------------------------------------------------------------
+# Logs en vivo (SSE)
+# ----------------------------------------------------------------------------
+_MAX_CONCURRENT_LOG_STREAMS = 2
+_log_stream_semaphore = threading.BoundedSemaphore(value=_MAX_CONCURRENT_LOG_STREAMS)
+
+
+def stream_logs(folder_name: str, *, tail: int = 50):
+    """
+    Generator que abre `docker compose logs -f` y yieldea líneas como SSE.
+    Limita a _MAX_CONCURRENT_LOG_STREAMS streams simultáneos.
+    """
+    if not _log_stream_semaphore.acquire(blocking=False):
+        yield f"event: error\ndata: too many concurrent streams (max {_MAX_CONCURRENT_LOG_STREAMS})\n\n"
+        return
+
+    path = get_compose_path(folder_name)
+    cmd = _get_compose_command() + ["-f", path, "logs", "-f", "--no-color", f"--tail={tail}"]
+    proc = None
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        yield ":connected\n\n"
+        for line in proc.stdout:
+            # SSE: cada "data:" termina con \n\n. Reemplazamos newlines
+            # internas (no debería haber, ya es por línea) por escape.
+            yield f"data: {line.rstrip()}\n\n"
+    except GeneratorExit:
+        pass
+    finally:
+        if proc:
+            try:
+                proc.terminate()
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        _log_stream_semaphore.release()
+
+
+def make_sse_response(generator):
+    response = StreamingHttpResponse(generator, content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
+
+
+@csrf_exempt
+@api_token_required
+@require_GET
+def plugin_logs_stream(request: HttpRequest, folder_name: str):
+    app = _get_app_or_404(folder_name)
+    if app is None:
+        return _not_found()
+    real = app.folder_name
+
+    try:
+        tail = max(1, min(int(request.GET.get("tail", "50")), 500))
+    except ValueError:
+        return _bad_request("tail debe ser entero.")
+    return make_sse_response(stream_logs(real, tail=tail))
+
+
 @csrf_exempt
 @api_token_required
 @require_GET
@@ -300,6 +379,141 @@ def plugin_stats(request: HttpRequest, folder_name: str):
         return _ok({"folder_name": real, "containers": stats})
     except Exception as e:
         return _server_error(str(e))
+
+
+# ----------------------------------------------------------------------------
+# Healthcheck por plugin
+# ----------------------------------------------------------------------------
+from core import healthcheck  # noqa: E402
+
+
+def _compute_healthcheck(app) -> dict:
+    """Lógica compartida entre la versión API y la versión UI."""
+    real = app.folder_name
+    manifest = _load_manifest(real)
+    if manifest is None:
+        return {"folder_name": real, "healthy": None, "error": "manifest_missing", "checked_at": None}
+
+    endpoint_path = (manifest.get("healthcheck_entry_point") or "").strip()
+    if not endpoint_path:
+        return {"folder_name": real, "healthy": None, "error": "no_healthcheck_endpoint", "checked_at": None}
+
+    if not app.is_installed or not _is_app_running_cached(real):
+        return {"folder_name": real, "healthy": False, "error": "not_running", "checked_at": int(time.time())}
+
+    result = healthcheck.cached_probe(real, endpoint_path)
+    return {**result, "folder_name": real}
+
+
+# ----------------------------------------------------------------------------
+# Backup / restore (light)
+# ----------------------------------------------------------------------------
+from django.http import HttpResponse  # noqa: E402
+
+from core import backup as backup_module  # noqa: E402
+
+
+@csrf_exempt
+@api_token_required
+@require_GET
+def backup_download(request: HttpRequest):
+    """Descarga el tar.gz con db.sqlite3 + .env del kernel + .env de cada plugin."""
+    payload = backup_module.build_backup()
+    response = HttpResponse(payload, content_type="application/gzip")
+    response["Content-Disposition"] = f'attachment; filename="{backup_module.backup_filename()}"'
+    response["Content-Length"] = str(len(payload))
+    return response
+
+
+@csrf_exempt
+@api_token_required
+@require_POST
+def restore_upload(request: HttpRequest):
+    """
+    POST multipart con file `backup`. Extrae a staging/ y devuelve metadata.
+    No aplica nada — para eso usar /restore/apply.
+    """
+    f = request.FILES.get("backup")
+    if not f:
+        return _bad_request("Falta archivo 'backup' (multipart).")
+    try:
+        result = backup_module.restore_to_staging(f)
+    except ValueError as e:
+        return _bad_request(str(e))
+    except Exception as e:
+        return _server_error(str(e))
+    return _ok({"staged": True, **result})
+
+
+@csrf_exempt
+@api_token_required
+@require_POST
+def restore_apply(request: HttpRequest):
+    """Mueve el staging al sistema en vivo. Requiere restart del kernel después."""
+    try:
+        result = backup_module.apply_restore()
+    except ValueError as e:
+        return _bad_request(str(e))
+    except Exception as e:
+        return _server_error(str(e))
+    return _ok(result)
+
+
+# ----------------------------------------------------------------------------
+# Audit log
+# ----------------------------------------------------------------------------
+@csrf_exempt
+@api_token_required
+@require_GET
+def audit_list(request: HttpRequest):
+    from core.models import AuditEvent
+
+    qs = AuditEvent.objects.select_related("user")
+    action = (request.GET.get("action") or "").strip()
+    target = (request.GET.get("target") or "").strip()
+    source = (request.GET.get("source") or "").strip()
+
+    if action:
+        qs = qs.filter(action=action)
+    if target:
+        qs = qs.filter(target__icontains=target)
+    if source:
+        qs = qs.filter(source=source)
+
+    try:
+        limit = max(1, min(int(request.GET.get("limit", "100")), 1000))
+    except ValueError:
+        limit = 100
+
+    events = [
+        {
+            "id": ev.id,
+            "timestamp": ev.timestamp.isoformat(),
+            "action": ev.action,
+            "target": ev.target,
+            "source": ev.source,
+            "success": ev.success,
+            "message": ev.message,
+            "user": ev.user.username if ev.user else None,
+        }
+        for ev in qs[:limit]
+    ]
+    return _ok({"events": events, "count": len(events)})
+
+
+@csrf_exempt
+@api_token_required
+@require_GET
+def plugin_healthcheck(request: HttpRequest, folder_name: str):
+    """
+    Pega al healthcheck_entry_point del plugin y devuelve resultado.
+    Cache: settings.QUEAI_HEALTHCHECK_CACHE_TTL segundos por plugin.
+    Si el plugin no declara healthcheck_entry_point → healthy=null.
+    """
+    app = _get_app_or_404(folder_name)
+    if app is None:
+        return _not_found()
+    return _ok(_compute_healthcheck(app))
 
 
 # ----------------------------------------------------------------------------

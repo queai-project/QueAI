@@ -384,6 +384,7 @@
                 </button>
                 <div class="user-dropdown" id="userDropdown">
                     <a href="{% url 'account' %}"><span class="ud-icon">⚙</span>Mi cuenta</a>
+                    <a href="{% url 'audit' %}"><span class="ud-icon">📜</span>Audit log</a>
                     <hr>
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}

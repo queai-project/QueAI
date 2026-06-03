@@ -151,9 +151,32 @@ def build_schema() -> dict:
                     ],
                 )
             },
+            "/plugins/{folder_name}/logs/stream": {
+                "get": _path(
+                    "Server-Sent Events stream de logs en vivo (docker compose logs -f). "
+                    "Máximo 2 conexiones simultáneas en el kernel.",
+                    params=[
+                        _folder_param(),
+                        {"in": "query", "name": "tail", "schema": {"type": "integer", "default": 50, "minimum": 1, "maximum": 500}},
+                    ],
+                    responses={
+                        "200": {"description": "text/event-stream con líneas de log"},
+                        "401": {"description": "Falta token"},
+                        "403": {"description": "Token inválido"},
+                        "404": {"description": "Plugin no encontrado"},
+                    },
+                )
+            },
             "/plugins/{folder_name}/stats": {
                 "get": _path(
                     "CPU/RAM/red de los contenedores del módulo (docker stats --no-stream)",
+                    params=[_folder_param()],
+                )
+            },
+            "/plugins/{folder_name}/healthcheck": {
+                "get": _path(
+                    "Pega al healthcheck_entry_point del manifest y devuelve {healthy, latency_ms, status_code}. "
+                    "Cache de 5s. healthy=null si el plugin no declara el endpoint.",
                     params=[_folder_param()],
                 )
             },
@@ -186,6 +209,52 @@ def build_schema() -> dict:
                 "get": _path(
                     "Lista plugins del registry remoto con estado local cruzado",
                     tags=["marketplace"],
+                )
+            },
+            "/backup": {
+                "get": _path(
+                    "Descarga un tar.gz con db.sqlite3 + .env del kernel + .env de cada plugin",
+                    tags=["backup"],
+                    responses={
+                        "200": {"description": "tar.gz como application/gzip"},
+                        "401": {"description": "Falta token"},
+                    },
+                )
+            },
+            "/restore": {
+                "post": _path(
+                    "Sube un tar.gz para extraer a staging/ (no aplica)",
+                    tags=["backup"],
+                    body={
+                        "required": True,
+                        "content": {
+                            "multipart/form-data": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": ["backup"],
+                                    "properties": {"backup": {"type": "string", "format": "binary"}},
+                                }
+                            }
+                        },
+                    },
+                )
+            },
+            "/restore/apply": {
+                "post": _path(
+                    "Aplica el staging al sistema en vivo (requiere reiniciar el kernel después)",
+                    tags=["backup"],
+                )
+            },
+            "/audit/": {
+                "get": _path(
+                    "Audit log con filtros opcionales (action, target, source, limit)",
+                    tags=["audit"],
+                    params=[
+                        {"in": "query", "name": "action", "schema": {"type": "string"}},
+                        {"in": "query", "name": "target", "schema": {"type": "string"}},
+                        {"in": "query", "name": "source", "schema": {"type": "string", "enum": ["ui", "api", "cli", "system"]}},
+                        {"in": "query", "name": "limit", "schema": {"type": "integer", "default": 100, "minimum": 1, "maximum": 1000}},
+                    ],
                 )
             },
             "/marketplace/download": {

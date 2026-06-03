@@ -3,7 +3,15 @@ from django.contrib.auth import views as auth_views
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 
-from .views import account_view, health_view, home_view, welcome_dismiss, welcome_view
+from .views import (
+    account_view,
+    audit_view,
+    backup_view,
+    health_view,
+    home_view,
+    welcome_dismiss,
+    welcome_view,
+)
 
 urlpatterns = [
     path("", home_view, name="home"),
@@ -18,6 +26,8 @@ urlpatterns = [
     path("account/", account_view, name="account"),
     path("welcome/", welcome_view, name="welcome"),
     path("welcome/dismiss/", welcome_dismiss, name="welcome_dismiss"),
+    path("audit/", audit_view, name="audit"),
+    path("backup", backup_view, name="backup"),
     path("admin/", admin.site.urls),
     path("manager/", include("module_manager.urls")),
     path("marketplace/", include("marketplace.urls")),

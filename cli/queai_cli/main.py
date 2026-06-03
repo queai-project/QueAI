@@ -188,11 +188,21 @@ def delete(ctx, folder):
 @cli.command()
 @click.argument("folder")
 @click.option("--tail", "-n", default=150, show_default=True, type=click.IntRange(1, 2000))
+@click.option("--follow", "-f", is_flag=True, help="Stream en vivo (Ctrl+C para parar).")
 @click.pass_context
 @_handle
-def logs(ctx, folder, tail):
-    """Logs del contenedor (último tail de líneas)."""
-    res = _client(ctx).logs(folder, tail=tail)
+def logs(ctx, folder, tail, follow):
+    """Logs del contenedor (último tail de líneas). Con -f hace follow vía SSE."""
+    client = _client(ctx)
+    if follow:
+        # Tail limit del stream: usamos el min(tail, 500) que es el server-side limit.
+        try:
+            for line in client.logs_stream(folder, tail=min(tail, 500)):
+                click.echo(line)
+        except KeyboardInterrupt:
+            click.secho("\n[stream interrumpido]", fg="yellow", err=True)
+        return
+    res = client.logs(folder, tail=tail)
     click.echo(res.get("logs", ""))
 
 
@@ -268,6 +278,63 @@ def marketplace_cmd(ctx):
         state = "↑ update" if p.get("is_update_available") else ("✓ downloaded" if p.get("is_downloaded") else "  fresh")
         local = p.get("local_version") or "—"
         click.echo(f"{p.get('name','')[:22]:22} {state:14} {p.get('version','—'):10} {local}")
+
+
+@cli.command()
+@click.option("--action", help="Filtra por acción (install/start/stop/...).")
+@click.option("--target", help="Sub-string contenido en target.")
+@click.option("--source", type=click.Choice(["ui", "api", "cli", "system"]), help="Filtra por fuente.")
+@click.option("--limit", "-n", default=50, show_default=True, type=click.IntRange(1, 1000))
+@click.pass_context
+@_handle
+def audit(ctx, action, target, source, limit):
+    """Audit log: quién hizo qué y cuándo."""
+    data = _client(ctx).audit_list(action=action, target=target, source=source, limit=limit)
+    events = data.get("events", [])
+    if not events:
+        click.echo("(sin eventos)")
+        return
+    click.echo(f"{'TIMESTAMP':20} {'SRC':5} {'ACTION':12} {'TARGET':28} {'OK':3} USER")
+    for e in events:
+        ts = e["timestamp"][:19].replace("T", " ")
+        ok = "✓" if e["success"] else "✗"
+        click.echo(
+            f"{ts:20} {e['source']:5} {e['action']:12} {(e['target'] or '—')[:28]:28} "
+            f"{ok:3} {e['user'] or '—'}"
+        )
+
+
+@cli.command()
+@click.argument("dest", type=click.Path(dir_okay=False, writable=True))
+@click.pass_context
+@_handle
+def backup(ctx, dest):
+    """Descarga un backup light (db.sqlite3 + .env del kernel + .env de plugins)."""
+    n = _client(ctx).backup_download(dest)
+    click.secho(f"✓ Backup guardado en {dest} ({n // 1024} KiB)", fg="green")
+
+
+@cli.command()
+@click.argument("src", type=click.Path(exists=True, dir_okay=False, readable=True))
+@click.option("--apply", "apply_now", is_flag=True, help="Aplicar el restore tras stagear (requiere reiniciar el kernel).")
+@click.pass_context
+@_handle
+def restore(ctx, src, apply_now):
+    """Sube un backup al kernel y opcionalmente lo aplica."""
+    client = _client(ctx)
+    staged = client.restore_upload(src)
+    meta = staged.get("metadata", {})
+    click.secho(
+        f"✓ Stage OK. Kernel v{meta.get('kernel_version','?')}, "
+        f"creado {meta.get('created_at')}",
+        fg="green",
+    )
+    if not apply_now:
+        click.echo("(stage sin aplicar; pasa --apply para sobrescribir el sistema en vivo)")
+        return
+    applied = client.restore_apply()
+    click.secho(f"✓ Restore aplicado: {', '.join(applied.get('applied', []))}", fg="green")
+    click.secho("⚠ " + applied.get("warning", ""), fg="yellow")
 
 
 @cli.command()

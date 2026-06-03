@@ -251,10 +251,15 @@
 
     <div class="tab-content" id="tab-logs">
         <div class="panel">
-            <h3>Últimas 150 líneas de logs</h3>
+            <h3 style="display:flex;align-items:center;gap:10px;">
+                Logs
+                <span id="logsStreamStatus" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);font-weight:400;">snapshot</span>
+            </h3>
             <pre id="detailLogs">&gt; cargando…</pre>
             <div class="panel-actions">
-                <button class="pa-btn" onclick="loadDetailLogs()">↻ Recargar</button>
+                <button class="pa-btn" id="logsSnapshotBtn" onclick="loadDetailLogs()">↻ Snapshot</button>
+                <button class="pa-btn primary" id="logsStreamBtn" onclick="toggleLogsStream()">▶ Stream en vivo</button>
+                <button class="pa-btn" onclick="clearLogs()">Limpiar</button>
             </div>
         </div>
     </div>
@@ -319,6 +324,7 @@
     }
 
     async function loadDetailLogs() {
+        stopLogsStream();
         const pre = document.getElementById('detailLogs');
         pre.textContent = '> cargando…';
         try {
@@ -328,6 +334,67 @@
         } catch (e) {
             pre.textContent = '> ERROR: ' + e.message;
         }
+        setLogsStatus('snapshot');
     }
+
+    // ───── Stream (SSE) ─────
+    let _logsSource = null;
+
+    function setLogsStatus(s) {
+        const el = document.getElementById('logsStreamStatus');
+        if (!el) return;
+        el.textContent = s;
+        el.style.color = s.startsWith('● live') ? '#86efac' : 'var(--text-dim)';
+    }
+
+    function toggleLogsStream() {
+        if (_logsSource) {
+            stopLogsStream();
+        } else {
+            startLogsStream();
+        }
+    }
+
+    function startLogsStream() {
+        const pre = document.getElementById('detailLogs');
+        const btn = document.getElementById('logsStreamBtn');
+        pre.textContent = '> conectando…\n';
+        _logsSource = new EventSource(`/manager/logs/${FOLDER}/stream`);
+        btn.textContent = '⏸ Detener stream';
+        setLogsStatus('● live');
+        _logsSource.onmessage = (ev) => {
+            pre.textContent += ev.data + '\n';
+            pre.scrollTop = pre.scrollHeight;
+        };
+        _logsSource.addEventListener('error', (ev) => {
+            const data = ev.data || 'connection lost';
+            pre.textContent += `\n[stream error: ${data}]\n`;
+            stopLogsStream();
+        });
+        _logsSource.onerror = () => {
+            // EventSource auto-reconecta; pero si el server cerró por límite,
+            // mejor parar y avisar.
+            if (_logsSource && _logsSource.readyState === EventSource.CLOSED) {
+                stopLogsStream();
+            }
+        };
+    }
+
+    function stopLogsStream() {
+        if (_logsSource) {
+            _logsSource.close();
+            _logsSource = null;
+        }
+        const btn = document.getElementById('logsStreamBtn');
+        if (btn) btn.textContent = '▶ Stream en vivo';
+        setLogsStatus('detenido');
+    }
+
+    function clearLogs() {
+        document.getElementById('detailLogs').textContent = '';
+    }
+
+    // Detener el stream si cambias de pestaña.
+    window.addEventListener('beforeunload', stopLogsStream);
 </script>
 {% endblock %}

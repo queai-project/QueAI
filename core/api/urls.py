@@ -23,9 +23,11 @@ urlpatterns = [
     path("plugins/<str:folder_name>/uninstall", views.plugin_uninstall, name="api_plugin_uninstall"),
     path("plugins/<str:folder_name>/delete", views.plugin_delete, name="api_plugin_delete"),
 
-    # Logs / stats
+    # Logs / stats / health
     path("plugins/<str:folder_name>/logs", views.plugin_logs, name="api_plugin_logs"),
+    path("plugins/<str:folder_name>/logs/stream", views.plugin_logs_stream, name="api_plugin_logs_stream"),
     path("plugins/<str:folder_name>/stats", views.plugin_stats, name="api_plugin_stats"),
+    path("plugins/<str:folder_name>/healthcheck", views.plugin_healthcheck, name="api_plugin_healthcheck"),
 
     # .env
     path("plugins/<str:folder_name>/env", views.plugin_env, name="api_plugin_env"),
@@ -33,4 +35,12 @@ urlpatterns = [
     # Marketplace
     path("marketplace/", views.marketplace_list, name="api_marketplace_list"),
     path("marketplace/download", views.marketplace_download, name="api_marketplace_download"),
+
+    # Audit log
+    path("audit/", views.audit_list, name="api_audit_list"),
+
+    # Backup / restore (light)
+    path("backup", views.backup_download, name="api_backup"),
+    path("restore", views.restore_upload, name="api_restore"),
+    path("restore/apply", views.restore_apply, name="api_restore_apply"),
 ]

@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit log{% endblock %}
+{% block page_label %}<span class="page-title">Audit log</span>{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .audit-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 28px 80px; }
+
+    .audit-toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+    .audit-toolbar form {
+        display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 10px 12px;
+        border-radius: var(--radius);
+        flex: 1; min-width: 320px;
+    }
+    .audit-toolbar select, .audit-toolbar input[type="text"] {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 13px;
+        padding: 6px 10px;
+        border-radius: var(--radius-sm);
+        outline: none;
+    }
+    .audit-toolbar input[type="text"] { min-width: 160px; }
+    .audit-toolbar label {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex; align-items: center; gap: 5px;
+        cursor: pointer;
+    }
+    .audit-toolbar button, .audit-toolbar a.btn {
+        background: var(--red);
+        border: 1px solid var(--red);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex; align-items: center;
+        transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .audit-toolbar button:hover { opacity: 0.9; }
+    .audit-toolbar a.btn-clear {
+        background: var(--bg-card);
+        color: var(--text-muted);
+        border-color: var(--border);
+    }
+    .audit-toolbar a.btn-clear:hover { color: var(--text); border-color: #484848; }
+
+    .audit-meta {
+        font-size: 12px;
+        color: var(--text-dim);
+        font-family: 'DM Mono', monospace;
+        margin-bottom: 12px;
+    }
+
+    table.audit {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        font-size: 13px;
+    }
+    .audit thead {
+        background: var(--surface);
+        text-align: left;
+    }
+    .audit th, .audit td {
+        padding: 9px 14px;
+        border-bottom: 1px solid var(--border-subtle);
+        vertical-align: top;
+    }
+    .audit tbody tr:last-child td { border-bottom: none; }
+    .audit th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-dim);
+        font-weight: 500;
+    }
+    .audit td.ts, .audit td.target, .audit td.action {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+    }
+    .audit td.ts { color: var(--text-muted); white-space: nowrap; }
+    .audit td.target { color: var(--text); }
+    .audit td.action { color: var(--text); font-weight: 500; }
+    .audit td.msg { color: var(--text-muted); font-size: 12px; word-break: break-word; }
+    .audit td.user { color: var(--text-muted); }
+
+    .src-pill {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 5px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    .src-pill[data-s="ui"]     { color: #a5b4fc; border-color: rgba(129,140,248,0.3); background: rgba(129,140,248,0.08); }
+    .src-pill[data-s="api"]    { color: #67e8f9; border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.08); }
+    .src-pill[data-s="cli"]    { color: #fcd34d; border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+    .src-pill[data-s="system"] { color: var(--text-dim); }
+
+    .ok-pill, .fail-pill {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 5px;
+    }
+    .ok-pill   { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
+    .fail-pill { background: var(--red-soft); border: 1px solid var(--red-border); color: #ff8a8a; }
+
+    .empty {
+        padding: 60px 24px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .pager {
+        display: flex; justify-content: center; align-items: center;
+        gap: 8px; margin-top: 18px;
+        font-size: 13px; color: var(--text-muted);
+    }
+    .pager a, .pager span {
+        padding: 6px 12px; border-radius: var(--radius-sm);
+        text-decoration: none;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+    }
+    .pager a:hover { color: var(--text); border-color: #484848; }
+    .pager .current { background: var(--surface); color: var(--text); border-color: var(--text-dim); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="audit-wrap">
+    <div class="audit-toolbar">
+        <form method="get">
+            <select name="action">
+                <option value="">— acción —</option>
+                {% for a in actions_choices %}
+                <option value="{{ a }}" {% if filters.action == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <select name="source">
+                <option value="">— fuente —</option>
+                {% for s in sources_choices %}
+                <option value="{{ s }}" {% if filters.source == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="target" value="{{ filters.target }}" placeholder="target contiene…">
+            <label>
+                <input type="checkbox" name="only_failures" value="1" {% if filters.only_failures %}checked{% endif %}>
+                solo errores
+            </label>
+            <button type="submit">Filtrar</button>
+            <a class="btn btn-clear" href="{% url 'audit' %}">Limpiar</a>
+        </form>
+    </div>
+
+    <div class="audit-meta">{{ total }} evento{{ total|pluralize }} · página {{ page.number }} de {{ page.paginator.num_pages }}</div>
+
+    {% if page.object_list %}
+    <table class="audit">
+        <thead>
+            <tr>
+                <th>Cuándo</th>
+                <th>Fuente</th>
+                <th>Acción</th>
+                <th>Target</th>
+                <th>Resultado</th>
+                <th>Usuario</th>
+                <th>Mensaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ev in page.object_list %}
+            <tr>
+                <td class="ts">{{ ev.timestamp|date:'Y-m-d H:i:s' }}</td>
+                <td><span class="src-pill" data-s="{{ ev.source }}">{{ ev.source }}</span></td>
+                <td class="action">{{ ev.action }}</td>
+                <td class="target">{{ ev.target|default:'—' }}</td>
+                <td>{% if ev.success %}<span class="ok-pill">ok</span>{% else %}<span class="fail-pill">fail</span>{% endif %}</td>
+                <td class="user">{{ ev.user.username|default:'—' }}</td>
+                <td class="msg">{{ ev.message|default:'' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page.paginator.num_pages > 1 %}
+    <div class="pager">
+        {% if page.has_previous %}
+        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.previous_page_number }}">← anterior</a>
+        {% endif %}
+        <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}
+        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.next_page_number }}">siguiente →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty">Sin eventos para esos filtros.</div>
+    {% endif %}
+</div>
+{% endblock %}

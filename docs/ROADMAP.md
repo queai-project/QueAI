@@ -1,7 +1,7 @@
 # Roadmap QueAI hacia v1.0 (lanzamiento Open Source)
 
 > Documento de planificación. Vivo — actualizar conforme se avance.
-> Última revisión: 2026-06-03 (Fase 0 + alineación + Fase 1 + **Fase 2 bloques A + C completados**).
+> Última revisión: 2026-06-03 (Fase 0 + alineación + Fase 1 + **Fase 2 completada (bloques A + C + D)**).
 
 ## Contexto
 
@@ -147,11 +147,36 @@ Trabajo adicional ejecutado después de Fase 0 para cerrar la brecha entre lo qu
 - [x] **9 tests nuevos del API** (22 totales pasando): auth (token correcto/inválido/ausente), health/openapi públicos, plugins list/detail, lifecycle install/stop.
 - [x] Excluido `cli/*` del ruff del kernel (la CLI mantiene su propio `requires-python`).
 
-#### Bloque D — Operación y observabilidad (pendiente)
-- [ ] Logs en tiempo real por SSE (sustituye el tail estático actual).
-- [ ] Healthcheck real por plugin (consulta `healthcheck_entry_point` del manifest, color en el catálogo).
-- [ ] Backup/restore desde UI (`.tar.gz` con `plugins/` + `db.sqlite3` + envs).
-- [ ] Audit log mínimo: `AuditEvent(timestamp, action, target, success)`.
+#### Bloque D — Operación y observabilidad ✅ COMPLETADA (2026-06-03)
+
+D.2 — Healthcheck real
+- [x] Helper `core.healthcheck.probe()` con cache (TTL `QUEAI_HEALTHCHECK_CACHE_TTL`, default 5s) que llama al `healthcheck_entry_point` del manifest vía Traefik interno.
+- [x] Endpoints `GET /api/v1/plugins/<id>/healthcheck` (token) y `GET /manager/healthcheck/<folder>/` (sesión UI).
+- [x] Dot verde/amarillo/rojo + latencia en cada card del catálogo. Polling cada 8s con auto-pulse.
+
+D.3 — Audit log
+- [x] Modelo `AuditEvent` (timestamp, action, target, source `ui|api|cli|system`, success, message, user FK).
+- [x] Decorator `@audit_record(action, source)` aplicado a las 7 acciones mutantes (install/start/stop/uninstall/delete/save_env/download) en UI + API. Logueo automático con status code.
+- [x] Auto-purge configurable: cuando `count > QUEAI_AUDIT_MAX_EVENTS` (5000) borra los más viejos hasta volver a `QUEAI_AUDIT_KEEP_AFTER_PURGE` (4000).
+- [x] Vista `/audit/` con tabla paginada (40/pág) + filtros (acción/fuente/target/sólo errores).
+- [x] Endpoint `GET /api/v1/audit/` y CLI `queai audit --action --target --source -n`.
+
+D.1 — Logs SSE
+- [x] Endpoint `GET /api/v1/plugins/<id>/logs/stream` que abre `docker compose logs -f` como subprocess y emite `text/event-stream`. Semáforo de **2 streams simultáneos** para no agotar workers de gunicorn.
+- [x] UI: tab Logs del detalle del plugin con toggle Snapshot/Stream, botón Limpiar, auto-scroll. EventSource con reconexión gestionada.
+- [x] CLI: `queai logs <name> --follow` consume el stream línea a línea.
+
+D.4 — Backup / restore light
+- [x] Módulo `core.backup` con `build_backup()`, `restore_to_staging()`, `apply_restore()`.
+- [x] Tar.gz contiene `metadata.json` + `db.sqlite3` + `.env` del kernel + `plugins/<folder>/.env`. NO incluye carpetas de plugins ni runtimes (decisión: "light").
+- [x] Endpoints: `GET /api/v1/backup`, `POST /api/v1/restore` (multipart), `POST /api/v1/restore/apply`.
+- [x] Endpoint UI con sesión `GET /backup` accesible desde `/account/` con botón de descarga.
+- [x] CLI: `queai backup <dest>` y `queai restore <src> [--apply]`.
+- [x] `apply_restore()` guarda `db.sqlite3.pre-restore` y `.env.pre-restore` como red de seguridad. Requiere `docker compose restart django-kernel` después porque Django mantiene el handle de la BD abierto — documentado en el response.
+
+Tests / lint
+- [x] 29 tests pasando: auth, health/openapi públicos, lifecycle, slug-vs-folder, audit decorator, audit auto-purge, audit filter, backup tar válido, healthcheck null/200.
+- [x] `ruff check` limpio.
 
 ### Fase 3+ — diferido
 

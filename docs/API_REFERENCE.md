@@ -102,6 +102,16 @@ UI navegable en `GET /api/v1/docs` (Swagger UI, requiere navegar y luego pulsar 
 - `GET  /api/v1/marketplace/` — lista del registry remoto cruzada con estado local.
 - `POST /api/v1/marketplace/download` — body JSON `{ "git_url": "https://..." }`. Status 201 si el clone es exitoso y el manifest válido.
 
+### Observabilidad (Bloque D)
+- `GET /api/v1/plugins/<folder>/healthcheck` — pega al `healthcheck_entry_point` del manifest y devuelve `{healthy, latency_ms, status_code, error}`. Cache 5s. `healthy=null` si el plugin no declara el endpoint.
+- `GET /api/v1/plugins/<folder>/logs/stream?tail=50` — Server-Sent Events con `docker compose logs -f`. **Máx 2 streams simultáneos** en el kernel. Líneas como `data: <line>\n\n`.
+- `GET /api/v1/audit/?action=...&target=...&source=...&limit=100` — historial de acciones del kernel (sin auth necesaria entre source).
+
+### Backup / restore
+- `GET /api/v1/backup` — descarga `tar.gz` con `db.sqlite3` + `.env` del kernel + `.env` de cada plugin. **No** incluye `plugins/` ni runtimes.
+- `POST /api/v1/restore` (multipart, campo `backup`) — extrae el tar a `restore-staging/`. No aplica nada.
+- `POST /api/v1/restore/apply` — mueve el staging al sistema en vivo. Guarda `db.sqlite3.pre-restore` y `.env.pre-restore` por si tienes que revertir. **Requiere reiniciar el kernel** después porque Django mantiene el handle de la BD abierto.
+
 ### Códigos de error
 
 | Status | error                  | Significado |

@@ -78,6 +78,22 @@ if not _api_token:
     )
 QUEAI_API_TOKEN = _api_token
 
+# --- Internal Traefik URL --------------------------------------------------
+# El kernel consulta los healthchecks de los plugins por aquí. Como ambos
+# están en `queai_network`, el service name `traefik` resuelve al router.
+# Override si tu setup usa otro nombre.
+QUEAI_INTERNAL_TRAEFIK_URL = os.getenv("QUEAI_INTERNAL_TRAEFIK_URL", "http://traefik").rstrip("/")
+
+# --- Healthcheck por plugin ------------------------------------------------
+QUEAI_HEALTHCHECK_TIMEOUT = float(os.getenv("QUEAI_HEALTHCHECK_TIMEOUT", "3"))
+QUEAI_HEALTHCHECK_CACHE_TTL = int(os.getenv("QUEAI_HEALTHCHECK_CACHE_TTL", "5"))
+
+# --- Audit log -------------------------------------------------------------
+# Cuando AuditEvent.objects.count() supera MAX_EVENTS, se borran los
+# (MAX_EVENTS - KEEP_AFTER_PURGE) más viejos para volver al techo.
+QUEAI_AUDIT_MAX_EVENTS = int(os.getenv("QUEAI_AUDIT_MAX_EVENTS", "5000"))
+QUEAI_AUDIT_KEEP_AFTER_PURGE = int(os.getenv("QUEAI_AUDIT_KEEP_AFTER_PURGE", "4000"))
+
 # Endurecimiento extra cuando DEBUG=False (producción / self-host).
 if not DEBUG:
     SESSION_COOKIE_HTTPONLY = True

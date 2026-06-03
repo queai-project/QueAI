@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from core.audit import record as audit_record
 from module_manager.models import AvailableApp
 
 REGISTRY_URL = "https://raw.githubusercontent.com/queai-project/QueAI-Registry/refs/heads/main/register.json"
@@ -187,6 +188,7 @@ def marketplace(request):
 
 @login_required
 @require_POST
+@audit_record("download", source="ui")
 def download_plugin(request):
     """
     Descarga o actualiza un plugin desde Git.

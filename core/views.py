@@ -3,10 +3,13 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.core.paginator import Paginator
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 
 from module_manager.models import AvailableApp
+
+from .models import AuditEvent
 
 
 def home_view(request: HttpRequest):
@@ -29,6 +32,55 @@ def welcome_dismiss(request: HttpRequest):
     """Marca el welcome como visto para esta sesión y redirige al hub."""
     request.session["welcome_dismissed"] = True
     return redirect("get_apps")
+
+
+@login_required
+def backup_view(request: HttpRequest):
+    """Descarga del backup con auth de sesión (UI)."""
+    from django.http import HttpResponse
+
+    from . import backup as backup_module
+
+    payload = backup_module.build_backup()
+    response = HttpResponse(payload, content_type="application/gzip")
+    response["Content-Disposition"] = f'attachment; filename="{backup_module.backup_filename()}"'
+    response["Content-Length"] = str(len(payload))
+    return response
+
+
+@login_required
+def audit_view(request: HttpRequest):
+    """Tabla de audit log con filtros + paginación."""
+    qs = AuditEvent.objects.select_related("user")
+
+    action = request.GET.get("action", "").strip()
+    target = request.GET.get("target", "").strip()
+    source = request.GET.get("source", "").strip()
+    only_failures = request.GET.get("only_failures") == "1"
+
+    if action:
+        qs = qs.filter(action=action)
+    if target:
+        qs = qs.filter(target__icontains=target)
+    if source:
+        qs = qs.filter(source=source)
+    if only_failures:
+        qs = qs.filter(success=False)
+
+    paginator = Paginator(qs, 40)
+    page = paginator.get_page(request.GET.get("page") or 1)
+
+    return render(
+        request,
+        "audit.html",
+        {
+            "page": page,
+            "filters": {"action": action, "target": target, "source": source, "only_failures": only_failures},
+            "actions_choices": ["install", "start", "stop", "uninstall", "delete", "save_env", "download"],
+            "sources_choices": [c[0] for c in AuditEvent.SOURCE_CHOICES],
+            "total": paginator.count,
+        },
+    )
 
 
 @login_required

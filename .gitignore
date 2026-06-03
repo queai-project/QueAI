@@ -37,6 +37,11 @@ htmlcov/
 staticfiles/
 media/
 
+# Build artefacts del paquete cli/
+cli/build/
+cli/dist/
+cli/*.egg-info/
+
 # Editores e IDEs
 .idea/
 .vscode/
