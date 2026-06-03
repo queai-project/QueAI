@@ -5,211 +5,152 @@
 {% block extra_styles %}
 <style>
     main.home {
-        max-width: 1180px;
+        max-width: 980px;
         margin: 0 auto;
-        padding: 76px 28px 60px;
+        padding: 80px 28px 60px;
     }
 
-    .hero {
-        text-align: center;
-        margin-bottom: 64px;
+    .home-intro {
+        margin-bottom: 56px;
         animation: fadeUp 0.5s ease both;
     }
-
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-family: 'DM Mono', monospace;
-        font-size: 11.5px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        padding: 6px 14px;
-        border-radius: 20px;
-        margin-bottom: 24px;
-    }
-
-    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
-
-    .hero h1 {
-        font-size: clamp(36px, 5vw, 56px);
-        line-height: 1.08;
-        font-weight: 500;
-        letter-spacing: -0.02em;
-        margin-bottom: 18px;
-    }
-    .hero h1 .accent { color: var(--red); }
-
-    .hero p {
-        max-width: 580px;
-        margin: 0 auto 28px;
-        color: var(--text-muted);
-        font-size: 16px;
-    }
-
-    .hero-cta {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .btn-primary, .btn-ghost {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 22px;
-        border-radius: var(--radius-sm);
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 14px;
-        transition: opacity 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .btn-primary { background: var(--red); color: #fff; }
-    .btn-primary:hover { opacity: 0.92; }
-    .btn-ghost {
-        color: var(--text);
-        border: 1px solid var(--border);
-        background: var(--bg-card);
-    }
-    .btn-ghost:hover { background: var(--bg-hover); border-color: #484848; }
-
-    .nav-cards {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-    }
-
-    .nav-card {
-        position: relative;
-        padding: 26px 24px 22px;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        text-decoration: none;
-        color: var(--text);
-        transition: transform 0.18s, border-color 0.18s, background 0.18s;
-    }
-    .nav-card:hover {
-        border-color: #484848;
-        background: var(--bg-hover);
-        transform: translateY(-2px);
-    }
-
-    .card-icon { font-size: 28px; margin-bottom: 14px; }
-    .card-num {
+    .home-eyebrow {
         font-family: 'DM Mono', monospace;
         font-size: 11px;
         letter-spacing: 0.08em;
         color: var(--text-dim);
-        text-transform: uppercase;
+        margin-bottom: 14px;
     }
-    .card-title { font-size: 19px; font-weight: 500; margin: 6px 0 8px; }
-    .card-desc  { font-size: 13.5px; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px; }
-    .card-footer {
+    .home-title {
+        font-size: clamp(28px, 4vw, 40px);
+        line-height: 1.15;
+        font-weight: 500;
+        letter-spacing: -0.015em;
+        margin-bottom: 14px;
+        color: var(--text);
+        max-width: 720px;
+    }
+    .home-sub {
+        max-width: 580px;
+        color: var(--text-muted);
+        font-size: 14.5px;
+        line-height: 1.55;
+    }
+
+    .nav-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 28px;
+    }
+
+    .nav-card {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        gap: 6px;
+        padding: 20px 20px 22px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: var(--text);
+        transition: border-color 0.15s, background 0.15s;
+    }
+    .nav-card:hover { border-color: var(--text-dim); background: var(--bg-card); }
+
+    .nav-card .nav-num {
+        font-family: 'DM Mono', monospace;
+        font-size: 10.5px;
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+        margin-bottom: 4px;
+    }
+    .nav-card .nav-title {
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: -0.005em;
+    }
+    .nav-card .nav-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-top: 4px;
+        flex: 1;
+    }
+    .nav-card .nav-arrow {
+        margin-top: 14px;
         font-family: 'DM Mono', monospace;
         font-size: 12px;
-        color: var(--text-muted);
-        padding-top: 12px;
-        border-top: 1px solid var(--border-subtle);
+        color: var(--text-dim);
+        transition: color 0.15s, transform 0.15s;
+        display: inline-block;
     }
-    .card-arrow { transition: transform 0.18s; }
-    .nav-card:hover .card-arrow { transform: translateX(4px); color: var(--red); }
+    .nav-card:hover .nav-arrow { color: var(--text); transform: translateX(2px); }
 
-    .status-bar {
-        margin-top: 36px;
-        padding: 14px 20px;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
+    .status-line {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 12.5px;
-        color: var(--text-muted);
         font-family: 'DM Mono', monospace;
+        font-size: 11.5px;
+        color: var(--text-dim);
+        letter-spacing: 0.02em;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-subtle);
     }
-    .status-left { display: flex; align-items: center; gap: 10px; }
-    .status-dot {
-        width: 7px; height: 7px;
+    .status-line .ok-dot {
+        display: inline-block;
+        width: 5px; height: 5px;
         border-radius: 50%;
-        background: var(--green);
-        animation: blink 2.5s infinite;
+        background: var(--ok);
+        margin-right: 6px;
+        position: relative;
+        top: -1px;
     }
 
     @media (max-width: 800px) {
         .nav-cards { grid-template-columns: 1fr; }
         main.home { padding: 48px 20px 40px; }
-        .status-bar { flex-direction: column; gap: 10px; text-align: center; }
+        .status-line { flex-direction: column; gap: 8px; text-align: center; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="home">
-    <section class="hero">
-        <div class="hero-badge">
-            <span class="badge-dot"></span>
-            Kernel{% if queai_version %} v{{ queai_version }}{% endif %} · Orquestación de IA local
-        </div>
-        <h1>Gestiona tus módulos<br>de <span class="accent">inteligencia artificial</span></h1>
-        <p>
-            Instala, configura y monitorea aplicaciones de IA desacopladas desde una sola
-            interfaz. Local-first. Sin fricciones.
+    <section class="home-intro">
+        <div class="home-eyebrow">QueAI Kernel{% if queai_version %} · v{{ queai_version }}{% endif %}</div>
+        <h1 class="home-title">Orquestación de IA local, desacoplada por módulos.</h1>
+        <p class="home-sub">
+            Instala, configura y monitorea aplicaciones de IA desde una sola interfaz.
+            Sin dependencias en la nube. Sin fricciones.
         </p>
-        <div class="hero-cta">
-            <a href="{% url 'get_apps' %}" class="btn-primary">Ir al Hub →</a>
-            <a href="{% url 'marketplace' %}" class="btn-ghost">Explorar Marketplace</a>
-            <a href="{% url 'stats_dashboard' %}" class="btn-ghost">Ver Monitor</a>
-        </div>
     </section>
 
     <div class="nav-cards">
         <a href="{% url 'get_apps' %}" class="nav-card">
-            <div class="card-icon">📦</div>
-            <span class="card-num">01 · Hub</span>
-            <div class="card-title">Hub de módulos</div>
-            <p class="card-desc">Instala, detén, configura y consulta logs de todos tus plugins desde un solo lugar.</p>
-            <div class="card-footer">
-                <span>Abrir Hub</span>
-                <span class="card-arrow">→</span>
-            </div>
+            <span class="nav-num">01 · Hub</span>
+            <span class="nav-title">Hub de módulos</span>
+            <span class="nav-desc">Instala, detén, configura y consulta logs de todos tus plugins desde un solo lugar.</span>
+            <span class="nav-arrow">Abrir Hub →</span>
         </a>
         <a href="{% url 'marketplace' %}" class="nav-card">
-            <div class="card-icon">🛒</div>
-            <span class="card-num">02 · Marketplace</span>
-            <div class="card-title">Nuevos plugins</div>
-            <p class="card-desc">Descarga módulos del registro oficial o añade cualquier plugin desde una URL de Git.</p>
-            <div class="card-footer">
-                <span>Explorar</span>
-                <span class="card-arrow">→</span>
-            </div>
+            <span class="nav-num">02 · Marketplace</span>
+            <span class="nav-title">Nuevos módulos</span>
+            <span class="nav-desc">Descarga del registro oficial o añade un plugin desde una URL de Git.</span>
+            <span class="nav-arrow">Explorar →</span>
         </a>
         <a href="{% url 'stats_dashboard' %}" class="nav-card">
-            <div class="card-icon">📊</div>
-            <span class="card-num">03 · Monitor</span>
-            <div class="card-title">Métricas en vivo</div>
-            <p class="card-desc">CPU, RAM y red en tiempo real para cada contenedor activo.</p>
-            <div class="card-footer">
-                <span>Ver dashboard</span>
-                <span class="card-arrow">→</span>
-            </div>
+            <span class="nav-num">03 · Monitor</span>
+            <span class="nav-title">Métricas en vivo</span>
+            <span class="nav-desc">CPU, RAM y red en tiempo real para cada contenedor activo.</span>
+            <span class="nav-arrow">Ver dashboard →</span>
         </a>
     </div>
 
-    <div class="status-bar">
-        <div class="status-left">
-            <div class="status-dot"></div>
-            <span>Docker Engine</span>
-            <span>· activo y listo</span>
-        </div>
-        <span>QueAI Kernel · Sistema de orquestación local</span>
+    <div class="status-line">
+        <span><span class="ok-dot"></span>Docker engine activo</span>
+        <span>local · private · self-hosted</span>
     </div>
 </main>
 {% endblock %}

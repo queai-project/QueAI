@@ -207,19 +207,18 @@
         .user-dropdown.open { display: block; }
 
         .user-dropdown a, .user-dropdown button {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: block;
             width: 100%;
-            padding: 9px 12px;
+            padding: 8px 12px;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 13.5px;
-            border-radius: 7px;
+            font-size: 13px;
+            border-radius: 6px;
             border: none;
             background: none;
             cursor: pointer;
             text-align: left;
+            font-family: inherit;
             transition: background 0.12s, color 0.12s;
         }
 
@@ -228,11 +227,9 @@
             color: var(--text);
         }
 
-        .user-dropdown .ud-icon { font-size: 14px; width: 16px; text-align: center; }
-
         .user-dropdown hr {
             border: 0;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-subtle);
             margin: 4px 0;
         }
 
@@ -383,12 +380,12 @@
                     <span>{{ user.username }}</span>
                 </button>
                 <div class="user-dropdown" id="userDropdown">
-                    <a href="{% url 'account' %}"><span class="ud-icon">⚙</span>Mi cuenta</a>
-                    <a href="{% url 'audit' %}"><span class="ud-icon">📜</span>Audit log</a>
+                    <a href="{% url 'account' %}">Mi cuenta</a>
+                    <a href="{% url 'audit' %}">Audit log</a>
                     <hr>
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit"><span class="ud-icon">⎋</span>Cerrar sesión</button>
+                        <button type="submit">Cerrar sesión</button>
                     </form>
                 </div>
             </div>
