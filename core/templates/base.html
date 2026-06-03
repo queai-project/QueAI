@@ -1,0 +1,476 @@
+{% load static %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'es' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QueAI{% endblock %} · QueAI</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:            #161616;
+            --bg-card:       #232323;
+            --bg-hover:      #2a2a2a;
+            --surface:       #2e2e2e;
+            --surface2:      #363636;
+            --border:        #383838;
+            --border-subtle: #2c2c2c;
+            --text:          #eaeae6;
+            --text-muted:    #909090;
+            --text-dim:      #585856;
+            --red:           #e8180c;
+            --red-soft:      rgba(232,24,12,0.1);
+            --red-border:    rgba(232,24,12,0.22);
+            --green:         #22c55e;
+            --green-soft:    rgba(34,197,94,0.1);
+            --green-border:  rgba(34,197,94,0.22);
+            --amber:         #f59e0b;
+            --amber-soft:    rgba(245,158,11,0.1);
+            --amber-border:  rgba(245,158,11,0.25);
+            --blue:          #818cf8;
+            --blue-soft:     rgba(129,140,248,0.1);
+            --blue-border:   rgba(129,140,248,0.25);
+            --radius:        14px;
+            --radius-sm:     9px;
+        }
+
+        html { height: 100%; }
+        body {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Área principal que crece y empuja el footer al final. */
+        main.queai-main {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { color: inherit; }
+        button { font-family: inherit; }
+
+        /* ============ HEADER ============ */
+        header.queai-header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(26,26,26,0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 16px; }
+
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+        .logo img { width: 32px; height: 32px; border-radius: 7px; flex-shrink: 0; }
+
+        .logo-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .logo-name em { color: var(--red); font-style: normal; }
+
+        .queai-version {
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            color: var(--text-dim);
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg-card);
+            letter-spacing: 0.02em;
+        }
+
+        .page-title {
+            font-size: 13px;
+            color: var(--text-dim);
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+            font-weight: 400;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 6px 13px;
+            border-radius: var(--radius-sm);
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .header-nav a:hover { color: var(--text); background: var(--surface); }
+
+        .header-nav a.active {
+            color: var(--text);
+            background: var(--surface);
+            box-shadow: inset 0 -2px 0 var(--red);
+        }
+
+        .docker-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            color: var(--green);
+            background: var(--green-soft);
+            border: 1px solid var(--green-border);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        .docker-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2.5s infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+        /* User menu */
+        .user-menu { position: relative; }
+
+        .user-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px 10px 5px 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .user-trigger:hover { border-color: #484848; background: var(--bg-hover); }
+
+        .user-avatar {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            padding: 6px;
+            display: none;
+        }
+
+        .user-dropdown.open { display: block; }
+
+        .user-dropdown a, .user-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13.5px;
+            border-radius: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .user-dropdown a:hover, .user-dropdown button:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .user-dropdown .ud-icon { font-size: 14px; width: 16px; text-align: center; }
+
+        .user-dropdown hr {
+            border: 0;
+            border-top: 1px solid var(--border);
+            margin: 4px 0;
+        }
+
+        /* ============ TOASTS ============ */
+        #toast-stack {
+            position: fixed;
+            top: 76px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 360px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+            pointer-events: auto;
+            animation: toastIn 0.25s cubic-bezier(0.16,1,0.3,1) both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast.toast-out { animation: toastOut 0.22s ease forwards; }
+
+        .toast::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--text-dim);
+        }
+
+        .toast.error::before   { background: var(--red); }
+        .toast.success::before { background: var(--green); }
+        .toast.warning::before { background: var(--amber); }
+        .toast.info::before    { background: var(--blue); }
+
+        .toast-icon { font-size: 15px; flex-shrink: 0; line-height: 1.3; }
+        .toast.error   .toast-icon { color: var(--red); }
+        .toast.success .toast-icon { color: var(--green); }
+        .toast.warning .toast-icon { color: var(--amber); }
+        .toast.info    .toast-icon { color: var(--blue); }
+
+        .toast-body { flex: 1; line-height: 1.45; }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 0 0 4px;
+            opacity: 0.7;
+            transition: opacity 0.15s, color 0.15s;
+        }
+
+        .toast-close:hover { opacity: 1; color: var(--text); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* ============ FOOTER ============ */
+        footer.queai-footer {
+            flex-shrink: 0;
+            border-top: 1px solid var(--border-subtle);
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.02em;
+            background: var(--bg);
+        }
+
+        footer.queai-footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        footer.queai-footer a:hover { color: var(--text); }
+
+        footer.queai-footer .fcopy { display: flex; gap: 14px; align-items: center; }
+        footer.queai-footer .flinks { display: flex; gap: 14px; align-items: center; }
+
+        /* ============ UTIL ============ */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 720px) {
+            header.queai-header { padding: 0 16px; height: 56px; }
+            .page-title { display: none; }
+            .docker-pill { display: none; }
+            #toast-stack { right: 12px; left: 12px; max-width: none; }
+            footer.queai-footer { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+
+    <header class="queai-header">
+        <div class="header-left">
+            <a href="{% url 'home' %}" class="logo" title="QueAI">
+                <img src="{% static 'logo.png' %}" alt="QueAI">
+                <span class="logo-name">Que<em>AI</em></span>
+            </a>
+            {% if queai_version %}
+            <span class="queai-version" title="Versión del kernel">v{{ queai_version }}</span>
+            {% endif %}
+            {% block page_label %}{% if page_title %}<span class="page-title">{{ page_title }}</span>{% endif %}{% endblock %}
+        </div>
+
+        <div class="header-nav">
+            <a href="{% url 'get_apps' %}" class="{% if request.resolver_match.url_name == 'get_apps' %}active{% endif %}">Hub</a>
+            <a href="{% url 'marketplace' %}" class="{% if request.resolver_match.url_name == 'marketplace' %}active{% endif %}">Marketplace</a>
+            <a href="{% url 'stats_dashboard' %}" class="{% if request.resolver_match.url_name == 'stats_dashboard' %}active{% endif %}">Monitor</a>
+            <div class="docker-pill" title="Docker engine activo">
+                <div class="docker-dot"></div>Docker
+            </div>
+
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <button type="button" class="user-trigger" onclick="toggleUserMenu(event)">
+                    <span class="user-avatar">{{ user.username|first }}</span>
+                    <span>{{ user.username }}</span>
+                </button>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="{% url 'account' %}"><span class="ud-icon">⚙</span>Mi cuenta</a>
+                    <hr>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"><span class="ud-icon">⎋</span>Cerrar sesión</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    {# Toast stack: alimentado por messages framework y por JS (window.toast) #}
+    <div id="toast-stack" aria-live="polite" aria-atomic="false">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="toast {{ message.tags|default:'info' }}" data-autohide="4000">
+                <span class="toast-icon">
+                    {% if 'error' in message.tags %}⚠{% elif 'success' in message.tags %}✓{% elif 'warning' in message.tags %}!{% else %}ℹ{% endif %}
+                </span>
+                <div class="toast-body">{{ message }}</div>
+                <button type="button" class="toast-close" aria-label="Cerrar" onclick="dismissToast(this.parentElement)">×</button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <main class="queai-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="queai-footer">
+        <div class="fcopy">
+            <span>QueAI Kernel{% if queai_version %} v{{ queai_version }}{% endif %}</span>
+            <span>·</span>
+            <span>Local · Private · Self-hosted</span>
+        </div>
+        <div class="flinks">
+            <a href="https://github.com/queai-project/QueAI" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://queai.dev" target="_blank" rel="noopener">queai.dev</a>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del dropdown de user.
+        function toggleUserMenu(ev) {
+            ev.stopPropagation();
+            const dd = document.getElementById('userDropdown');
+            if (dd) dd.classList.toggle('open');
+        }
+        document.addEventListener('click', (ev) => {
+            const dd = document.getElementById('userDropdown');
+            if (!dd) return;
+            if (!ev.target.closest('.user-menu')) dd.classList.remove('open');
+        });
+
+        // Toasts: API global + auto-dismiss.
+        function dismissToast(el) {
+            if (!el || el.classList.contains('toast-out')) return;
+            el.classList.add('toast-out');
+            setTimeout(() => el.remove(), 220);
+        }
+
+        window.toast = function (body, kind = 'info', timeout = 4000) {
+            const icons = { error: '⚠', success: '✓', warning: '!', info: 'ℹ' };
+            const stack = document.getElementById('toast-stack');
+            if (!stack) return;
+            const el = document.createElement('div');
+            el.className = `toast ${kind}`;
+            el.innerHTML = `
+                <span class="toast-icon">${icons[kind] || icons.info}</span>
+                <div class="toast-body"></div>
+                <button type="button" class="toast-close" aria-label="Cerrar">×</button>
+            `;
+            el.querySelector('.toast-body').textContent = body;
+            el.querySelector('.toast-close').addEventListener('click', () => dismissToast(el));
+            stack.appendChild(el);
+            if (timeout > 0) setTimeout(() => dismissToast(el), timeout);
+            return el;
+        };
+
+        // Auto-dismiss para toasts emitidos vía messages framework.
+        document.querySelectorAll('#toast-stack .toast').forEach(t => {
+            const ms = parseInt(t.dataset.autohide || '0', 10);
+            if (ms > 0) setTimeout(() => dismissToast(t), ms);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
