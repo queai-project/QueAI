@@ -1,15 +1,23 @@
 services:
   traefik:
-    image: traefik:v3.1
+    # v2.11 es la última estable de la rama 2.x. La preferimos sobre v3
+    # porque su negociación de API con Docker es compatible con un rango
+    # más amplio de versiones de daemon (v3 cae a API 1.24 si el negotiate
+    # falla y el daemon moderno la rechaza).
+    image: traefik:v2.11
     container_name: queai_traefik
     restart: unless-stopped
     command:
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--api=true"
       - "--api.dashboard=true"
+      - "--api.insecure=false"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=queai_network"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.dashboard.address=:8080"
+      - "--entrypoints.traefik.address=:8080"
     ports:
       - "${QUEAI_PORT:-8080}:80"
       - "${QUEAI_TRAEFIK_DASHBOARD_PORT:-9090}:8080"
@@ -19,19 +27,21 @@ services:
       - queai_network
     labels:
       - "traefik.enable=true"
-      # Dashboard interno, protegido por basic-auth.
+      # Dashboard interno protegido por basic-auth.
       # Genera el hash con: docker run --rm httpd:2.4-alpine htpasswd -nbB admin <password>
-      # y guarda el resultado en QUEAI_TRAEFIK_DASHBOARD_AUTH del .env.
+      # y guarda el resultado (con $ escapado como $$) en QUEAI_TRAEFIK_DASHBOARD_AUTH del .env.
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${QUEAI_TRAEFIK_DASHBOARD_AUTH:-admin:$$apr1$$Qd1nXrFf$$NyrJxQp9oVUEy0Lp9SQID/}"
-      - "traefik.http.routers.traefik-dashboard.rule=PathPrefix(`/dashboard`) || PathPrefix(`/api`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=dashboard"
-      - "traefik.http.routers.traefik-dashboard.service=api@internal"
-      - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth"
+      - "traefik.http.routers.dashboard.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.dashboard.entrypoints=traefik"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
 
   django-kernel:
     build: .
     container_name: queai_kernel
     restart: unless-stopped
+    depends_on:
+      - traefik
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
