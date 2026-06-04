@@ -115,19 +115,38 @@ class WelcomeOnboardingTests(TestCase):
         self.client = Client()
         self.client.force_login(user)
 
-    def test_get_apps_redirects_to_welcome_when_empty(self):
-        # Sin plugins en BD y sin descartar el wizard → redirect a /welcome/.
+    def test_get_apps_renders_empty_state_when_no_modules(self):
+        # El hub ya no redirige a /welcome/ cuando está vacío — el welcome
+        # vive en el flujo de login (LOGIN_REDIRECT_URL=/welcome/). El hub
+        # vacío renderiza su empty state con el pulpo triste.
         response = self.client.get("/manager/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_welcome_renders_for_fresh_session(self):
+        response = self.client.get("/welcome/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bienvenido")
+
+    def test_welcome_redirects_to_hub_when_already_dismissed(self):
+        # Simula que ya pasó por el onboarding en esta sesión.
+        session = self.client.session
+        session["welcome_dismissed"] = True
+        session.save()
+        response = self.client.get("/welcome/")
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/welcome", response["Location"])
+        self.assertIn("/manager", response["Location"])
+
+    def test_welcome_can_be_forced_after_dismiss(self):
+        session = self.client.session
+        session["welcome_dismissed"] = True
+        session.save()
+        response = self.client.get("/welcome/?force=1")
+        self.assertEqual(response.status_code, 200)
 
     def test_dismiss_sets_session_flag_and_redirects(self):
         response = self.client.post("/welcome/dismiss/")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/manager", response["Location"])
-        # Y ya no debe redirigir al wizard.
-        response2 = self.client.get("/manager/")
-        self.assertEqual(response2.status_code, 200)
 
 
 class RefreshEndpointTests(TestCase):
