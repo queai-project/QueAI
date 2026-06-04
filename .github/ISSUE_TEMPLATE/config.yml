@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Pregunta o discusión
+    url: https://github.com/queai-project/QueAI/discussions
+    about: Para dudas de uso, ideas o conversaciones abiertas, usa Discussions en vez de un issue.
+  - name: Reporte de vulnerabilidad
+    url: https://github.com/queai-project/QueAI/security/advisories/new
+    about: No abras un issue público. Usa Private Vulnerability Reporting o escribe a security@queai.dev.

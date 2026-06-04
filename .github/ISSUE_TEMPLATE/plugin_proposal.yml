@@ -1,0 +1,81 @@
+name: Plugin proposal
+description: Propone añadir un módulo nuevo al registry oficial.
+title: "[plugin] "
+labels: ["plugin-proposal", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        QueAI no aloja el código de los plugins en este repo. Cada plugin
+        es un repo independiente; el registry oficial (`register.json`)
+        lo único que mantiene es la `git_url`.
+
+        Antes de proponer:
+        1. Lee [`docs/PLUGIN_DEVELOPMENT.md`](https://github.com/queai-project/QueAI/blob/main/docs/PLUGIN_DEVELOPMENT.md) — incluye dos ejemplos completos (local CPU y proxy cloud).
+        2. Tu repo debe ser **público** y tener LICENSE compatible con MIT (MIT, Apache-2, BSD-3, ISC).
+        3. Tu `manifest.json` debe ser válido y los endpoints declarados deben responder.
+
+  - type: input
+    id: name
+    attributes:
+      label: Nombre del plugin
+      placeholder: "Ej.: chat_cloud_proxy"
+    validations:
+      required: true
+
+  - type: input
+    id: repo
+    attributes:
+      label: URL del repo
+      placeholder: "https://github.com/usuario/queai-chat-cloud-proxy"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-it-does
+    attributes:
+      label: ¿Qué hace?
+      description: 2-4 frases.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: backend-type
+    attributes:
+      label: Tipo de backend
+      options:
+        - "Modelo local en CPU"
+        - "Modelo local en GPU"
+        - "Thin proxy a una API externa"
+        - "Pipeline (mezcla local + externo)"
+        - "Otro"
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requisitos del host
+      description: RAM, CPU/GPU, disco, modelos a descargar, conectividad saliente, etc.
+
+  - type: textarea
+    id: external-apis
+    attributes:
+      label: APIs externas que consume (si las hay)
+      description: |
+        Para plugins tipo proxy. Lista las URLs / proveedores, qué secretos
+        necesita el operador, qué se queda en el host vs. qué viaja.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Antes de proponer
+      options:
+        - label: El repo es público y tiene LICENSE MIT-compatible.
+          required: true
+        - label: Hay un manifest.json válido en la raíz.
+          required: true
+        - label: El plugin levanta y responde a su healthcheck en local con `docker compose up`.
+          required: true
+        - label: El README documenta requisitos, credenciales (si aplica) y tráfico saliente (si aplica).
+          required: true

@@ -1,0 +1,106 @@
+name: Bug report
+description: Algo se comporta distinto a lo documentado o tira un error.
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar. Cuanto más concreto seas, más rápido podemos resolverlo.
+        Antes de abrir el issue verifica que no haya uno parecido en
+        [issues abiertos y cerrados](https://github.com/queai-project/QueAI/issues?q=is%3Aissue).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Qué pasó
+      description: Describe el comportamiento actual.
+      placeholder: "Ej.: al hacer clic en Instalar el módulo OCR, el contenedor arranca pero el catálogo lo sigue mostrando como 'detenido'."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Qué esperabas
+      placeholder: "Ej.: el badge debería pasar a 'activo' en menos de 5s."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: Lo más específicos posible. Si requiere una secuencia de comandos, péguelos tal cual.
+      placeholder: |
+        1. Instalar QueAI con el comando del README.
+        2. Login con el admin definido en .env.
+        3. En /marketplace/ pulsar "Añadir al Hub" sobre OCR.
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs relevantes
+      description: |
+        `docker compose logs --tail=200 django-kernel`,
+        `queai logs <plugin> -n 200`,
+        o lo que aplique. Censura cualquier secreto antes de pegar.
+      render: shell
+
+  - type: input
+    id: kernel-version
+    attributes:
+      label: Versión del kernel
+      description: "Salida de `queai health` o de `curl http://localhost:8080/health`. Si no funciona, indica el tag o commit."
+      placeholder: "v1.0.0-rc1 / commit abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Método de instalación
+      options:
+        - "curl queai.dev/install.sh | bash"
+        - "git clone + docker compose"
+        - "Otro (especifica abajo)"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: SO y versión
+      placeholder: "Ubuntu 24.04 / macOS 15.2 / WSL2 Ubuntu 22.04 / ..."
+    validations:
+      required: true
+
+  - type: input
+    id: docker-version
+    attributes:
+      label: Versión de Docker / Compose
+      description: "`docker --version` y `docker compose version`"
+      placeholder: "Docker 27.3 / Compose 2.30"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Cualquier otra cosa
+      description: Configuración no estándar, plugins de terceros instalados, screenshots, etc.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: Busqué issues similares antes de abrir este.
+          required: true
+        - label: Estoy en la última versión publicada (o digo explícitamente arriba si no).
+          required: true
+        - label: No incluí secretos en los logs pegados.
+          required: true

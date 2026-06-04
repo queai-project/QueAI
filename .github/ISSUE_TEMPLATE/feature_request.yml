@@ -1,0 +1,63 @@
+name: Feature request
+description: Una capacidad nueva o un cambio de comportamiento del kernel.
+title: "[feature] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir el issue:
+        - Revisa el [Roadmap](https://github.com/queai-project/QueAI/blob/main/docs/ROADMAP.md)
+          y la [Product Vision](https://github.com/queai-project/QueAI/blob/main/docs/PRODUCTVISION.md).
+          Quizás ya está planeado o tiene una razón explícita para no estarlo.
+        - Si tu idea es un módulo nuevo (no un cambio del kernel),
+          usa la plantilla **Plugin proposal**.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: ¿Qué problema resuelve?
+      description: Empieza por el problema concreto, no por la solución.
+      placeholder: "Hoy, cuando quiero hacer X, tengo que ... Esto me cuesta porque ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Cómo crees que debería funcionar.
+      placeholder: "Que el catálogo tenga un toggle para ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      placeholder: "Probé ... pero ..."
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Dónde encaja
+      options:
+        - "Kernel — UI / hub"
+        - "Kernel — API REST"
+        - "Kernel — CLI queai"
+        - "Kernel — instalación / despliegue"
+        - "Kernel — observabilidad (audit, healthcheck, logs)"
+        - "Documentación"
+        - "No estoy seguro"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verificaciones
+      options:
+        - label: Revisé el Roadmap y no está propuesto allí.
+          required: true
+        - label: Mi propuesta es compatible con la Product Vision (single-user, local+cloud, etc.).
+          required: true
