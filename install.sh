@@ -277,6 +277,49 @@ ensure_docker_user() {
   fi
 }
 
+# DOCKER_RUNTIME_WRAP: vacío por defecto; "sg docker -c" si tenemos que
+# envolver los comandos de docker porque el shell actual no tiene aplicados
+# los permisos del grupo 'docker' (típico después de instalar Docker o de
+# añadir el usuario al grupo en esta misma sesión).
+DOCKER_RUNTIME_WRAP=""
+
+ensure_docker_runtime() {
+  # Cuando funciona sin envolver, no hacemos nada.
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # Si está en macOS y aquí seguimos, el Docker Desktop no está corriendo.
+  if [[ "$OS" == "macos" ]]; then
+    err "Docker está instalado pero no responde. Abre Docker Desktop y vuelve a ejecutar."
+    exit 1
+  fi
+
+  # En Linux: el caso más común es que acabamos de instalar Docker o de
+  # añadir al usuario al grupo 'docker' en esta misma ejecución. La sesión
+  # no tiene aplicados los permisos hasta el siguiente login. 'sg docker'
+  # nos deja ejecutar comandos con el grupo aplicado sin re-loguearse.
+  if command -v sg >/dev/null 2>&1 && sg docker -c "docker info" >/dev/null 2>&1; then
+    DOCKER_RUNTIME_WRAP="sg docker -c"
+    warn "Tu sesión todavía no aplica el grupo 'docker' (es normal si te lo acabamos de añadir)."
+    warn "Para este instalador uso 'sg docker' como wrapper. Después, cierra sesión y vuelve a entrar."
+    return 0
+  fi
+
+  # No se pudo. Damos un mensaje útil según el caso.
+  err "Docker no responde desde este shell."
+  if id -nG "$USER" 2>/dev/null | grep -qw docker; then
+    err "Estás en el grupo 'docker' pero el demonio no responde."
+    err "Verifica que esté corriendo:  sudo systemctl status docker"
+  else
+    err "Tu usuario no está en el grupo 'docker'."
+    err "Manualmente:"
+    err "  sudo usermod -aG docker \$USER"
+    err "Después cierra sesión, vuelve a entrar y re-ejecuta el instalador."
+  fi
+  exit 1
+}
+
 ensure_compose() {
   # En instalaciones modernas viene como `docker compose` (plugin).
   # En sistemas viejos puede ser `docker-compose` binario.
@@ -333,10 +376,19 @@ start_services() {
   fi
 
   cd "$INSTALL_DIR"
-  if docker compose version >/dev/null 2>&1; then
-    docker compose up -d --build
+
+  # Elegimos el binario de compose disponible (v2 plugin o v1 binario).
+  local compose_bin="docker compose"
+  if ! docker compose version >/dev/null 2>&1; then
+    compose_bin="docker-compose"
+  fi
+
+  if [ -n "$DOCKER_RUNTIME_WRAP" ]; then
+    # sg docker -c "..." abre una sub-shell con el grupo docker aplicado.
+    # Le pasamos el cd + el comando completo en una sola string.
+    $DOCKER_RUNTIME_WRAP "cd '$INSTALL_DIR' && $compose_bin up -d --build"
   else
-    docker-compose up -d --build
+    $compose_bin up -d --build
   fi
 }
 
@@ -382,6 +434,7 @@ main() {
   ensure_compose
   clone_or_update_repo
   bootstrap_env
+  ensure_docker_runtime
   start_services
   print_summary
 }
