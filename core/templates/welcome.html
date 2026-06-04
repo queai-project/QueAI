@@ -12,6 +12,14 @@
     }
 
     .welcome-intro { text-align: center; margin-bottom: 48px; }
+    .welcome-mascot {
+        width: 140px;
+        height: 140px;
+        object-fit: contain;
+        margin: 0 auto 18px;
+        display: block;
+        animation: fadeUp 0.5s ease both;
+    }
     .welcome-intro h1 {
         font-size: clamp(28px, 4vw, 38px);
         font-weight: 500;
@@ -45,16 +53,14 @@
     .step:nth-child(3) { animation-delay: 0.12s; }
 
     .step-num {
-        position: absolute;
-        top: 24px;
-        right: 22px;
         font-family: 'DM Mono', monospace;
         font-size: 11px;
         color: var(--text-dim);
         letter-spacing: 0.08em;
+        margin-bottom: 14px;
+        display: block;
     }
 
-    .step-icon { font-size: 26px; margin-bottom: 12px; }
     .step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
     .step p { color: var(--text-muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 16px; }
 
@@ -108,6 +114,7 @@
 {% block content %}
 <div class="welcome-wrap">
     <div class="welcome-intro">
+        <img class="welcome-mascot" src="{% static 'welcome-emoji.png' %}" alt="Kyubit dando la bienvenida">
         <h1>Bienvenido a <em>QueAI</em></h1>
         <p>
             El kernel está listo. Tres pasos para empezar a usarlo —
@@ -117,8 +124,7 @@
 
     <div class="step-grid">
         <div class="step">
-            <div class="step-num">01</div>
-            <div class="step-icon">📦</div>
+            <span class="step-num">01 · Kernel</span>
             <h3>¿Qué hace el kernel?</h3>
             <p>
                 QueAI gestiona módulos de IA empaquetados como contenedores Docker.
@@ -131,8 +137,7 @@
         </div>
 
         <div class="step">
-            <div class="step-num">02</div>
-            <div class="step-icon">🛒</div>
+            <span class="step-num">02 · Marketplace</span>
             <h3>Instala tu primer módulo</h3>
             <p>
                 En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,
@@ -142,8 +147,7 @@
         </div>
 
         <div class="step">
-            <div class="step-num">03</div>
-            <div class="step-icon">🔌</div>
+            <span class="step-num">03 · Plugins</span>
             <h3>Crea tu propio plugin</h3>
             <p>
                 Cualquier microservicio con un <code>manifest.json</code> y un

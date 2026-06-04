@@ -188,7 +188,14 @@
         border: 1px dashed var(--border);
         border-radius: var(--radius);
     }
-    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-mascot {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin: 0 auto 18px;
+        display: block;
+        opacity: 0.85;
+    }
     .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
     .empty-state p { font-size: 14px; color: var(--text-dim); }
 
@@ -282,7 +289,7 @@
         </div>
         {% empty %}
         <div class="empty-state">
-            <div class="empty-icon">📭</div>
+            <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
             <h3>Registro oficial vacío</h3>
             <p>No hay plugins disponibles. Usa la instalación directa desde Git.</p>
         </div>
