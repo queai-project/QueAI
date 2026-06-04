@@ -55,7 +55,7 @@ QueAI está en una etapa madura como kernel (descubrir, instalar, ejecutar, moni
 
 ### Brecha 5 — Gobernanza open source ausente
 
-Faltan: `LICENSE` en root del kernel, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`, issue templates, PR template, tags de release, imagen pre-built del kernel en GHCR, README hub en la org `queai-project`.
+Faltan: `LICENSE` en root del kernel, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`, issue templates, PR template, tags de release, README hub en `queai-project`.
 
 ---
 
@@ -115,7 +115,7 @@ Trabajo adicional ejecutado después de Fase 0 para cerrar la brecha entre lo qu
 - [x] **Logging configurable**: handler `console`, formato `[time] LEVEL name: msg`, nivel desde `LOG_LEVEL`.
 - [x] **Cache de `get_apps`**: helper `_is_app_running_cached` con TTL 5s. Invalidación en `install`/`start`/`stop`/`uninstall`/`delete`/`save_env_config`. Endpoint nuevo `POST /manager/refresh/` para forzar refresh manual.
 - [x] **Tests mínimos** (11 tests pasando): `/health` sin auth, redirección a `/login` en rutas protegidas, render de login, `ensure_admin` con sus 4 escenarios, scan de plugins, `install`/`stop` mockean compose, `refresh` invalida cache.
-- [x] **GitHub Actions**: `.github/workflows/ci.yml` (lint con ruff + tests en Python 3.11 y 3.12) y `.github/workflows/docker.yml` (build + push a `ghcr.io/queai-project/queai-kernel` en push a `main` o tag `v*`). Config de ruff en `pyproject.toml`.
+- [x] **GitHub Actions**: `.github/workflows/ci.yml` (lint con ruff + tests en Python 3.11 y 3.12). Config de ruff en `pyproject.toml`. *(Nota 2026-06-03: el workflow `docker.yml` que publicaba la imagen en GHCR fue eliminado por simplicidad — los usuarios construyen la imagen localmente vía el instalador, no hace falta registry separado en este momento.)*
 - [x] App `core` añadida a `INSTALLED_APPS` (con `core/apps.py`) para que Django descubra el management command.
 
 **Fuera de scope Fase 1** (movido a futuro):
