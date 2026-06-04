@@ -117,6 +117,91 @@ Buenas prácticas:
 - Nunca commitear secretos reales.
 - Validar defaults seguros en tiempo de arranque del módulo.
 
+## Ejemplo alternativo: plugin que proxya una API externa
+
+QueAI no asume que tu plugin ejecute el modelo localmente. Un patrón
+muy útil es exponer una capacidad estándar (transcripción, chat, OCR)
+pero por dentro delegar a una API pública. Ventajas: arranque
+instantáneo, sin descargar modelos pesados, latencia previsible. Costo:
+internet saliente y credenciales en el `.env`.
+
+`app/main.py` mínimo para un plugin "chat proxy a OpenAI":
+
+```python
+import os
+import httpx
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI(title="Chat Cloud Proxy", root_path="/api/chat_cloud")
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+class ChatIn(BaseModel):
+    prompt: str
+
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+
+@app.post("/chat")
+async def chat(body: ChatIn):
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+            json={
+                "model": OPENAI_MODEL,
+                "messages": [{"role": "user", "content": body.prompt}],
+            },
+        )
+        r.raise_for_status()
+        return r.json()
+```
+
+`.env.example` del módulo:
+
+```env
+# Secreto. Edítalo desde /manager/ → tu plugin → .env (el kernel reinicia el contenedor al guardar).
+OPENAI_API_KEY=sk-replace-me
+OPENAI_MODEL=gpt-4o-mini
+```
+
+`docker-compose.yml` del plugin (idéntico al patrón local, solo cambia
+el comando de arranque y no necesitas descargar modelos):
+
+```yaml
+services:
+  chat_cloud:
+    build: .
+    container_name: chat_cloud_service
+    env_file: .env
+    networks:
+      - queai_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat_cloud.rule=PathPrefix(`/api/chat_cloud`)"
+      - "traefik.http.routers.chat_cloud.entrypoints=web"
+      - "traefik.http.services.chat_cloud.loadbalancer.server.port=8000"
+
+networks:
+  queai_network:
+    external: true
+```
+
+> **El kernel ve este plugin idéntico a uno local.** En el catálogo
+> aparece con su nombre, su healthcheck dot, sus logs, su métrica de
+> CPU/RAM (que será mínima — solo el cliente HTTP). El audit log registra
+> install/start/stop/save_env igual. La CLI `queai` lo trata igual.
+>
+> Si publicas un plugin de este tipo, deja claro en su README que requiere
+> credenciales del proveedor y que el tráfico saliente está habilitado por
+> diseño. Es información que el operador del kernel necesita saber antes
+> de instalarlo.
+
 ## Flujo de prueba
 1. Crear estructura del módulo en `plugins/<tu_modulo>/`.
 2. Levantar el kernel: `docker compose up -d --build`.

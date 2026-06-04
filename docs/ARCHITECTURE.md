@@ -8,7 +8,7 @@ Componentes principales:
 - **Traefik**: enruta tráfico por prefijos (`PathPrefix`) hacia el kernel y los módulos. Escucha en `:8080` del host (configurable vía `QUEAI_PORT`).
 - **Django Kernel**: UI + lógica del catálogo + operaciones Docker. Se ejecuta dentro del contenedor `queai_kernel`.
 - **SQLite (`db.sqlite3`)**: estado local de módulos detectados/instalados. No versionado.
-- **Plugins**: servicios independientes (típicamente FastAPI) en `plugins/<module>/`, cada uno con su propio `docker-compose.yml`.
+- **Plugins**: servicios independientes en `plugins/<module>/`, cada uno con su propio `docker-compose.yml`. **Lo que hagan internamente es transparente para el kernel**: ejecutar un modelo en CPU, proxyar a una API externa (OpenAI, Anthropic, ElevenLabs, etc.), encadenar varios pasos en un pipeline — todo es válido mientras respete el contrato del manifest y la red `queai_network`.
 
 ## Flujo de red
 
@@ -26,6 +26,27 @@ Componentes principales:
 2. Traefik enruta `PathPrefix(/)` → servicio `kernel` (contenedor `queai_kernel`).
 3. Al abrir un módulo, Traefik enruta `PathPrefix(/api/<modulo>)` → contenedor del plugin correspondiente.
 4. El dashboard interno de Traefik queda en `:9090` (también configurable, con `QUEAI_TRAEFIK_DASHBOARD_PORT`).
+
+## Modelo de plugins (qué puede ser un plugin)
+
+El kernel impone un contrato: `manifest.json` declarando rutas, un
+`docker-compose.yml` que se una a `queai_network`, y labels Traefik con
+`PathPrefix(/api/<name>)`. Lo que ocurra dentro del contenedor es libre.
+
+Patrones válidos:
+
+| Patrón | Ejemplo | Implicaciones |
+|---|---|---|
+| Modelo local en CPU | Tesseract OCR, faster-whisper STT, Piper TTS | El contenedor carga el modelo en RAM; el host necesita CPU/RAM suficientes |
+| Modelo local en GPU | Ollama con un LLM, modelo de visión | Requiere `--gpus all` en el compose del plugin y NVIDIA Container Toolkit en el host |
+| Thin proxy a API externa | Plugin que expone `/transcribe` y por dentro llama a OpenAI Whisper API | El contenedor casi no consume recursos; necesita conectividad saliente y un secreto en su `.env` |
+| Pipeline mixto | Plugin "RAG" que mezcla embeddings cloud con vector store local | El plugin hace de orquestador interno |
+| Adaptador OpenAI-compat | Plugin que ofrece `/v1/chat/completions` y por dentro decide local vs cloud según config | Permite que el resto del sistema vea una única superficie estándar |
+
+El kernel **no distingue** entre estos casos: para él todos son contenedores
+con una URL bajo `/api/<name>`. La consecuencia práctica es que sustituir
+"CHAT local Ollama" por "CHAT proxy Anthropic" sin afectar al resto de
+módulos es un cambio de plugin, no del kernel.
 
 ## Apps Django (mapeo real)
 

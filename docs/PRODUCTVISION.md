@@ -1,52 +1,124 @@
-# Product Vision - QueAI
+# Product Vision — QueAI
 
-## Resumen
-QueAI es un **kernel de orquestación de módulos de IA** que permite instalar, ejecutar, detener, configurar y monitorear aplicaciones de IA desacopladas desde una única interfaz.
+## TL;DR
 
-En lugar de construir una sola aplicación monolítica, QueAI propone un modelo de "hub + plugins" para acelerar pruebas, despliegue local y evolución funcional.
+**QueAI es un orquestador modular de capacidades de IA.** El kernel es un
+runtime open-source; las capacidades (chat, OCR, STT, TTS, RAG, etc.) son
+módulos Docker desacoplados. Un módulo puede correr un modelo localmente
+en CPU, ser un *thin proxy* a una API pública, o encadenar varios pasos
+en un pipeline. El kernel **no asume nada sobre el modelo** — su trabajo
+es descubrir, instalar, configurar, monitorizar y auditar.
 
-## Problema que resuelve
-Equipos técnicos que prueban soluciones de IA suelen enfrentar:
+## El problema
 
-- Integraciones manuales entre herramientas heterogéneas.
-- Arranques lentos de entornos por conflictos de puertos/dependencias.
-- Dificultad para operar varios servicios de IA desde una vista unificada.
-- Falta de un ciclo simple para instalar/desinstalar módulos de forma reversible.
+Quien quiere construir algo "con IA" hoy se encuentra con tres frentes:
 
-## Propuesta de valor
-QueAI centraliza la operación de módulos de IA en cuatro capacidades principales:
+1. **Heterogeneidad.** Cada modelo y cada API trae su propio servidor,
+   su propio `.env`, su propio puerto, su propio formato de logs.
+   Mezclar tres se convierte en un proyecto de integración.
+2. **Falsa dicotomía local vs cloud.** La discusión "self-host vs
+   provider" se plantea como excluyente. En la práctica casi todos los
+   proyectos reales acaban mezclando: OCR offline + LLM en Anthropic +
+   embeddings locales. Conectarlo todo a mano es donde se va el tiempo.
+3. **Operación.** Probar, instalar, parar, reconfigurar, ver logs,
+   monitorizar, hacer backup, rotar credenciales: cada cosa es un comando
+   manual en un servidor que el usuario no quería administrar.
 
-1. Descubrimiento automático de módulos locales (carpeta `plugins/`).
-2. Gestión de ciclo de vida (instalar, iniciar, detener, desinstalar).
-3. Configuración por módulo vía archivos `.env`.
-4. Observabilidad básica (logs y métricas de CPU/RAM/red por contenedor).
+## La hipótesis
+
+Si las capacidades de IA se distribuyen y operan como **contenedores con
+un contrato común** (un `manifest.json` + un `docker-compose.yml`),
+entonces:
+
+- El kernel orquesta sin preocuparse del backend.
+- El usuario instala un módulo "OCR Tesseract" igual que "Chat OpenAI proxy".
+- La operación (start/stop/logs/healthcheck/backup) es uniforme.
+- La sustitución es barata: cambiar el módulo "CHAT local Ollama" por
+  "CHAT proxy Anthropic" no implica reescribir nada del kernel.
+
+## El producto
+
+### Capacidades del kernel (v1.0)
+
+| Capacidad | Estado |
+|---|---|
+| Descubrimiento de módulos en `plugins/` por `manifest.json` | ✅ |
+| Ciclo de vida: install / start / stop / uninstall / delete | ✅ |
+| Configuración por módulo vía `.env` con recreación atómica | ✅ |
+| Logs por módulo en tiempo real (SSE) | ✅ |
+| Métricas CPU / RAM / red por contenedor | ✅ |
+| Healthcheck real por módulo con estado `starting` durante el grace | ✅ |
+| Marketplace remoto + descarga desde URL Git arbitraria | ✅ |
+| Audit log de operaciones (UI / API / CLI / system) con auto-purga | ✅ |
+| Auth obligatoria + endpoint `/health` público | ✅ |
+| API REST `/api/v1` con bearer token + Swagger UI | ✅ |
+| CLI `queai` para automatizar desde scripts / CI | ✅ |
+| Backup / restore *light* (db + envs) desde CLI | ✅ |
+
+### Módulos oficiales en v1.0
+
+| Módulo | Backend | Tipo |
+|---|---|---|
+| **OCR** | Tesseract + Redis RQ workers | Local, CPU |
+| **STT** | faster-whisper int8, VAD opcional | Local, CPU |
+| **TTS** | Piper EN/ES, baja latencia | Local, CPU |
+
+### Roadmap próximo
+
+| Módulo | Backend planeado | Tipo |
+|---|---|---|
+| **CHAT** | Ollama + adapters a OpenAI / Anthropic | Local **o** cloud |
+| **RAG** | Chroma / Qdrant local + embeddings de proveedor | Local **o** híbrido |
+| **VISION** | Modelo local o proxy a Gemini / GPT-4V | Local **o** cloud |
 
 ## Usuario objetivo
-- Desarrolladores que crean módulos de IA reutilizables.
-- Equipos de innovación que validan PoCs de IA de forma rápida.
-- Operadores técnicos que necesitan estandarizar despliegues locales o de laboratorio.
 
-## Principios del producto
-- **Modularidad primero**: cada módulo es independiente y reemplazable.
-- **Operación simple**: acciones comunes disponibles desde UI web.
-- **Aislamiento por contenedor**: cada módulo corre como servicio propio.
-- **Escalabilidad funcional**: nuevas capacidades se agregan como plugin, no como refactor del kernel.
+- **Desarrolladores** que están construyendo productos sobre IA y necesitan
+  poder cambiar el modelo subyacente sin reescribir el wiring.
+- **Equipos** que quieren autonomía operacional: poder ver logs, healthcheck
+  reales, audit log, hacer rollback, sin depender del soporte de un SaaS.
+- **Operadores técnicos** que quieren un entorno reproducible entre dev,
+  staging y prod sin reinventar la stack en cada paso.
 
-## Alcance actual (MVP funcional)
-- Kernel en Django.
-- Reverse proxy con Traefik.
-- Marketplace para descarga de módulos desde registro remoto y repositorios Git.
-- Catálogo local de módulos con sincronización disco/BD.
-- Panel de monitoreo básico por módulo instalado.
+QueAI **no** está pensado para:
+- Usuario final no técnico que solo quiere un chatbot.
+- Empresas con requisitos enterprise pesados (SSO, audit firmado, SLA) —
+  podría llegar ahí pero hoy no es el alcance.
 
-## Fuera de alcance actual
-- Multi-tenant y control avanzado de usuarios/permisos.
-- Firma/verificación criptográfica de módulos.
-- Catálogo empresarial con versionado semántico y políticas de aprobación.
-- Telemetría histórica persistente y alertas avanzadas.
+## Principios
 
-## Dirección evolutiva sugerida
-1. Seguridad de cadena de suministro (validación de origen de módulos).
-2. Mejoras de DX para crear plugins (plantillas y validadores automáticos).
-3. Pipeline de publicación al marketplace con checks automáticos.
-4. Observabilidad extendida (históricos, alertas y paneles).
+1. **Contrato sobre tecnología.** Lo que define un módulo es el contrato
+   (`manifest.json` + endpoints declarados), no la librería que use.
+2. **Local y cloud son iguales para el kernel.** El cliente que usa un
+   módulo no sabe (ni necesita saber) si el cómputo es local o remoto.
+   El operador elige por módulo, no por arquitectura.
+3. **Operación primero, marketing después.** Healthcheck, audit, logs en
+   vivo y backup son requisitos, no extras.
+4. **CLI = API = UI.** Cualquier cosa que se pueda hacer en el navegador
+   se puede hacer con un comando `queai` y un POST a `/api/v1`. Sin
+   asimetría.
+5. **Open source MIT, sin freemium escondido.** El core no tiene puertas
+   pagas. Servicios alrededor (registries privados, soporte) son
+   negocio aparte y no se camuflan dentro del producto.
+
+## Fuera de alcance (a propósito)
+
+- **Multi-tenant / multi-usuario con roles.** Single user, single admin.
+- **Firma criptográfica de plugins.** Confianza por procedencia (URL Git)
+  por ahora.
+- **Telemetría histórica persistente.** Las métricas son el "ahora" — si
+  necesitas series temporales, exporta a Prometheus desde la API.
+- **Auto-scaling / clustering.** Un kernel por host.
+- **Marketplace con pagos.** Solo distribución open source.
+
+## Hacia dónde va (post-v1.0)
+
+1. **Módulo CHAT** con adapter local + cloud unificados.
+2. **Módulo RAG** que se integra con CHAT.
+3. **Self-update** del kernel desde la UI (hoy es manual).
+4. **Múltiples registries** para que cada equipo pueda tener su propio
+   catálogo privado además del oficial.
+5. **i18n** del kernel (inglés y español; hoy es es-AR mayoritariamente).
+6. **Firma de plugins** (cadena de procedencia opcional).
+
+El roadmap detallado vive en [`ROADMAP.md`](./ROADMAP.md).
