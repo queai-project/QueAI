@@ -198,10 +198,17 @@ STORAGES = {
 # In-memory por proceso. Suficiente para cachear el resultado de get_apps;
 # con gunicorn multi-worker, cada worker tiene su copia (aceptable porque
 # el TTL es corto y el coste de fallar el cache es solo un docker compose top).
+# FileBasedCache (no LocMem) para que los flags como "queai:starting:<folder>"
+# y los cache lookups de get_apps se vean entre workers de gunicorn. Con
+# LocMemCache cada worker tiene su propio cache y el feedback "iniciando…"
+# no aparecía porque el worker que recibía el healthcheck no era el mismo
+# que había recibido el install/start.
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "queai-kernel",
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": "/tmp/queai-cache",
+        "TIMEOUT": 300,
+        "OPTIONS": {"MAX_ENTRIES": 1000},
     }
 }
 
