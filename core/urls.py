@@ -25,6 +25,9 @@ urlpatterns = [
     path("account/", account_view, name="account"),
     path("welcome/", welcome_view, name="welcome"),
     path("welcome/dismiss/", welcome_dismiss, name="welcome_dismiss"),
+    # Switch de idioma: POST language=es|en + next=/ ruta a volver.
+    # Django setea la cookie django_language y LocaleMiddleware la lee.
+    path("i18n/", include("django.conf.urls.i18n")),
     path("audit/", audit_view, name="audit"),
     path("admin/", admin.site.urls),
     path("manager/", include("module_manager.urls")),

@@ -125,6 +125,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # LocaleMiddleware lee la cookie/session del usuario o el Accept-Language
+    # del navegador y activa el idioma para el resto del pipeline. Debe ir
+    # DESPUÉS de Session y ANTES de Common (Common usa el idioma activo).
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -174,7 +178,18 @@ LOGIN_REDIRECT_URL = "/welcome/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 
-LANGUAGE_CODE = "en-us"
+# --- Internationalization -----------------------------------------------
+# Default ES porque la audiencia primaria del lanzamiento es LATAM. EN está
+# soportado como switch de usuario (cookie django_language) — útil para
+# contributors OSS y para la presencia en HackerNews/X.
+from django.utils.translation import gettext_lazy as _  # noqa: E402
+
+LANGUAGE_CODE = "es"
+LANGUAGES = [
+    ("es", _("Español")),
+    ("en", _("English")),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True

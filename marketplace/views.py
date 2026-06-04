@@ -143,6 +143,8 @@ def _cleanup_existing_plugin_installation(folder_name):
 @login_required
 def marketplace(request):
     """Muestra los plugins disponibles en la nube con estado real local."""
+    from django.utils.translation import get_language
+
     remote_plugins = []
 
     try:
@@ -154,10 +156,18 @@ def marketplace(request):
         )
         remote_plugins = []
 
+    # Si el usuario tiene EN activo y el registry trae description_en,
+    # preferimos la versión inglesa. Si no, cae al `description` (ES) que
+    # siempre existe.
+    lang = (get_language() or "es").split("-")[0]
+
     for plugin in remote_plugins:
         git_url = plugin.get("git_url", "")
         folder_name = _get_folder_name_from_git_url(git_url)
         local_manifest = _load_local_manifest(folder_name)
+
+        if lang == "en" and plugin.get("description_en"):
+            plugin["description"] = plugin["description_en"]
 
         plugin["folder_name"] = folder_name
         plugin["is_downloaded"] = False

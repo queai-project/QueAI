@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Hub{% endblock %}
-{% block page_label %}<span class="page-title">Hub de módulos</span>{% endblock %}
+{% block title %}{% trans "Hub" %}{% endblock %}
+{% block page_label %}<span class="page-title">{% trans "Hub de módulos" %}</span>{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -484,7 +484,7 @@
             </a>
 
             <div class="card-body">
-                <p class="card-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
+                <p class="card-desc">{{ app.description|default:_("Sin descripción disponible.") }}</p>
             </div>
 
             <div class="card-actions">
@@ -492,24 +492,24 @@
                 <form method="post" action="{% url 'install_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn-install-card">Instalar</button>
+                    <button type="submit" class="btn-install-card">{% trans "Instalar" %}</button>
                 </form>
 
                 {% elif app.is_running %}
                 <button onclick="openApp('{{ app.ui_entry_point }}')" class="btn-primary-link">
-                    Abrir aplicación <span class="arr">→</span>
+                    {% trans "Abrir aplicación" %} <span class="arr">→</span>
                 </button>
                 <div class="card-secondary">
-                    <button onclick="showLogs('{{ app.folder_name }}')">Logs</button>
+                    <button onclick="showLogs('{{ app.folder_name }}')">{% trans "Logs" %}</button>
                     <span class="sep">·</span>
                     <button onclick="openConfigEditor('{{ app.folder_name }}')">.env</button>
                     <span class="sep">·</span>
-                    <button onclick="openApp('{{ app.documentation_entry_point }}')">Docs</button>
+                    <button onclick="openApp('{{ app.documentation_entry_point }}')">{% trans "Docs" %}</button>
                     <span class="sep">·</span>
                     <form method="post" action="{% url 'stop_app' %}" style="display:contents">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                        <button type="submit" class="stop-action">Detener</button>
+                        <button type="submit" class="stop-action">{% trans "Detener" %}</button>
                     </form>
                 </div>
 
@@ -517,12 +517,12 @@
                 <form method="post" action="{% url 'start_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn-resume-card">Reanudar</button>
+                    <button type="submit" class="btn-resume-card">{% trans "Reanudar" %}</button>
                 </form>
                 <div class="card-secondary">
-                    <button onclick="showLogs('{{ app.folder_name }}')">Logs</button>
+                    <button onclick="showLogs('{{ app.folder_name }}')">{% trans "Logs" %}</button>
                     <span class="sep">·</span>
-                    <a href="{% url 'app_detail' app.folder_name %}">Detalle</a>
+                    <a href="{% url 'app_detail' app.folder_name %}">{% trans "Detalle" %}</a>
                 </div>
                 {% endif %}
             </div>
@@ -530,8 +530,9 @@
         {% empty %}
         <div class="empty-state">
             <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
-            <h3>Sin módulos detectados</h3>
-            <p>Agrega plugins en la carpeta <code>/plugins</code> o <a href="{% url 'marketplace' %}">descárgalos desde el Marketplace</a>.</p>
+            <h3>{% trans "Sin módulos detectados" %}</h3>
+            {% url 'marketplace' as mp_url %}
+            <p>{% blocktrans %}Agrega plugins en la carpeta <code>/plugins</code> o <a href="{{ mp_url }}">descárgalos desde el Marketplace</a>.{% endblocktrans %}</p>
         </div>
         {% endfor %}
 

@@ -1,10 +1,10 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QueAI — Iniciar sesión</title>
+    <title>{% trans "QueAI — Iniciar sesión" %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -119,22 +119,22 @@
     <form class="card" method="post" action="{% url 'login' %}">
         {% csrf_token %}
         <div class="brand">QueAI Kernel</div>
-        <h1>Iniciar <em>sesión</em></h1>
+        <h1>{% blocktrans %}Iniciar <em>sesión</em>{% endblocktrans %}</h1>
 
         {% if form.errors %}
-            <div class="errors">Usuario o contraseña incorrectos.</div>
+            <div class="errors">{% trans "Usuario o contraseña incorrectos." %}</div>
         {% endif %}
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-        <label for="id_username">Usuario</label>
+        <label for="id_username">{% trans "Usuario" %}</label>
         <input id="id_username" type="text" name="username" autocomplete="username" autofocus required>
 
-        <label for="id_password">Contraseña</label>
+        <label for="id_password">{% trans "Contraseña" %}</label>
         <input id="id_password" type="password" name="password" autocomplete="current-password" required>
 
-        <button type="submit">Entrar</button>
+        <button type="submit">{% trans "Entrar" %}</button>
 
-        <div class="footer-note">Modular · Model-agnostic · Open source</div>
+        <div class="footer-note">{% trans "Modular · Model-agnostic · Open source" %}</div>
     </form>
 </body>
 </html>

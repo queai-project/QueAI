@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Marketplace{% endblock %}
-{% block page_label %}<span class="page-title">Marketplace</span>{% endblock %}
+{% block title %}{% trans "Marketplace" %}{% endblock %}
+{% block page_label %}<span class="page-title">{% trans "Marketplace" %}</span>{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -208,8 +208,8 @@
 
     <div class="install-panel">
         <div class="panel-header">
-            <span class="panel-title">Instalación desde Git</span>
-            <span class="panel-subtitle">pega una URL de repositorio</span>
+            <span class="panel-title">{% trans "Instalación desde Git" %}</span>
+            <span class="panel-subtitle">{% trans "pega una URL de repositorio" %}</span>
         </div>
         <form method="post" action="{% url 'download_plugin' %}">
             {% csrf_token %}
@@ -217,7 +217,7 @@
                 <input type="text" name="git_url" required
                     class="install-input"
                     placeholder="https://github.com/usuario/mi-plugin.git">
-                <button type="submit" class="btn-install">Descargar</button>
+                <button type="submit" class="btn-install">{% trans "Descargar" %}</button>
             </div>
         </form>
     </div>
@@ -225,16 +225,16 @@
     <div class="filter-bar">
         <div class="filter-search-wrap">
             <input type="text" id="mpSearch" class="filter-search"
-                   placeholder="Buscar"
+                   placeholder="{% trans 'Buscar' %}"
                    autocomplete="off" oninput="applyMpFilters()">
         </div>
         <div class="filter-pills">
-            <button class="filter-pill active" data-filter="all" onclick="setMpFilter('all', this)">Todos</button>
-            <button class="filter-pill" data-filter="update" onclick="setMpFilter('update', this)">Actualización</button>
-            <button class="filter-pill" data-filter="downloaded" onclick="setMpFilter('downloaded', this)">Descargados</button>
-            <button class="filter-pill" data-filter="fresh" onclick="setMpFilter('fresh', this)">Sin descargar</button>
+            <button class="filter-pill active" data-filter="all" onclick="setMpFilter('all', this)">{% trans "Todos" %}</button>
+            <button class="filter-pill" data-filter="update" onclick="setMpFilter('update', this)">{% trans "Actualización" %}</button>
+            <button class="filter-pill" data-filter="downloaded" onclick="setMpFilter('downloaded', this)">{% trans "Descargados" %}</button>
+            <button class="filter-pill" data-filter="fresh" onclick="setMpFilter('fresh', this)">{% trans "Sin descargar" %}</button>
         </div>
-        <span class="filter-count" id="mpFilterCount">{{ remote_plugins|length }} módulos</span>
+        <span class="filter-count" id="mpFilterCount">{% blocktrans count counter=remote_plugins|length %}{{ counter }} módulo{% plural %}{{ counter }} módulos{% endblocktrans %}</span>
     </div>
 
     <div class="section-header">
@@ -274,15 +274,15 @@
                 <form method="post" action="{% url 'download_plugin' %}">
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                    <button type="submit" class="btn-update">Actualizar</button>
+                    <button type="submit" class="btn-update">{% trans "Actualizar" %}</button>
                 </form>
                 {% elif plugin.is_downloaded %}
-                <div class="btn-downloaded">descargado</div>
+                <div class="btn-downloaded">{% trans "descargado" %}</div>
                 {% else %}
                 <form method="post" action="{% url 'download_plugin' %}">
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                    <button type="submit" class="btn-add">Descargar</button>
+                    <button type="submit" class="btn-add">{% trans "Descargar" %}</button>
                 </form>
                 {% endif %}
             </div>
@@ -290,8 +290,8 @@
         {% empty %}
         <div class="empty-state">
             <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
-            <h3>Registro oficial vacío</h3>
-            <p>No hay plugins disponibles. Usa la instalación directa desde Git.</p>
+            <h3>{% trans "Registro oficial vacío" %}</h3>
+            <p>{% trans "No hay plugins disponibles. Usa la instalación directa desde Git." %}</p>
         </div>
         {% endfor %}
     </div>

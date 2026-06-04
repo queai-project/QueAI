@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static i18n %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'es' }}">
 <head>
     <meta charset="UTF-8">
@@ -170,6 +170,33 @@
             border-radius: 50%;
             background: var(--ok);
         }
+
+        /* Switch de idioma — discreto, mismo aire que docker-pill */
+        .lang-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin: 0 4px 0 4px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+        }
+        .lang-switch .lang-opt {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: inherit;
+            letter-spacing: 0.04em;
+            padding: 4px 6px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: color 0.15s;
+        }
+        .lang-switch .lang-opt:hover { color: var(--text); }
+        .lang-switch .lang-opt.active { color: var(--text); font-weight: 600; }
+        .lang-switch .lang-opt:focus,
+        .lang-switch .lang-opt:focus-visible { outline: none; box-shadow: none; }
+        .lang-switch .lang-sep { color: var(--border); font-size: 10px; }
 
         /* User menu */
         .user-menu { position: relative; }
@@ -378,12 +405,22 @@
         </div>
 
         <div class="header-nav">
-            <a href="{% url 'get_apps' %}" class="{% if request.resolver_match.url_name == 'get_apps' %}active{% endif %}">Hub</a>
-            <a href="{% url 'marketplace' %}" class="{% if request.resolver_match.url_name == 'marketplace' %}active{% endif %}">Marketplace</a>
-            <a href="{% url 'stats_dashboard' %}" class="{% if request.resolver_match.url_name == 'stats_dashboard' %}active{% endif %}">Monitor</a>
-            <div class="docker-pill" title="Docker engine activo">
+            <a href="{% url 'get_apps' %}" class="{% if request.resolver_match.url_name == 'get_apps' %}active{% endif %}">{% trans "Hub" %}</a>
+            <a href="{% url 'marketplace' %}" class="{% if request.resolver_match.url_name == 'marketplace' %}active{% endif %}">{% trans "Marketplace" %}</a>
+            <a href="{% url 'stats_dashboard' %}" class="{% if request.resolver_match.url_name == 'stats_dashboard' %}active{% endif %}">{% trans "Monitor" %}</a>
+            <div class="docker-pill" title="{% trans 'Docker engine activo' %}">
                 <div class="docker-dot"></div>Docker
             </div>
+
+            {# Switch de idioma sin JS: form POST a /i18n/setlang/, vuelve al request actual #}
+            <form method="post" action="{% url 'set_language' %}" class="lang-switch">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                {% get_current_language as CURRENT_LANG %}
+                <button type="submit" name="language" value="es" class="lang-opt {% if CURRENT_LANG == 'es' %}active{% endif %}">ES</button>
+                <span class="lang-sep">·</span>
+                <button type="submit" name="language" value="en" class="lang-opt {% if CURRENT_LANG == 'en' %}active{% endif %}">EN</button>
+            </form>
 
             {% if user.is_authenticated %}
             <div class="user-menu">
@@ -392,12 +429,12 @@
                     <span>{{ user.username }}</span>
                 </button>
                 <div class="user-dropdown" id="userDropdown">
-                    <a href="{% url 'account' %}">Mi cuenta</a>
-                    <a href="{% url 'audit' %}">Audit log</a>
+                    <a href="{% url 'account' %}">{% trans "Mi cuenta" %}</a>
+                    <a href="{% url 'audit' %}">{% trans "Audit log" %}</a>
                     <hr>
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit">Cerrar sesión</button>
+                        <button type="submit">{% trans "Cerrar sesión" %}</button>
                     </form>
                 </div>
             </div>
@@ -428,7 +465,7 @@
         <div class="fcopy">
             <span>QueAI Kernel{% if queai_version %} v{{ queai_version }}{% endif %}</span>
             <span>·</span>
-            <span>Modular · Model-agnostic · Open source</span>
+            <span>{% trans "Modular · Model-agnostic · Open source" %}</span>
         </div>
         <div class="flinks">
             <a href="https://github.com/queai-project/QueAI" target="_blank" rel="noopener">GitHub</a>

@@ -1,0 +1,279 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: QueAI 1.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Hub"
+msgstr "Hub"
+
+msgid "Marketplace"
+msgstr "Marketplace"
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "Docker engine activo"
+msgstr "Docker engine running"
+
+msgid "Mi cuenta"
+msgstr "My account"
+
+msgid "Audit log"
+msgstr "Audit log"
+
+msgid "Cerrar sesión"
+msgstr "Sign out"
+
+msgid "Modular · Model-agnostic · Open source"
+msgstr "Modular · Model-agnostic · Open source"
+
+msgid "Bienvenida"
+msgstr "Welcome"
+
+msgid "Kyubit dando la bienvenida"
+msgstr "Kyubit greeting you"
+
+msgid "Bienvenido a <em>QueAI</em>"
+msgstr "Welcome to <em>QueAI</em>"
+
+msgid ""
+"El kernel está listo. Tres pasos para empezar a usarlo —\n"
+"            puedes saltarlos y volver más tarde cuando quieras."
+msgstr ""
+"The kernel is ready. Three steps to get going —\n"
+"            feel free to skip them and come back later."
+
+msgid "01 · Kernel"
+msgstr "01 · Kernel"
+
+msgid "02 · Marketplace"
+msgstr "02 · Marketplace"
+
+msgid "03 · Plugins"
+msgstr "03 · Plugins"
+
+msgid "¿Qué hace el kernel?"
+msgstr "What does the kernel do?"
+
+msgid ""
+"QueAI gestiona módulos de IA empaquetados como contenedores Docker.\n"
+"                Cada módulo es independiente, expone su propia UI y se instala con\n"
+"                un click desde el Hub."
+msgstr ""
+"QueAI manages AI modules packaged as Docker containers.\n"
+"                Each module is independent, exposes its own UI and installs\n"
+"                with one click from the Hub."
+
+msgid "Ver arquitectura →"
+msgstr "See architecture →"
+
+msgid "Instala tu primer módulo"
+msgstr "Install your first module"
+
+msgid ""
+"En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,\n"
+"                instálalos desde el Hub y empieza a usarlos en local."
+msgstr ""
+"The Marketplace ships official OCR, STT and TTS. Download them,\n"
+"                install from the Hub and start running them locally."
+
+msgid "Ir al Marketplace →"
+msgstr "Open Marketplace →"
+
+msgid "Crea tu propio plugin"
+msgstr "Build your own plugin"
+
+msgid ""
+"Cualquier microservicio con un <code>manifest.json</code> y un\n"
+"                <code>docker-compose.yml</code> puede ser un plugin de QueAI.\n"
+"                Hay una plantilla lista para clonar."
+msgstr ""
+"Any microservice with a <code>manifest.json</code> and a\n"
+"                <code>docker-compose.yml</code> can be a QueAI plugin.\n"
+"                There's a template ready to clone."
+
+msgid "Guía de plugins →"
+msgstr "Plugin guide →"
+
+msgid "Explorar Marketplace"
+msgstr "Explore Marketplace"
+
+msgid "Continuar al inicio"
+msgstr "Continue to home"
+
+msgid "QueAI — Iniciar sesión"
+msgstr "QueAI — Sign in"
+
+msgid "Iniciar <em>sesión</em>"
+msgstr "<em>Sign</em> in"
+
+msgid "Usuario o contraseña incorrectos."
+msgstr "Wrong username or password."
+
+msgid "Usuario"
+msgstr "Username"
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "Entrar"
+msgstr "Sign in"
+
+msgid "Inicio"
+msgstr "Home"
+
+msgid "Orquestador modular de IA"
+msgstr "Modular AI orchestrator"
+
+msgid ""
+"Instala, configura y monitorea módulos de IA desde una sola interfaz.\n"
+"            Local, cloud o híbrido — cada módulo es un contenedor con su propia API."
+msgstr ""
+"Install, configure and monitor AI modules from one place.\n"
+"            Local, cloud or hybrid — every module is a container with its own API."
+
+msgid "01 · Hub"
+msgstr "01 · Hub"
+
+msgid "Hub de módulos"
+msgstr "Module Hub"
+
+msgid ""
+"Instala, detén, configura y consulta logs de todos tus plugins desde un solo"
+" lugar."
+msgstr "Install, stop, configure and tail logs for every plugin in one place."
+
+msgid "Abrir Hub →"
+msgstr "Open Hub →"
+
+msgid "Nuevos módulos"
+msgstr "New modules"
+
+msgid "Descarga del registro oficial o añade un plugin desde una URL de Git."
+msgstr "Pull from the official registry or add a plugin from a Git URL."
+
+msgid "Explorar →"
+msgstr "Browse →"
+
+msgid "03 · Monitor"
+msgstr "03 · Monitor"
+
+msgid "Métricas en vivo"
+msgstr "Live metrics"
+
+msgid "CPU, RAM y red en tiempo real para cada contenedor activo."
+msgstr "Real-time CPU, RAM and network for every running container."
+
+msgid "Ver dashboard →"
+msgstr "Open dashboard →"
+
+msgid "modular · model-agnostic · open source"
+msgstr "modular · model-agnostic · open source"
+
+msgid "Sin módulos detectados"
+msgstr "No modules detected"
+
+msgid ""
+"Agrega plugins en la carpeta <code>/plugins</code> o <a href=\"{{ mp_url "
+"}}\">descárgalos desde el Marketplace</a>."
+msgstr ""
+"Drop plugins into the <code>/plugins</code> folder or <a href=\"{{ mp_url "
+"}}\">grab them from the Marketplace</a>."
+
+msgid "Sin descripción disponible."
+msgstr "No description available."
+
+msgid "Instalar"
+msgstr "Install"
+
+msgid "Abrir aplicación"
+msgstr "Open app"
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "Docs"
+msgstr "Docs"
+
+msgid "Detener"
+msgstr "Stop"
+
+msgid "Reanudar"
+msgstr "Resume"
+
+msgid "Detalle"
+msgstr "Details"
+
+msgid "Registro oficial vacío"
+msgstr "Official registry empty"
+
+msgid "No hay plugins disponibles. Usa la instalación directa desde Git."
+msgstr "No plugins available. Use the direct Git install instead."
+
+msgid "Instalación desde Git"
+msgstr "Install from Git"
+
+msgid "pega una URL de repositorio"
+msgstr "paste a repository URL"
+
+msgid "Descargar"
+msgstr "Download"
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Actualización"
+msgstr "Updates"
+
+msgid "Descargados"
+msgstr "Downloaded"
+
+msgid "Sin descargar"
+msgstr "Not downloaded"
+
+msgid "Actualizar"
+msgstr "Update"
+
+msgid "descargado"
+msgstr "downloaded"
+
+msgid "// métricas en tiempo real"
+msgstr "// real-time metrics"
+
+msgid "actualiza cada 3s"
+msgstr "refreshes every 3s"
+
+msgid "Memoria RAM"
+msgstr "Memory"
+
+msgid "Red I/O"
+msgstr "Network I/O"
+
+msgid "Sin módulos instalados"
+msgstr "No modules installed"
+
+msgid ""
+"Instala módulos desde el <a href=\"{{ hub_url }}\">Hub</a> para comenzar a "
+"monitorearlos aquí."
+msgstr ""
+"Install modules from the <a href=\"{{ hub_url }}\">Hub</a> to start "
+"monitoring them here."
+
+msgid "Español"
+msgstr "Spanish"
+
+msgid "English"
+msgstr "English"
+
+msgid "{{ counter }} módulo"
+msgid_plural "{{ counter }} módulos"
+msgstr[0] "{{ counter }} module"
+msgstr[1] "{{ counter }} modules"

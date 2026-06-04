@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Bienvenida{% endblock %}
+{% block title %}{% trans "Bienvenida" %}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -114,57 +114,65 @@
 {% block content %}
 <div class="welcome-wrap">
     <div class="welcome-intro">
-        <img class="welcome-mascot" src="{% static 'welcome-emoji.png' %}" alt="Kyubit dando la bienvenida">
-        <h1>Bienvenido a <em>QueAI</em></h1>
+        <img class="welcome-mascot" src="{% static 'welcome-emoji.png' %}" alt="{% trans 'Kyubit dando la bienvenida' %}">
+        <h1>{% blocktrans %}Bienvenido a <em>QueAI</em>{% endblocktrans %}</h1>
         <p>
+            {% blocktrans %}
             El kernel está listo. Tres pasos para empezar a usarlo —
             puedes saltarlos y volver más tarde cuando quieras.
+            {% endblocktrans %}
         </p>
     </div>
 
     <div class="step-grid">
         <div class="step">
-            <span class="step-num">01 · Kernel</span>
-            <h3>¿Qué hace el kernel?</h3>
+            <span class="step-num">{% trans "01 · Kernel" %}</span>
+            <h3>{% trans "¿Qué hace el kernel?" %}</h3>
             <p>
+                {% blocktrans %}
                 QueAI gestiona módulos de IA empaquetados como contenedores Docker.
                 Cada módulo es independiente, expone su propia UI y se instala con
                 un click desde el Hub.
+                {% endblocktrans %}
             </p>
             <a class="step-cta" href="https://github.com/queai-project/QueAI/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">
-                Ver arquitectura →
+                {% trans "Ver arquitectura →" %}
             </a>
         </div>
 
         <div class="step">
-            <span class="step-num">02 · Marketplace</span>
-            <h3>Instala tu primer módulo</h3>
+            <span class="step-num">{% trans "02 · Marketplace" %}</span>
+            <h3>{% trans "Instala tu primer módulo" %}</h3>
             <p>
+                {% blocktrans %}
                 En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,
                 instálalos desde el Hub y empieza a usarlos en local.
+                {% endblocktrans %}
             </p>
-            <a class="step-cta" href="{% url 'marketplace' %}">Ir al Marketplace →</a>
+            <a class="step-cta" href="{% url 'marketplace' %}">{% trans "Ir al Marketplace →" %}</a>
         </div>
 
         <div class="step">
-            <span class="step-num">03 · Plugins</span>
-            <h3>Crea tu propio plugin</h3>
+            <span class="step-num">{% trans "03 · Plugins" %}</span>
+            <h3>{% trans "Crea tu propio plugin" %}</h3>
             <p>
+                {% blocktrans %}
                 Cualquier microservicio con un <code>manifest.json</code> y un
                 <code>docker-compose.yml</code> puede ser un plugin de QueAI.
                 Hay una plantilla lista para clonar.
+                {% endblocktrans %}
             </p>
             <a class="step-cta" href="https://github.com/queai-project/QueAI/blob/main/docs/PLUGIN_DEVELOPMENT.md" target="_blank" rel="noopener">
-                Guía de plugins →
+                {% trans "Guía de plugins →" %}
             </a>
         </div>
     </div>
 
     <div class="welcome-cta">
-        <a class="primary" href="{% url 'marketplace' %}">Explorar Marketplace</a>
+        <a class="primary" href="{% url 'marketplace' %}">{% trans "Explorar Marketplace" %}</a>
         <form method="post" action="{% url 'welcome_dismiss' %}" style="margin:0;">
             {% csrf_token %}
-            <button type="submit" class="ghost">Continuar al inicio</button>
+            <button type="submit" class="ghost">{% trans "Continuar al inicio" %}</button>
         </form>
     </div>
 </div>

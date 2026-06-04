@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Monitor{% endblock %}
-{% block page_label %}<span class="page-title">Monitor</span>{% endblock %}
+{% block title %}{% trans "Monitor" %}{% endblock %}
+{% block page_label %}<span class="page-title">{% trans "Monitor" %}</span>{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -149,10 +149,10 @@
 {% block content %}
 <div class="content">
     <div class="toolbar">
-        <span class="toolbar-title">// métricas en tiempo real</span>
+        <span class="toolbar-title">{% trans "// métricas en tiempo real" %}</span>
         <div class="refresh-info">
             <div class="refresh-dot"></div>
-            actualiza cada 3s
+            {% trans "actualiza cada 3s" %}
         </div>
     </div>
 
@@ -183,7 +183,7 @@
 
                 <div class="metric-row">
                     <div class="metric-label-row">
-                        <span class="metric-name">Memoria RAM</span>
+                        <span class="metric-name">{% trans "Memoria RAM" %}</span>
                         <span id="ram-text-{{ app.folder_name }}" class="metric-val ram">—</span>
                     </div>
                     <div class="bar-bg">
@@ -194,7 +194,7 @@
 
             <div class="card-info-row">
                 <div class="info-cell">
-                    <div class="info-label">Red I/O</div>
+                    <div class="info-label">{% trans "Red I/O" %}</div>
                     <div id="net-text-{{ app.folder_name }}" class="info-val">—</div>
                 </div>
                 <div class="info-cell">
@@ -206,8 +206,9 @@
         {% empty %}
         <div class="empty-state">
             <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
-            <h3>Sin módulos instalados</h3>
-            <p>Instala módulos desde el <a href="{% url 'get_apps' %}">Hub</a> para comenzar a monitorearlos aquí.</p>
+            <h3>{% trans "Sin módulos instalados" %}</h3>
+            {% url 'get_apps' as hub_url %}
+            <p>{% blocktrans %}Instala módulos desde el <a href="{{ hub_url }}">Hub</a> para comenzar a monitorearlos aquí.{% endblocktrans %}</p>
         </div>
         {% endfor %}
     </div>
