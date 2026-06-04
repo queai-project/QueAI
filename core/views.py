@@ -13,11 +13,17 @@ from .models import AuditEvent
 
 
 def home_view(request: HttpRequest):
-    # Si no estás autenticado, el home no aporta nada accionable (todas las
-    # acciones requieren login). Lo mandamos directo a /login/ y, una vez
-    # logueado, Django respeta el ?next=/ así que vuelve aquí.
+    # 1) Sin auth: a /login/. Pasamos SIN ?next= a propósito para que Django
+    #    use LOGIN_REDIRECT_URL (/welcome/), no nos devuelva aquí saltándose
+    #    el onboarding.
     if not request.user.is_authenticated:
-        return redirect(f"{settings.LOGIN_URL}?next=/")
+        return redirect(settings.LOGIN_URL)
+    # 2) Con auth pero sin haber dismisseado el welcome: al onboarding.
+    #    Sin esto, un usuario que llegue a / por bookmark/manual nunca pasa
+    #    por el welcome.
+    if not request.session.get("welcome_dismissed"):
+        return redirect("welcome")
+    # 3) Auth + welcome ya visto: home normal con las nav-cards.
     return render(request, "home.html")
 
 
@@ -41,9 +47,10 @@ def welcome_view(request: HttpRequest):
 
 @login_required
 def welcome_dismiss(request: HttpRequest):
-    """Marca el welcome como visto para esta sesión y redirige al hub."""
+    """Marca el welcome como visto y vuelve al home — desde ahí el
+    usuario decide a qué sección quiere ir."""
     request.session["welcome_dismissed"] = True
-    return redirect("get_apps")
+    return redirect("home")
 
 
 @login_required

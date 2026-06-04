@@ -146,7 +146,9 @@ class WelcomeOnboardingTests(TestCase):
     def test_dismiss_sets_session_flag_and_redirects(self):
         response = self.client.post("/welcome/dismiss/")
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/manager", response["Location"])
+        # dismiss vuelve al home (/), no al hub — el home decide a dónde
+        # mandar al usuario una vez el onboarding está dismissed.
+        self.assertEqual(response["Location"], "/")
 
 
 class RefreshEndpointTests(TestCase):
