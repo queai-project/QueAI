@@ -16,14 +16,14 @@ docker compose logs -f django-kernel
 docker compose down
 ```
 
-URLs (Traefik web on `:8080`, internal dashboard on `:9090` — both configurable via `QUEAI_PORT` / `QUEAI_TRAEFIK_DASHBOARD_PORT`):
+URLs (Traefik web on `:8473`, internal dashboard on `:9473` — both configurable via `QUEAI_PORT` / `QUEAI_TRAEFIK_DASHBOARD_PORT`):
 
-- `http://localhost:8080/` — kernel home (`core.views.home_view`)
-- `http://localhost:8080/manager/` — installed/available plugin catalog (module_manager)
-- `http://localhost:8080/marketplace/` — remote registry browser
-- `http://localhost:8080/monitor/` — system_monitor dashboard
-- `http://localhost:8080/api/<plugin>/...` — plugin routes (each plugin attaches its own Traefik `PathPrefix` label)
-- `http://localhost:9090/dashboard/` — Traefik dashboard (internal)
+- `http://localhost:8473/` — kernel home (`core.views.home_view`)
+- `http://localhost:8473/manager/` — installed/available plugin catalog (module_manager)
+- `http://localhost:8473/marketplace/` — remote registry browser
+- `http://localhost:8473/monitor/` — system_monitor dashboard
+- `http://localhost:8473/api/<plugin>/...` — plugin routes (each plugin attaches its own Traefik `PathPrefix` label)
+- `http://localhost:9473/dashboard/` — Traefik dashboard (internal)
 
 `entrypoint.sh` runs `migrate --noinput` → `collectstatic` → `ensure_admin` → `gunicorn core.wsgi:application` (3 workers × 2 threads, 120s timeout — all overridable with `QUEAI_GUNICORN_*`). For dev with hot reload, set `QUEAI_DEV=true` to fall back to `runserver`.
 

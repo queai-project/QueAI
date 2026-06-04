@@ -38,7 +38,7 @@ def _handle(fn):
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
-@click.option("--endpoint", help="URL del kernel (default: http://localhost:8080 o ~/.config/queai/config.toml).")
+@click.option("--endpoint", help="URL del kernel (default: http://localhost:8473 o ~/.config/queai/config.toml).")
 @click.option("--token", help="Token API (default: ~/.config/queai/config.toml).")
 @click.version_option(__version__, "-V", "--version", prog_name="queai")
 @click.pass_context

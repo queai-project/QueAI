@@ -100,6 +100,54 @@ gen_secret() {
   fi
 }
 
+port_in_use() {
+  # True si el puerto TCP está siendo escuchado en cualquier interfaz local.
+  # Prefiere ss (iproute2, presente en todas las distros modernas), luego
+  # lsof, luego /dev/tcp como último recurso (requiere bash con netredirs).
+  local p="$1"
+  if have ss; then
+    ss -tlnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${p}\$"
+  elif have lsof; then
+    lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | awk '{print $9}' | grep -qE "[:.]${p}\$"
+  else
+    # Si nadie escucha, este connect se cierra rápido con TRUE/FALSE distintos.
+    (timeout 1 bash -c "exec 3<>/dev/tcp/127.0.0.1/$p" 2>/dev/null) && return 0
+    return 1
+  fi
+}
+
+find_free_port() {
+  # Devuelve el primer puerto >= $1 que esté libre. Tope a 100 intentos para
+  # no quedarse colgado si el rango entero está saturado (caso patológico).
+  local p="$1"
+  local tries=0
+  while port_in_use "$p"; do
+    p=$((p + 1))
+    tries=$((tries + 1))
+    if (( tries > 100 )); then
+      err "No encontré un puerto libre cerca de $1 tras 100 intentos."
+      exit 1
+    fi
+  done
+  echo "$p"
+}
+
+update_env_kv() {
+  # Inserta o reemplaza KEY=VAL en .env. Usa awk para no chocar con caracteres
+  # especiales en el valor (URLs con /, tokens base64url, etc.).
+  local key="$1" val="$2"
+  local file="$INSTALL_DIR/.env"
+  if grep -qE "^${key}=" "$file" 2>/dev/null; then
+    awk -v k="$key" -v v="$val" '
+      BEGIN { FS = OFS = "=" }
+      $1 == k { print k "=" v; next }
+      { print }
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  else
+    printf '%s=%s\n' "$key" "$val" >> "$file"
+  fi
+}
+
 run() {
   # Ejecuta o simula según --dry-run
   if $DRY_RUN; then
@@ -398,22 +446,66 @@ inject_secret_if_empty() {
     return
   fi
 
-  local val
-  val="$(gen_secret "$len")"
+  update_env_kv "$key" "$(gen_secret "$len")"
+  log "${key} generado automáticamente"
+}
 
-  if grep -qE "^${key}=" "$file" 2>/dev/null; then
-    # Línea vacía existente. Reescribimos con awk (sin problemas de
-    # delimitadores como tendría sed con tokens base64url).
-    awk -v k="$key" -v v="$val" '
-      BEGIN { FS = OFS = "=" }
-      $1 == k { print k "=" v; next }
-      { print }
-    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-  else
-    printf '%s=%s\n' "$key" "$val" >> "$file"
+ensure_port_free() {
+  # Detecta colisiones de puerto en el host antes de levantar Docker. Sin
+  # esto, `docker compose up` falla con "bind: address already in use" y
+  # deja al usuario con la duda de qué pasó. Si el puerto está ocupado y
+  # corremos --unattended, buscamos uno libre automáticamente; si es
+  # interactivo, preguntamos.
+  step "Verificando puertos"
+
+  local web_port dash_port
+  web_port="$(grep -E '^QUEAI_PORT=' "$INSTALL_DIR/.env" | head -1 | cut -d= -f2 | tr -d '\"')"
+  dash_port="$(grep -E '^QUEAI_TRAEFIK_DASHBOARD_PORT=' "$INSTALL_DIR/.env" | head -1 | cut -d= -f2 | tr -d '\"')"
+  web_port="${web_port:-8473}"
+  dash_port="${dash_port:-9473}"
+
+  _check_and_fix_port "QUEAI_PORT" "$web_port" "hub web" \
+    "CSRF_TRUSTED_ORIGINS" || return 0  # _check_and_fix_port hace exit en error fatal
+  _check_and_fix_port "QUEAI_TRAEFIK_DASHBOARD_PORT" "$dash_port" "dashboard Traefik" ""
+}
+
+_check_and_fix_port() {
+  # $1 = clave del .env (QUEAI_PORT / QUEAI_TRAEFIK_DASHBOARD_PORT)
+  # $2 = puerto a verificar
+  # $3 = etiqueta humana
+  # $4 = clave secundaria a actualizar en paralelo (p.ej. CSRF_TRUSTED_ORIGINS)
+  local key="$1" port="$2" label="$3" secondary="$4"
+
+  if ! port_in_use "$port"; then
+    log "$label ($port) libre"
+    return 0
   fi
 
-  log "${key} generado automáticamente"
+  local suggestion
+  suggestion=$(find_free_port "$((port + 1))")
+  warn "Puerto $port (${label}) ya está ocupado en este host."
+  warn "Sugiero usar $suggestion en su lugar."
+
+  if $DRY_RUN; then
+    dim "[dry-run] actualizaría $key=$suggestion en .env"
+    return 0
+  fi
+
+  if ! $UNATTENDED && ! confirm "¿Cambiar $key a $suggestion?"; then
+    err "Aborto: $port ocupado y no se autorizó cambiarlo."
+    err "Edita $INSTALL_DIR/.env y vuelve a ejecutar."
+    exit 1
+  fi
+
+  update_env_kv "$key" "$suggestion"
+  log "$key actualizado a $suggestion"
+
+  # CSRF_TRUSTED_ORIGINS hay que mantenerlo consistente con el puerto web,
+  # si no Django rechazará el login con error de origen no confiable.
+  if [[ -n "$secondary" ]]; then
+    update_env_kv "$secondary" "http://localhost:${suggestion}"
+    log "$secondary actualizado para puerto $suggestion"
+  fi
 }
 
 bootstrap_env() {
@@ -462,7 +554,7 @@ start_services() {
 print_summary() {
   local port
   port="$(grep -E '^QUEAI_PORT=' "$INSTALL_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d '"' || true)"
-  port="${port:-8080}"
+  port="${port:-8473}"
 
   cat <<EOF
 
@@ -501,6 +593,7 @@ main() {
   ensure_compose
   clone_or_update_repo
   bootstrap_env
+  ensure_port_free
   ensure_docker_runtime
   start_services
   print_summary

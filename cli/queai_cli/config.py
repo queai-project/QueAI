@@ -3,7 +3,7 @@ Manejo de `~/.config/queai/config.toml`.
 
 Formato:
 
-    endpoint = "http://localhost:8080"
+    endpoint = "http://localhost:8473"
     token    = "..."
 """
 
@@ -56,7 +56,7 @@ def get_endpoint(override: str | None = None) -> str:
     cfg = load().get("endpoint")
     if cfg:
         return str(cfg).rstrip("/")
-    return "http://localhost:8080"
+    return "http://localhost:8473"
 
 
 def get_token(override: str | None = None) -> str | None:

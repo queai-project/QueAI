@@ -21,7 +21,7 @@ from one place.
 | Producción seguro fuera de la caja | Auth obligatoria, audit log, healthchecks reales, backup/restore desde CLI |
 
 ## Componentes principales
-- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8080`.
+- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8473`.
 - `django-kernel`: backend Django + UI del hub.
 - `plugins/*`: módulos independientes (típicamente FastAPI, pero cualquier contenedor sirve).
 - `db.sqlite3`: estado del catálogo (no versionado en el repo).
@@ -31,7 +31,7 @@ from one place.
 Flujo: cliente → Traefik → Django (`/manager`, `/marketplace`, `/monitor`, `/api/v1`) → operaciones Docker → módulos.
 
 ## Arquitectura rápida
-- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8080`.
+- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8473`.
 - `django-kernel`: backend Django + UI del hub.
 - `plugins/*`: módulos independientes (típicamente contenedores FastAPI).
 - `db.sqlite3`: persistencia local del catálogo (no versionado en el repo).
@@ -69,11 +69,11 @@ docker compose up -d --build
 ```
 
 ## URLs
-- Hub:                `http://localhost:8080/`
-- Catálogo de apps:   `http://localhost:8080/manager/`
-- Marketplace:        `http://localhost:8080/marketplace/`
-- Dashboard monitor:  `http://localhost:8080/monitor/`
-- Dashboard Traefik:  `http://localhost:9090/dashboard/` (interno)
+- Hub:                `http://localhost:8473/`
+- Catálogo de apps:   `http://localhost:8473/manager/`
+- Marketplace:        `http://localhost:8473/marketplace/`
+- Dashboard monitor:  `http://localhost:8473/monitor/`
+- Dashboard Traefik:  `http://localhost:9473/dashboard/` (interno)
 
 > El puerto del hub es configurable vía `QUEAI_PORT` en `.env`.
 

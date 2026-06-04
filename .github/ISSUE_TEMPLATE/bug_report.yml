@@ -54,7 +54,7 @@ body:
     id: kernel-version
     attributes:
       label: Versión del kernel
-      description: "Salida de `queai health` o de `curl http://localhost:8080/health`. Si no funciona, indica el tag o commit."
+      description: "Salida de `queai health` o de `curl http://localhost:8473/health`. Si no funciona, indica el tag o commit."
       placeholder: "v1.0.0-rc1 / commit abc1234"
     validations:
       required: true

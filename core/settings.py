@@ -55,7 +55,7 @@ if not _secret:
 SECRET_KEY = _secret
 
 ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", "localhost,127.0.0.1,*")
-CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:8080")
+CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:8473")
 
 # --- API REST token --------------------------------------------------------
 # El kernel expone /api/v1/ autenticado con un bearer token único.

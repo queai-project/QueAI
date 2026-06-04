@@ -1,6 +1,6 @@
 # queai — CLI del kernel QueAI
 
-Cliente de línea de comandos para [`queai-project/QueAI`](https://github.com/queai-project/QueAI). Mismo set de operaciones que la UI (`http://localhost:8080/`) pero accesibles desde scripts, CI y la terminal.
+Cliente de línea de comandos para [`queai-project/QueAI`](https://github.com/queai-project/QueAI). Mismo set de operaciones que la UI (`http://localhost:8473/`) pero accesibles desde scripts, CI y la terminal.
 
 ## Instalación
 
@@ -23,7 +23,7 @@ queai --version
 Primer uso — guarda endpoint y token en `~/.config/queai/config.toml`:
 
 ```bash
-queai login http://localhost:8080
+queai login http://localhost:8473
 # Token API: <pega tu QUEAI_API_TOKEN>
 ```
 
@@ -32,7 +32,7 @@ El token vive en el `.env` del kernel como `QUEAI_API_TOKEN`. Si lo dejaste vac�
 Override puntual desde flags o env:
 
 ```bash
-queai --endpoint http://otra-host:8080 --token xyz list
+queai --endpoint http://otra-host:8473 --token xyz list
 QUEAI_ENDPOINT=http://x QUEAI_API_TOKEN=y queai list
 ```
 
@@ -86,5 +86,5 @@ queai health || alert "kernel offline"
 ## Schema OpenAPI
 
 Si prefieres construir tu propio cliente, el schema vive en
-`http://localhost:8080/api/v1/openapi.json` y hay una UI navegable en
-`http://localhost:8080/api/v1/docs`.
+`http://localhost:8473/api/v1/openapi.json` y hay una UI navegable en
+`http://localhost:8473/api/v1/docs`.

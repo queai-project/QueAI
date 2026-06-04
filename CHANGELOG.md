@@ -5,6 +5,16 @@ Versionado: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- **Puerto por defecto del kernel: `:8080` → `:8473`**, dashboard
+  Traefik `:9090` → `:9473`. `8080` es el puerto más colisionado en
+  entornos de dev (Jenkins, Tomcat, proxies); el reporte de un
+  usuario que falló a instalar disparó el cambio.
+- El instalador ahora **detecta puertos ocupados** antes de levantar
+  Docker (`port_in_use` con `ss` / `lsof` / `/dev/tcp` fallback) y
+  propone uno libre — interactivo pregunta, `--unattended` aplica.
+  Mantiene `CSRF_TRUSTED_ORIGINS` consistente con el puerto elegido.
+
 ### Added
 - *(en preparación: gobernanza OSS completa, nueva documentación
   profesional, branding consolidado — ver `docs/ROADMAP.md`)*

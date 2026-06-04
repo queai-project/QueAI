@@ -78,7 +78,7 @@ Para probar con Docker:
 ```bash
 docker compose up -d --build
 docker compose logs -f django-kernel
-# El hub queda en http://localhost:8080
+# El hub queda en http://localhost:8473
 ```
 
 ### Estilo de código y commits
