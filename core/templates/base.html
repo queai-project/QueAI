@@ -494,9 +494,11 @@
         </div>
     </header>
 
-    {# Overlay de loading persistente durante operaciones largas. Lo dispara
-       el helper data-loading-text y sigue visible hasta que el server
-       responda y la página se recargue (el navegador descarta el DOM). #}
+    {% comment %}
+      Overlay de loading persistente durante operaciones largas. Lo dispara
+      el helper data-loading-text y sigue visible hasta que el server
+      responda y la página se recargue (el navegador descarta el DOM).
+    {% endcomment %}
     <div id="loadingOverlay" role="status" aria-live="polite">
         <div class="loading-spinner"></div>
         <div class="loading-text">
