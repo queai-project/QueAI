@@ -245,6 +245,42 @@ msgstr "Update"
 msgid "descargado"
 msgstr "downloaded"
 
+msgid "Descargando…"
+msgstr "Downloading…"
+
+msgid "Instalando…"
+msgstr "Installing…"
+
+msgid "Deteniendo…"
+msgstr "Stopping…"
+
+msgid "Iniciando…"
+msgstr "Starting…"
+
+msgid "Actualizando…"
+msgstr "Updating…"
+
+msgid "Procesando…"
+msgstr "Processing…"
+
+msgid "esto puede tardar unos minutos"
+msgstr "this may take a few minutes"
+
+msgid "Clonando repositorio…"
+msgstr "Cloning repository…"
+
+msgid "Instalando {{ name }}"
+msgstr "Installing {{ name }}"
+
+msgid "Iniciando {{ name }}"
+msgstr "Starting {{ name }}"
+
+msgid "Actualizando {{ name }}"
+msgstr "Updating {{ name }}"
+
+msgid "Descargando {{ name }}"
+msgstr "Downloading {{ name }}"
+
 msgid "// métricas en tiempo real"
 msgstr "// real-time metrics"
 

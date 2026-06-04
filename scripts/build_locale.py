@@ -109,6 +109,18 @@ EN = {
     "Sin descargar": "Not downloaded",
     "Actualizar": "Update",
     "descargado": "downloaded",
+    "Descargando…": "Downloading…",
+    "Instalando…": "Installing…",
+    "Deteniendo…": "Stopping…",
+    "Iniciando…": "Starting…",
+    "Actualizando…": "Updating…",
+    "Procesando…": "Processing…",
+    "esto puede tardar unos minutos": "this may take a few minutes",
+    "Clonando repositorio…": "Cloning repository…",
+    "Instalando {{ name }}": "Installing {{ name }}",
+    "Iniciando {{ name }}": "Starting {{ name }}",
+    "Actualizando {{ name }}": "Updating {{ name }}",
+    "Descargando {{ name }}": "Downloading {{ name }}",
     # blocktrans con counter — gettext lo serializa con msgid_plural
     # Lo manejamos como entrada de plural más abajo.
 

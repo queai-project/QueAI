@@ -272,6 +272,58 @@
             margin: 4px 0;
         }
 
+        /* ============ LOADING ============ */
+        /* Spinner dentro de botones de install/download/etc */
+        .btn-spinner {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            vertical-align: -2px;
+            margin-right: 4px;
+            animation: btn-spin 0.7s linear infinite;
+        }
+        @keyframes btn-spin { to { transform: rotate(360deg); } }
+        button[disabled] { opacity: 0.7; cursor: progress; }
+
+        /* Overlay global durante una operación bloqueante (install/download
+           sync). No oscurece todo — sólo un toast persistente abajo a la
+           derecha para que el usuario sepa que el server está trabajando. */
+        #loadingOverlay {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            font-size: 13.5px;
+            color: var(--text);
+            max-width: 320px;
+        }
+        #loadingOverlay.open { display: flex; }
+        #loadingOverlay .loading-spinner {
+            width: 16px; height: 16px;
+            border: 2px solid var(--text-dim);
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: btn-spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+        #loadingOverlay .loading-text { display: flex; flex-direction: column; gap: 2px; }
+        #loadingOverlay .loading-msg { font-weight: 500; }
+        #loadingOverlay .loading-hint {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
         /* ============ TOASTS ============ */
         #toast-stack {
             position: fixed;
@@ -442,6 +494,17 @@
         </div>
     </header>
 
+    {# Overlay de loading persistente durante operaciones largas. Lo dispara
+       el helper data-loading-text y sigue visible hasta que el server
+       responda y la página se recargue (el navegador descarta el DOM). #}
+    <div id="loadingOverlay" role="status" aria-live="polite">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+            <span class="loading-msg">{% trans "Procesando…" %}</span>
+            <span class="loading-hint">{% trans "esto puede tardar unos minutos" %}</span>
+        </div>
+    </div>
+
     {# Toast stack: alimentado por messages framework y por JS (window.toast) #}
     <div id="toast-stack" aria-live="polite" aria-atomic="false">
         {% if messages %}
@@ -516,6 +579,31 @@
             const ms = parseInt(t.dataset.autohide || '0', 10);
             if (ms > 0) setTimeout(() => dismissToast(t), ms);
         });
+
+        // Loading state en submits largos (download/install/start/stop).
+        // Cualquier <button data-loading-text="..."> dentro de un <form>:
+        //   - deshabilita el botón al submit (evita doble-click)
+        //   - reemplaza el texto por "<spinner> <data-loading-text>"
+        //   - muestra el overlay global "esto puede tardar unos minutos"
+        // El form se sigue enviando normal — el server-side no cambia.
+        function showLoadingOverlay(msg) {
+            const ov = document.getElementById('loadingOverlay');
+            if (!ov) return;
+            const m = ov.querySelector('.loading-msg');
+            if (m && msg) m.textContent = msg;
+            ov.classList.add('open');
+        }
+        document.addEventListener('submit', (ev) => {
+            const form = ev.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            const btn = form.querySelector('button[data-loading-text]');
+            if (!btn) return;
+            const label = btn.dataset.loadingText;
+            btn.disabled = true;
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.innerHTML = `<span class="btn-spinner"></span> ${label}`;
+            showLoadingOverlay(btn.dataset.loadingOverlay || label);
+        }, true);
     </script>
 
     {% block extra_js %}{% endblock %}

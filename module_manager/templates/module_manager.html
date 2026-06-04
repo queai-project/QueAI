@@ -492,7 +492,9 @@
                 <form method="post" action="{% url 'install_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn-install-card">{% trans "Instalar" %}</button>
+                    <button type="submit" class="btn-install-card"
+                            data-loading-text="{% trans 'Instalando…' %}"
+                            data-loading-overlay="{% blocktrans with name=app.display_name %}Instalando {{ name }}{% endblocktrans %}">{% trans "Instalar" %}</button>
                 </form>
 
                 {% elif app.is_running %}
@@ -509,7 +511,8 @@
                     <form method="post" action="{% url 'stop_app' %}" style="display:contents">
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                        <button type="submit" class="stop-action">{% trans "Detener" %}</button>
+                        <button type="submit" class="stop-action"
+                                data-loading-text="{% trans 'Deteniendo…' %}">{% trans "Detener" %}</button>
                     </form>
                 </div>
 
@@ -517,7 +520,9 @@
                 <form method="post" action="{% url 'start_app' %}">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="btn-resume-card">{% trans "Reanudar" %}</button>
+                    <button type="submit" class="btn-resume-card"
+                            data-loading-text="{% trans 'Iniciando…' %}"
+                            data-loading-overlay="{% blocktrans with name=app.display_name %}Iniciando {{ name }}{% endblocktrans %}">{% trans "Reanudar" %}</button>
                 </form>
                 <div class="card-secondary">
                     <button onclick="showLogs('{{ app.folder_name }}')">{% trans "Logs" %}</button>

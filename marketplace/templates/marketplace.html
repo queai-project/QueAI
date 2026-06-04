@@ -217,7 +217,9 @@
                 <input type="text" name="git_url" required
                     class="install-input"
                     placeholder="https://github.com/usuario/mi-plugin.git">
-                <button type="submit" class="btn-install">{% trans "Descargar" %}</button>
+                <button type="submit" class="btn-install"
+                        data-loading-text="{% trans 'Descargando…' %}"
+                        data-loading-overlay="{% trans 'Clonando repositorio…' %}">{% trans "Descargar" %}</button>
             </div>
         </form>
     </div>
@@ -274,7 +276,9 @@
                 <form method="post" action="{% url 'download_plugin' %}">
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                    <button type="submit" class="btn-update">{% trans "Actualizar" %}</button>
+                    <button type="submit" class="btn-update"
+                            data-loading-text="{% trans 'Actualizando…' %}"
+                            data-loading-overlay="{% blocktrans with name=plugin.name %}Actualizando {{ name }}{% endblocktrans %}">{% trans "Actualizar" %}</button>
                 </form>
                 {% elif plugin.is_downloaded %}
                 <div class="btn-downloaded">{% trans "descargado" %}</div>
@@ -282,7 +286,9 @@
                 <form method="post" action="{% url 'download_plugin' %}">
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                    <button type="submit" class="btn-add">{% trans "Descargar" %}</button>
+                    <button type="submit" class="btn-add"
+                            data-loading-text="{% trans 'Descargando…' %}"
+                            data-loading-overlay="{% blocktrans with name=plugin.name %}Descargando {{ name }}{% endblocktrans %}">{% trans "Descargar" %}</button>
                 </form>
                 {% endif %}
             </div>
