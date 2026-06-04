@@ -84,6 +84,22 @@ done
 # ----------------------------------------------------------------------------
 have() { command -v "$1" >/dev/null 2>&1; }
 
+gen_secret() {
+  # Genera un token urlsafe del largo dado. Prefiere python3 (siempre presente
+  # en distros modernas y macOS); openssl como fallback. El kernel rechaza
+  # arrancar con DEBUG=False sin SECRET_KEY, así que esto NO es opcional.
+  local len="${1:-50}"
+  if have python3; then
+    python3 -c "import secrets; print(secrets.token_urlsafe($len))"
+  elif have openssl; then
+    openssl rand -base64 $(( len * 3 / 4 + 4 )) 2>/dev/null | tr -d '/+=\n' | head -c "$len"
+    echo
+  else
+    err "Necesito python3 u openssl para generar SECRET_KEY/QUEAI_API_TOKEN."
+    exit 1
+  fi
+}
+
 run() {
   # Ejecuta o simula según --dry-run
   if $DRY_RUN; then
@@ -364,6 +380,42 @@ clone_or_update_repo() {
   run "git clone --branch '$REPO_BRANCH' --depth=1 '$REPO_URL' '$INSTALL_DIR'"
 }
 
+inject_secret_if_empty() {
+  # Si la clave existe en .env con valor vacío, la rellena con un secreto
+  # generado. Si ya tiene valor, no la toca (idempotente). Si no existe, la
+  # añade al final del archivo.
+  local key="$1"
+  local len="$2"
+  local file="$INSTALL_DIR/.env"
+
+  if grep -qE "^${key}=.+" "$file" 2>/dev/null; then
+    log "${key} ya configurado — no se sobrescribe"
+    return
+  fi
+
+  if $DRY_RUN; then
+    dim "[dry-run] generaría ${key} (${len} bytes) y lo inyectaría en .env"
+    return
+  fi
+
+  local val
+  val="$(gen_secret "$len")"
+
+  if grep -qE "^${key}=" "$file" 2>/dev/null; then
+    # Línea vacía existente. Reescribimos con awk (sin problemas de
+    # delimitadores como tendría sed con tokens base64url).
+    awk -v k="$key" -v v="$val" '
+      BEGIN { FS = OFS = "=" }
+      $1 == k { print k "=" v; next }
+      { print }
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  else
+    printf '%s=%s\n' "$key" "$val" >> "$file"
+  fi
+
+  log "${key} generado automáticamente"
+}
+
 bootstrap_env() {
   step "Preparando configuración"
   if [[ ! -f "$INSTALL_DIR/.env" && -f "$INSTALL_DIR/.env.example" ]]; then
@@ -371,6 +423,15 @@ bootstrap_env() {
     run "cp '$INSTALL_DIR/.env.example' '$INSTALL_DIR/.env'"
   else
     log ".env ya existe (no se sobrescribe)"
+  fi
+
+  # El kernel rechaza arrancar con DEBUG=False y SECRET_KEY vacío, y el
+  # .env.example viene con ambos secretos en blanco a propósito (no
+  # commiteamos defaults). Generamos valores fuertes en el primer arranque
+  # — pero respetamos cualquier valor que el usuario haya puesto.
+  if [[ -f "$INSTALL_DIR/.env" ]]; then
+    inject_secret_if_empty "SECRET_KEY" 50
+    inject_secret_if_empty "QUEAI_API_TOKEN" 40
   fi
 }
 
