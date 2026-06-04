@@ -13,7 +13,7 @@ QueAI está en una etapa madura como kernel (descubrir, instalar, ejecutar, moni
 
 | Landing dice | Realidad actual |
 |---|---|
-| `curl -fsSL https://get.queai.dev \| bash` | Decisión 2026-06-03: usamos `raw.githubusercontent.com/queai-project/QueAI/main/install.sh` directamente. El dominio bonito queda para futuro. |
+| `curl -fsSL https://get.queai.dev \| bash` | Resuelto: el instalador se sirve desde `https://queai.dev/install.sh` (mismo dominio que la landing, vía GitHub Pages). Workflow espejo en `.github/workflows/sync-installer.yml` mantiene la copia sincronizada con el repo del kernel. |
 | Dashboard en `localhost:8080` | `:8080` es **Traefik**. El hub está en `localhost/manager/`. |
 | "5+ AI Modules" | Hay **3** en el registry (OCR, STT, TTS). |
 | "Linux · macOS · Windows WSL2" | `install.sh` es **solo Debian/Ubuntu** (`apt-get`). |
@@ -76,7 +76,7 @@ Faltan: `LICENSE` en root del kernel, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `
 - `core/settings.py`: `SECRET_KEY` default cambiado de `'your-secret-key'` a `'dev-insecure-change-me'`; `ALLOWED_HOSTS` parsea con trim de espacios y default `localhost,127.0.0.1`.
 
 **Deuda residual de Fase 0** (resueltas):
-- ✅ Comando de instalación: usamos `raw.githubusercontent.com/queai-project/QueAI/main/install.sh` directamente. `get.queai.dev` puede configurarse más adelante como mejora estética (no es bloqueante).
+- ✅ Comando de instalación: servido desde `https://queai.dev/install.sh` (la propia landing en GitHub Pages). Workflow `.github/workflows/sync-installer.yml` espeja el `install.sh` cada vez que cambia en main. Requiere `LANDING_SYNC_TOKEN` (PAT con `contents:write` en el repo de la landing) como secret; si no está, el job avisa.
 - ✅ Repo `queai-project/QueAI` confirmado existe y sincronizado con local.
 
 ### Alineación landing ↔ kernel ↔ template ✅ COMPLETADA (2026-06-02)
