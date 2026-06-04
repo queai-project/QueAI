@@ -64,18 +64,6 @@ EOF
 }
 
 # ----------------------------------------------------------------------------
-# Stdin: si nos invocan con `curl | bash` el stdin del script es el pipe
-# del curl, no la tty del usuario, y cualquier `read` retorna inmediatamente
-# string vacío. Intentamos reasignar stdin a /dev/tty cuando es accesible
-# (caso normal en una sesión interactiva). Si no es accesible (CI, sandbox,
-# contenedor sin tty), seguimos sin tty: la función confirm() detecta esto
-# más abajo y aborta con un mensaje claro si no estamos en --unattended.
-# ----------------------------------------------------------------------------
-if [ ! -t 0 ]; then
-  exec </dev/tty 2>/dev/null || true
-fi
-
-# ----------------------------------------------------------------------------
 # Parseo de argumentos
 # ----------------------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
@@ -104,22 +92,28 @@ run() {
 }
 
 confirm() {
-  # Pregunta sí/no. En --unattended responde "no" (lo seguro).
-  # Si no hay tty disponible y no estamos en --unattended, abortamos con
-  # mensaje claro: el usuario probablemente nos ejecutó vía pipe en un
-  # entorno sin tty (CI, contenedor sin -t) sin pasar --unattended.
+  # Pregunta sí/no.
+  # - En --unattended responde "no" (lo seguro).
+  # - Cuando nos ejecutan vía `curl | bash` el stdin del script es el pipe
+  #   del curl, no la tty. Leemos directamente de /dev/tty para que la
+  #   pregunta funcione sin romper el pipe del que bash está consumiendo
+  #   el script. Si /dev/tty no es accesible (CI, contenedor sin -t),
+  #   abortamos con un mensaje claro.
   local prompt="${1:-¿Continuar?}"
   if $UNATTENDED; then
     warn "$prompt → (unattended: no)"
     return 1
   fi
-  if [ ! -t 0 ]; then
+  if [ -r /dev/tty ]; then
+    read -r -p "$prompt [y/N] " ans </dev/tty
+  elif [ -t 0 ]; then
+    read -r -p "$prompt [y/N] " ans
+  else
     err "No hay tty disponible para preguntar: \"$prompt\""
     err "Re-ejecuta con --unattended para usar defaults, o descarga el script primero:"
     err "  curl -fsSL https://queai.dev/install.sh -o install.sh && bash install.sh"
     exit 1
   fi
-  read -r -p "$prompt [y/N] " ans
   [[ "$ans" =~ ^[yYsS]$ ]]
 }
 
