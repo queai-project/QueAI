@@ -7,9 +7,6 @@ Es un sustituto mínimo de `manage.py makemessages` + `compilemessages`
 con un mapa de traducción ES→EN escrito a mano para los strings que
 hay en los templates del kernel.
 """
-import os
-import re
-import sys
 from pathlib import Path
 
 import polib
