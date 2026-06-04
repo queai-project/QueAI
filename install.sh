@@ -9,7 +9,7 @@
 #    * Idempotente: correrlo dos veces no rompe nada.
 #
 #  Uso:
-#    curl -fsSL https://raw.githubusercontent.com/queai-project/QueAI/main/install.sh | bash
+#    curl -fsSL https://queai.dev/install.sh | bash
 #    bash install.sh [--dry-run] [--unattended] [--dir <ruta>] [--branch <name>]
 # =============================================================================
 set -Eeuo pipefail

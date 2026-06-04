@@ -9,7 +9,7 @@
 
 ### Opción A — instalador automático
 ```bash
-curl -fsSL https://raw.githubusercontent.com/queai-project/QueAI/main/install.sh | bash
+curl -fsSL https://queai.dev/install.sh | bash
 ```
 
 El instalador es **no destructivo**: detecta Docker existente y lo reutiliza. Opciones útiles:
@@ -79,7 +79,7 @@ QueAI no tiene instalador nativo de Windows todavía (planificado para v1.1). En
 Abre la terminal WSL (Ubuntu) y corre **el mismo instalador que en Linux**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/queai-project/QueAI/main/install.sh | bash
+curl -fsSL https://queai.dev/install.sh | bash
 ```
 
 Una vez levantado, el hub vive en `http://localhost:8080/` desde **el navegador de Windows**, no desde dentro de WSL — Docker Desktop expone los puertos del lado de Windows automáticamente.

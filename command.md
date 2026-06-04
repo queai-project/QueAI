@@ -1,1 +1,1 @@
-curl -fsSL https://raw.githubusercontent.com/queai-project/QueAI/main/install.sh | bash
+curl -fsSL https://queai.dev/install.sh | bash
