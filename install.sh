@@ -120,22 +120,6 @@ port_in_use() {
   fi
 }
 
-find_free_port() {
-  # Devuelve el primer puerto >= $1 que esté libre. Tope a 100 intentos para
-  # no quedarse colgado si el rango entero está saturado (caso patológico).
-  local p="$1"
-  local tries=0
-  while port_in_use "$p"; do
-    p=$((p + 1))
-    tries=$((tries + 1))
-    if (( tries > 100 )); then
-      err "No encontré un puerto libre cerca de $1 tras 100 intentos."
-      exit 1
-    fi
-  done
-  echo "$p"
-}
-
 update_env_kv() {
   # Inserta o reemplaza KEY=VAL en .env. Usa awk para no chocar con caracteres
   # especiales en el valor (URLs con /, tokens base64url, etc.).
@@ -455,11 +439,14 @@ inject_secret_if_empty() {
 }
 
 ensure_port_free() {
-  # Detecta colisiones de puerto en el host antes de levantar Docker. Sin
-  # esto, `docker compose up` falla con "bind: address already in use" y
-  # deja al usuario con la duda de qué pasó. Si el puerto está ocupado y
-  # corremos --unattended, buscamos uno libre automáticamente; si es
-  # interactivo, preguntamos.
+  # QueAI se publica con un puerto fijo (8473 hub, 9473 dashboard Traefik).
+  # Hay decisión deliberada de no reasignar dinámicamente:
+  #   - La landing, README y docs anuncian 8473 sin condiciones; un puerto
+  #     dinámico generaría incongruencia entre lo que prometemos y lo que
+  #     el usuario ve.
+  #   - Si está ocupado, es señal de que esa máquina ya tiene otro
+  #     servicio en 8473 y la persona necesita decidir conscientemente —
+  #     editar .env y ejecutar `docker compose up -d` a mano.
   step "Verificando puertos"
 
   local web_port dash_port
@@ -468,48 +455,29 @@ ensure_port_free() {
   web_port="${web_port:-8473}"
   dash_port="${dash_port:-9473}"
 
-  _check_and_fix_port "QUEAI_PORT" "$web_port" "hub web" \
-    "CSRF_TRUSTED_ORIGINS" || return 0  # _check_and_fix_port hace exit en error fatal
-  _check_and_fix_port "QUEAI_TRAEFIK_DASHBOARD_PORT" "$dash_port" "dashboard Traefik" ""
+  _abort_if_port_busy "$web_port" "hub web (QUEAI_PORT)"
+  _abort_if_port_busy "$dash_port" "dashboard Traefik (QUEAI_TRAEFIK_DASHBOARD_PORT)"
+  log "Puertos libres: $web_port, $dash_port"
 }
 
-_check_and_fix_port() {
-  # $1 = clave del .env (QUEAI_PORT / QUEAI_TRAEFIK_DASHBOARD_PORT)
-  # $2 = puerto a verificar
-  # $3 = etiqueta humana
-  # $4 = clave secundaria a actualizar en paralelo (p.ej. CSRF_TRUSTED_ORIGINS)
-  local key="$1" port="$2" label="$3" secondary="$4"
-
+_abort_if_port_busy() {
+  local port="$1" label="$2"
   if ! port_in_use "$port"; then
-    log "$label ($port) libre"
     return 0
   fi
-
-  local suggestion
-  suggestion=$(find_free_port "$((port + 1))")
-  warn "Puerto $port (${label}) ya está ocupado en este host."
-  warn "Sugiero usar $suggestion en su lugar."
-
-  if $DRY_RUN; then
-    dim "[dry-run] actualizaría $key=$suggestion en .env"
-    return 0
-  fi
-
-  if ! $UNATTENDED && ! confirm "¿Cambiar $key a $suggestion?"; then
-    err "Aborto: $port ocupado y no se autorizó cambiarlo."
-    err "Edita $INSTALL_DIR/.env y vuelve a ejecutar."
-    exit 1
-  fi
-
-  update_env_kv "$key" "$suggestion"
-  log "$key actualizado a $suggestion"
-
-  # CSRF_TRUSTED_ORIGINS hay que mantenerlo consistente con el puerto web,
-  # si no Django rechazará el login con error de origen no confiable.
-  if [[ -n "$secondary" ]]; then
-    update_env_kv "$secondary" "http://localhost:${suggestion}"
-    log "$secondary actualizado para puerto $suggestion"
-  fi
+  err "Puerto $port ocupado ($label)."
+  err ""
+  err "QueAI usa puertos fijos (8473 / 9473) para mantener documentación"
+  err "y UI consistentes. Si necesitas un puerto distinto, instala manual:"
+  err ""
+  err "  git clone https://github.com/queai-project/QueAI.git ~/QueAI"
+  err "  cd ~/QueAI"
+  err "  cp .env.example .env"
+  err "  # Edita .env y cambia QUEAI_PORT a algo libre"
+  err "  docker compose up -d --build"
+  err ""
+  err "Para liberar el puerto: 'sudo ss -tlnp sport = :$port' te dice qué lo usa."
+  exit 1
 }
 
 bootstrap_env() {
