@@ -282,7 +282,7 @@
                 <form method="post" action="{% url 'download_plugin' %}">
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
-                    <button type="submit" class="btn-add">Añadir al Hub</button>
+                    <button type="submit" class="btn-add">Descargar</button>
                 </form>
                 {% endif %}
             </div>
