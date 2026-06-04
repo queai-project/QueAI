@@ -30,8 +30,10 @@ UNATTENDED=false
 # Helpers de salida
 # ----------------------------------------------------------------------------
 if [ -t 1 ]; then
-  C_RESET="\033[0m"; C_INFO="\033[1;32m"; C_WARN="\033[1;33m"
-  C_ERR="\033[1;31m"; C_DIM="\033[2m"; C_BOLD="\033[1m"
+  # ANSI-C quoting ($'...') deja los bytes ESC reales en la variable,
+  # así funcionan igual con echo, printf y heredocs.
+  C_RESET=$'\033[0m';   C_INFO=$'\033[1;32m'; C_WARN=$'\033[1;33m'
+  C_ERR=$'\033[1;31m';  C_DIM=$'\033[2m';     C_BOLD=$'\033[1m'
 else
   C_RESET=""; C_INFO=""; C_WARN=""; C_ERR=""; C_DIM=""; C_BOLD=""
 fi
@@ -417,7 +419,7 @@ ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━�
   Detener:            cd $INSTALL_DIR && docker compose down
 
   Documentación:      $INSTALL_DIR/docs/
-  Reportar bugs:      https://github.com/queai-project
+  Reportar bugs:      https://github.com/queai-project/QueAI/issues
 
 EOF
 }
