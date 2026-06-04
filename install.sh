@@ -342,10 +342,14 @@ clone_or_update_repo() {
   step "Preparando $APP_NAME en $INSTALL_DIR"
 
   if [[ -d "$INSTALL_DIR/.git" ]]; then
-    log "Repo ya existe — actualizando rama '$REPO_BRANCH'"
+    log "Repo ya existe — sincronizando con 'origin/$REPO_BRANCH'"
+    # El directorio de instalación lo maneja el instalador; no esperamos
+    # commits locales. Si remoto y local divergen (force-push del kernel,
+    # ediciones manuales), hacemos hard-reset a origin para garantizar
+    # un estado conocido. El .env es untracked, no se toca.
     run "git -C '$INSTALL_DIR' fetch --depth=1 origin '$REPO_BRANCH'"
-    run "git -C '$INSTALL_DIR' checkout '$REPO_BRANCH'"
-    run "git -C '$INSTALL_DIR' pull --ff-only origin '$REPO_BRANCH'"
+    run "git -C '$INSTALL_DIR' checkout -B '$REPO_BRANCH' 'origin/$REPO_BRANCH'"
+    run "git -C '$INSTALL_DIR' reset --hard 'origin/$REPO_BRANCH'"
     return
   fi
 
