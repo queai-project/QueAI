@@ -131,9 +131,20 @@
             padding: 6px 13px;
             border-radius: var(--radius-sm);
             transition: color 0.15s, background 0.15s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header-nav a:hover { color: var(--text); background: var(--surface); }
+
+        /* El focus ring por defecto del navegador (halo azul/blanco) se queda
+           visible tras el click en temas oscuros y queda como "sombra encima"
+           del botón activo. Lo silenciamos en mouse y dejamos un anillo sutil
+           solo para navegación con teclado. */
+        .header-nav a:focus { outline: none; }
+        .header-nav a:focus-visible {
+            outline: 1px solid var(--border);
+            outline-offset: 2px;
+        }
 
         .header-nav a.active {
             color: var(--text);
