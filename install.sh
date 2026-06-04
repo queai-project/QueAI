@@ -638,10 +638,7 @@ ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━�
 ${C_INFO}✓ $APP_NAME instalado correctamente${C_RESET}
 ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}
 
-  Hub:                http://localhost:${port}/
-  Catálogo:           http://localhost:${port}/manager/
-  Marketplace:        http://localhost:${port}/marketplace/
-  Monitor:            http://localhost:${port}/monitor/
+  Abrir QueAI:        ${C_BOLD}http://localhost:${port}/${C_RESET}
 
   Directorio:         $INSTALL_DIR
   Logs:               cd $INSTALL_DIR && docker compose logs -f

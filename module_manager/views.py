@@ -217,11 +217,6 @@ def get_apps(request):
     Además, si un módulo existía en BD pero desapareció del directorio,
     se intentan limpiar sus recursos Docker asociados.
     """
-    # Onboarding: si el catálogo está vacío y el usuario no descartó el wizard,
-    # mandamos a /welcome/ para guiar el primer arranque.
-    if not request.session.get("welcome_dismissed") and not AvailableApp.objects.exists():
-        return redirect("welcome")
-
     plugins_dir = settings.PLUGINS_DIR
 
     if os.path.isdir(plugins_dir):

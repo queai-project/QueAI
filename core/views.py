@@ -23,7 +23,14 @@ def home_view(request: HttpRequest):
 
 @login_required
 def welcome_view(request: HttpRequest):
-    """Wizard de primer arranque."""
+    """Wizard de primer arranque.
+
+    Si el usuario ya dismisseó esta sesión, vamos directos al hub —
+    el welcome es un onboarding, no algo que ver dos veces seguidas.
+    Si quiere volver a verlo, /welcome/?force=1 lo fuerza.
+    """
+    if request.session.get("welcome_dismissed") and not request.GET.get("force"):
+        return redirect("get_apps")
     installed_count = AvailableApp.objects.filter(is_installed=True).count()
     return render(
         request,

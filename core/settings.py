@@ -170,7 +170,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # --- Auth flow -----------------------------------------------------------
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/manager/"
+LOGIN_REDIRECT_URL = "/welcome/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 
