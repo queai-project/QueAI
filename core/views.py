@@ -13,6 +13,11 @@ from .models import AuditEvent
 
 
 def home_view(request: HttpRequest):
+    # Si no estás autenticado, el home no aporta nada accionable (todas las
+    # acciones requieren login). Lo mandamos directo a /login/ y, una vez
+    # logueado, Django respeta el ?next=/ así que vuelve aquí.
+    if not request.user.is_authenticated:
+        return redirect(f"{settings.LOGIN_URL}?next=/")
     return render(request, "home.html")
 
 
