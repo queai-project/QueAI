@@ -136,21 +136,22 @@
 
         .header-nav a:hover { color: var(--text); background: var(--surface); }
 
-        /* El focus ring por defecto del navegador (halo azul/blanco) se queda
-           visible tras el click en temas oscuros y queda como "sombra encima"
-           del botón activo. Lo silenciamos en mouse y dejamos un anillo sutil
-           solo para navegación con teclado. */
-        .header-nav a:focus { outline: none; }
-        .header-nav a:focus-visible {
-            outline: 1px solid var(--border);
-            outline-offset: 2px;
+        /* Quitamos del todo cualquier outline/box-shadow en focus para que
+           no quede el halo blanco que se veía sobre el botón activo. La
+           pista visual del activo la da el background, no un borde. */
+        .header-nav a:focus,
+        .header-nav a:focus-visible,
+        .header-nav a:active {
+            outline: none;
+            box-shadow: none;
         }
 
         .header-nav a.active {
             color: var(--text);
-            background: transparent;
-            box-shadow: inset 0 -1px 0 var(--text);
+            background: var(--surface);
+            font-weight: 600;
         }
+        .header-nav a.active:hover { background: var(--surface); }
 
         .docker-pill {
             display: inline-flex;
