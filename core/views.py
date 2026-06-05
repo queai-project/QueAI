@@ -6,6 +6,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.core.paginator import Paginator
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 
 from module_manager.models import AvailableApp
 
@@ -96,9 +97,9 @@ def account_view(request: HttpRequest):
             form.save()
             # Mantener la sesión activa después del cambio.
             update_session_auth_hash(request, form.user)
-            messages.success(request, "Contraseña actualizada correctamente.")
+            messages.success(request, _("Contraseña actualizada correctamente."))
             return redirect("account")
-        messages.error(request, "Revisa los errores del formulario.")
+        messages.error(request, _("Revisa los errores del formulario."))
     else:
         form = PasswordChangeForm(user=request.user)
 

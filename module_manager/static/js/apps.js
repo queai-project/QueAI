@@ -17,16 +17,23 @@ function closeApp() {
   document.getElementById("appIframe").src = "";
 }
 
+// Helper i18n con fallback al texto en español si window.i18n no se cargó
+// (p. ej. cuando el script se sirve desde una página que no lo expuso).
+const t = (key, fallback) => (window.i18n && window.i18n[key]) || fallback;
+
 async function showLogs(folder) {
   const content = document.getElementById("logsContent");
-  content.textContent = "> Conectando con Docker daemon...\n> Cargando streams...";
+  content.textContent =
+    t("connecting_docker", "> Conectando con Docker daemon...") +
+    "\n" +
+    t("loading_streams", "> Cargando streams...");
   document.getElementById("logsModal").classList.add("open");
   try {
     const r = await fetch(`/manager/logs/${folder}/`);
     const d = await r.json();
     content.textContent = d.status === "ok" ? d.logs : "ERROR: " + d.message;
   } catch {
-    content.textContent = "CRITICAL ERROR: No se pudo contactar con el Kernel.";
+    content.textContent = t("error_kernel", "CRITICAL ERROR: No se pudo contactar con el Kernel.");
   }
 }
 
@@ -36,7 +43,7 @@ async function openConfigEditor(folder) {
   currentConfigFolder = folder;
   document.getElementById("configTitle").textContent = folder;
   const editor = document.getElementById("envEditor");
-  editor.value = "# Cargando configuración...";
+  editor.value = t("loading_config", "# Cargando configuración...");
   document.getElementById("configModal").classList.add("open");
 
   try {
@@ -48,7 +55,7 @@ async function openConfigEditor(folder) {
       editor.value = "# ERROR: " + d.message;
     }
   } catch {
-    editor.value = "# ERROR: No se pudo conectar con el sistema de archivos.";
+    editor.value = t("error_filesystem", "# ERROR: No se pudo conectar con el sistema de archivos.");
   }
 }
 
@@ -62,7 +69,7 @@ async function saveConfig(event) {
   if (!btn) return;
   const originalText = btn.textContent;
 
-  btn.textContent = "Aplicando…";
+  btn.textContent = t("applying", "Aplicando…");
   btn.disabled = true;
 
   const formData = new FormData();
@@ -79,12 +86,12 @@ async function saveConfig(event) {
     if (d.status === "ok") {
       window.location.reload();
     } else {
-      alert("Error al guardar: " + d.message);
+      alert(t("save_error", "Error al guardar: ") + d.message);
       btn.textContent = originalText;
       btn.disabled = false;
     }
   } catch {
-    alert("Error de comunicación con el Kernel.");
+    alert(t("kernel_comm_error", "Error de comunicación con el Kernel."));
     btn.textContent = originalText;
     btn.disabled = false;
   }

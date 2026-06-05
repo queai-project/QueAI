@@ -309,6 +309,132 @@ msgstr "Spanish"
 msgid "English"
 msgstr "English"
 
+msgid "Contraseña actualizada correctamente."
+msgstr "Password updated successfully."
+
+msgid "Revisa los errores del formulario."
+msgstr "Check the form for errors."
+
+msgid "Módulo %(folder)s instalado y activado."
+msgstr "Module %(folder)s installed and started."
+
+msgid "Error al instalar: %(err)s"
+msgstr "Install failed: %(err)s"
+
+msgid "Módulo %(folder)s reanudado."
+msgstr "Module %(folder)s resumed."
+
+msgid "Error al iniciar: %(err)s"
+msgstr "Start failed: %(err)s"
+
+msgid "Módulo %(folder)s detenido."
+msgstr "Module %(folder)s stopped."
+
+msgid "Error al detener: %(err)s"
+msgstr "Stop failed: %(err)s"
+
+msgid "Módulo %(folder)s desinstalado."
+msgstr "Module %(folder)s uninstalled."
+
+msgid "Error al desinstalar el módulo: %(err)s"
+msgstr "Uninstall failed: %(err)s"
+
+msgid "Módulo %(folder)s eliminado completamente del sistema."
+msgstr "Module %(folder)s completely removed from the system."
+
+msgid "Error al eliminar el módulo: %(err)s"
+msgstr "Delete failed: %(err)s"
+
+msgid "Configuración de %(folder)s actualizada y aplicada."
+msgstr "Configuration for %(folder)s updated and applied."
+
+msgid ""
+"No se pudo conectar con el Marketplace. Verifica tu conexión a internet."
+msgstr "Couldn't reach the Marketplace. Check your internet connection."
+
+msgid "No se recibió una URL de Git válida."
+msgstr "Missing a valid Git URL."
+
+msgid "El módulo '%(folder)s' ya está descargado y actualizado (v%(ver)s)."
+msgstr "Module '%(folder)s' is already downloaded and up to date (v%(ver)s)."
+
+msgid "actualizado"
+msgstr "updated"
+
+msgid "Módulo '%(folder)s' %(action)s con éxito."
+msgstr "Module '%(folder)s' %(action)s successfully."
+
+msgid "Error al descargar/actualizar: %(err)s"
+msgstr "Download/update failed: %(err)s"
+
+msgid "¿Confirmar acción?"
+msgstr "Confirm action?"
+
+msgid "Esta acción no se puede deshacer."
+msgstr "This action cannot be undone."
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Confirmar"
+msgstr "Confirm"
+
+msgid "¿Desinstalar este módulo?"
+msgstr "Uninstall this module?"
+
+msgid ""
+"Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La "
+"carpeta del plugin se conserva."
+msgstr ""
+"Containers will stop and images/volumes will be removed. The plugin folder "
+"is kept."
+
+msgid "Sí, desinstalar"
+msgstr "Yes, uninstall"
+
+msgid "¿Borrar este módulo?"
+msgstr "Delete this module?"
+
+msgid ""
+"Se eliminará por completo de tu equipo (contenedores, imágenes y carpeta "
+"local). Esta acción no se puede deshacer."
+msgstr ""
+"It will be removed completely from your machine (containers, images and "
+"local folder). This cannot be undone."
+
+msgid "Sí, borrar"
+msgstr "Yes, delete"
+
+msgid "▶ Terminal — stdout / stderr"
+msgstr "▶ Terminal — stdout / stderr"
+
+msgid "Cerrar ✕"
+msgstr "Close ✕"
+
+msgid "&gt; Conectando con Docker daemon..."
+msgstr "&gt; Connecting to Docker daemon..."
+
+msgid "> Conectando con Docker daemon..."
+msgstr "> Connecting to Docker daemon..."
+
+msgid "> Cargando streams..."
+msgstr "> Loading streams..."
+
+msgid "CRITICAL ERROR: No se pudo contactar con el Kernel."
+msgstr "CRITICAL ERROR: Couldn't contact the Kernel."
+
+msgid "# Cargando configuración..."
+msgstr "# Loading configuration..."
+
+msgid "# ERROR: No se pudo conectar con el sistema de archivos."
+msgstr "# ERROR: Couldn't reach the filesystem."
+
+msgid "Error al guardar: "
+msgstr "Save failed: "
+
+msgid "Error de comunicación con el Kernel."
+msgstr "Kernel communication error."
+
 msgid "{{ counter }} módulo"
 msgid_plural "{{ counter }} módulos"
 msgstr[0] "{{ counter }} module"

@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from core import healthcheck as hc_module
@@ -246,6 +247,7 @@ def get_apps(request):
                 "documentation_entry_point": manifest.get("documentation_entry_point", ""),
                 "version": manifest.get("version", "1.0.0"),
                 "description": manifest.get("description", ""),
+                "description_en": manifest.get("description_en", ""),
                 "logo": manifest.get("logo", "logo.png"),
                 "lic": manifest.get("license", ""),
             }
@@ -333,9 +335,9 @@ def install_app(request):
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=True)
         _invalidate_running_cache(folder)
         hc_module.mark_starting(folder)
-        messages.success(request, f"Módulo {folder} instalado y activado.")
+        messages.success(request, _("Módulo %(folder)s instalado y activado.") % {"folder": folder})
     except Exception as e:
-        messages.error(request, f"Error al instalar: {str(e)}")
+        messages.error(request, _("Error al instalar: %(err)s") % {"err": str(e)})
     return redirect("get_apps")
 
 @login_required
@@ -349,9 +351,9 @@ def start_app(request):
         subprocess.run(compose_cmd + ["-f", path, "start"], check=True)
         _invalidate_running_cache(folder)
         hc_module.mark_starting(folder)
-        messages.success(request, f"Módulo {folder} reanudado.")
+        messages.success(request, _("Módulo %(folder)s reanudado.") % {"folder": folder})
     except Exception as e:
-        messages.error(request, f"Error al iniciar: {str(e)}")
+        messages.error(request, _("Error al iniciar: %(err)s") % {"err": str(e)})
     return redirect("get_apps")
 
 
@@ -365,9 +367,9 @@ def stop_app(request):
         compose_cmd = _get_compose_command()
         subprocess.run(compose_cmd + ["-f", path, "stop"], check=True)
         _invalidate_running_cache(folder)
-        messages.info(request, f"Módulo {folder} detenido.")
+        messages.info(request, _("Módulo %(folder)s detenido.") % {"folder": folder})
     except Exception as e:
-        messages.error(request, f"Error al detener: {str(e)}")
+        messages.error(request, _("Error al detener: %(err)s") % {"err": str(e)})
     return redirect("get_apps")
 
 @login_required
@@ -387,9 +389,9 @@ def uninstall_app(request):
 
         AvailableApp.objects.filter(folder_name=folder).update(is_installed=False)
         _invalidate_running_cache(folder)
-        messages.warning(request, f"Módulo {folder} desinstalado.")
+        messages.warning(request, _("Módulo %(folder)s desinstalado.") % {"folder": folder})
     except Exception as e:
-        messages.error(request, f"Error al desinstalar el módulo: {str(e)}")
+        messages.error(request, _("Error al desinstalar el módulo: %(err)s") % {"err": str(e)})
     return redirect("get_apps")
 
 @login_required
@@ -414,9 +416,9 @@ def delete_app(request):
         _delete_plugin_folder(folder)
         _invalidate_running_cache(folder)
 
-        messages.warning(request, f"Módulo {folder} eliminado completamente del sistema.")
+        messages.warning(request, _("Módulo %(folder)s eliminado completamente del sistema.") % {"folder": folder})
     except Exception as e:
-        messages.error(request, f"Error al eliminar el módulo: {str(e)}")
+        messages.error(request, _("Error al eliminar el módulo: %(err)s") % {"err": str(e)})
     return redirect("get_apps")
 
 
@@ -539,7 +541,7 @@ def save_env_config(request):
             )
             _invalidate_running_cache(folder_name)
             hc_module.mark_starting(folder_name)
-            messages.success(request, f"Configuración de {folder_name} actualizada y aplicada.")
+            messages.success(request, _("Configuración de %(folder)s actualizada y aplicada.") % {"folder": folder_name})
 
         return JsonResponse({"status": "ok"})
     except Exception as e:

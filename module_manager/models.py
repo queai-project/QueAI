@@ -14,6 +14,10 @@ class AvailableApp(models.Model):
     ### Metadata
     version = models.CharField(max_length=50)
     description = models.TextField()
+    # Traducción opcional (manifest.description_en). Si el usuario tiene EN
+    # activo y este campo no está vacío, el Hub lo muestra en lugar de
+    # `description`. Manifests viejos sin description_en siguen funcionando.
+    description_en = models.TextField(blank=True, default="")
     author = models.CharField(max_length=200)
     lic = models.CharField(max_length=100)
     ### Installation status

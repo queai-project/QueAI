@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from core.audit import record as audit_record
@@ -152,7 +153,7 @@ def marketplace(request):
     except Exception:
         messages.error(
             request,
-            "No se pudo conectar con el Marketplace. Verifica tu conexión a internet."
+            _("No se pudo conectar con el Marketplace. Verifica tu conexión a internet.")
         )
         remote_plugins = []
 
@@ -214,11 +215,11 @@ def download_plugin(request):
     """
     git_url = (request.POST.get("git_url") or "").strip()
     if not git_url:
-        messages.error(request, "No se recibió una URL de Git válida.")
+        messages.error(request, _("No se recibió una URL de Git válida."))
         return redirect("marketplace")
 
     folder_name = _get_folder_name_from_git_url(git_url)
-    plugin_path, _, _ = _get_plugin_paths(folder_name)
+    plugin_path, _unused1, _unused2 = _get_plugin_paths(folder_name)
     local_manifest = _load_local_manifest(folder_name)
 
     remote_version = None
@@ -240,19 +241,21 @@ def download_plugin(request):
             if remote_version and not _is_remote_version_newer(local_version, remote_version):
                 messages.info(
                     request,
-                    f"El módulo '{folder_name}' ya está descargado y actualizado (v{local_version})."
+                    _("El módulo '%(folder)s' ya está descargado y actualizado (v%(ver)s).") % {
+                        "folder": folder_name, "ver": local_version
+                    }
                 )
                 return redirect("marketplace")
 
             # Hay que actualizar: bajar y limpiar como una desinstalación fuerte
             _cleanup_existing_plugin_installation(folder_name)
-            action_label = "actualizado"
+            action_label = _("actualizado")
 
         else:
             # Caso 2: carpeta vacía, corrupta o incompleta
             if os.path.exists(plugin_path):
                 _cleanup_existing_plugin_installation(folder_name)
-            action_label = "descargado"
+            action_label = _("descargado")
 
         host_base_path = os.environ.get("HOST_PROJECT_PATH")
         user_id = os.environ.get("HOST_UID")
@@ -290,10 +293,12 @@ def download_plugin(request):
         # Dejamos el registro en estado no instalado hasta que el usuario lo instale/reanude desde el Hub
         AvailableApp.objects.filter(folder_name=folder_name).update(is_installed=False)
 
-        messages.success(request, f"Módulo '{folder_name}' {action_label} con éxito.")
+        messages.success(request, _("Módulo '%(folder)s' %(action)s con éxito.") % {
+            "folder": folder_name, "action": action_label
+        })
 
     except Exception as e:
-        messages.error(request, f"Error al descargar/actualizar: {str(e)}")
+        messages.error(request, _("Error al descargar/actualizar: %(err)s") % {"err": str(e)})
         print(f"DEBUG Error: {str(e)}")
 
     return redirect("marketplace")

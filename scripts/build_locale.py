@@ -136,6 +136,58 @@ EN = {
     # Settings (LANGUAGES)
     "Español": "Spanish",
     "English": "English",
+
+    # Mensajes flash (Python views.py)
+    "Contraseña actualizada correctamente.": "Password updated successfully.",
+    "Revisa los errores del formulario.": "Check the form for errors.",
+    "Módulo %(folder)s instalado y activado.": "Module %(folder)s installed and started.",
+    "Error al instalar: %(err)s": "Install failed: %(err)s",
+    "Módulo %(folder)s reanudado.": "Module %(folder)s resumed.",
+    "Error al iniciar: %(err)s": "Start failed: %(err)s",
+    "Módulo %(folder)s detenido.": "Module %(folder)s stopped.",
+    "Error al detener: %(err)s": "Stop failed: %(err)s",
+    "Módulo %(folder)s desinstalado.": "Module %(folder)s uninstalled.",
+    "Error al desinstalar el módulo: %(err)s": "Uninstall failed: %(err)s",
+    "Módulo %(folder)s eliminado completamente del sistema.": "Module %(folder)s completely removed from the system.",
+    "Error al eliminar el módulo: %(err)s": "Delete failed: %(err)s",
+    "Configuración de %(folder)s actualizada y aplicada.": "Configuration for %(folder)s updated and applied.",
+    "No se pudo conectar con el Marketplace. Verifica tu conexión a internet.":
+        "Couldn't reach the Marketplace. Check your internet connection.",
+    "No se recibió una URL de Git válida.": "Missing a valid Git URL.",
+    "El módulo '%(folder)s' ya está descargado y actualizado (v%(ver)s).":
+        "Module '%(folder)s' is already downloaded and up to date (v%(ver)s).",
+    "actualizado": "updated",
+    "Módulo '%(folder)s' %(action)s con éxito.": "Module '%(folder)s' %(action)s successfully.",
+    "Error al descargar/actualizar: %(err)s": "Download/update failed: %(err)s",
+
+    # Confirmaciones / modales
+    "¿Confirmar acción?": "Confirm action?",
+    "Esta acción no se puede deshacer.": "This action cannot be undone.",
+    "Cancelar": "Cancel",
+    "Confirmar": "Confirm",
+    "¿Desinstalar este módulo?": "Uninstall this module?",
+    "Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La carpeta del plugin se conserva.":
+        "Containers will stop and images/volumes will be removed. The plugin folder is kept.",
+    "Sí, desinstalar": "Yes, uninstall",
+    "¿Borrar este módulo?": "Delete this module?",
+    "Se eliminará por completo de tu equipo (contenedores, imágenes y carpeta local). Esta acción no se puede deshacer.":
+        "It will be removed completely from your machine (containers, images and local folder). This cannot be undone.",
+    "Sí, borrar": "Yes, delete",
+
+    # Logs modal y editor de .env (JS strings via window.i18n)
+    "▶ Terminal — stdout / stderr": "▶ Terminal — stdout / stderr",
+    "Cerrar ✕": "Close ✕",
+    "&gt; Conectando con Docker daemon...": "&gt; Connecting to Docker daemon...",
+    "> Conectando con Docker daemon...": "> Connecting to Docker daemon...",
+    "> Cargando streams...": "> Loading streams...",
+    "CRITICAL ERROR: No se pudo contactar con el Kernel.":
+        "CRITICAL ERROR: Couldn't contact the Kernel.",
+    "# Cargando configuración...": "# Loading configuration...",
+    "# ERROR: No se pudo conectar con el sistema de archivos.":
+        "# ERROR: Couldn't reach the filesystem.",
+    "Error al guardar: ": "Save failed: ",
+    "Error de comunicación con el Kernel.": "Kernel communication error.",
+
 }
 
 # Plurales: msgid singular / msgid plural -> (en_singular, en_plural)

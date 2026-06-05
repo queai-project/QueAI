@@ -490,7 +490,8 @@
             </a>
 
             <div class="card-body">
-                <p class="card-desc">{{ app.description|default:_("Sin descripción disponible.") }}</p>
+                {% get_current_language as CUR_LANG %}
+                <p class="card-desc">{% if CUR_LANG == 'en' and app.description_en %}{{ app.description_en }}{% else %}{{ app.description|default:_("Sin descripción disponible.") }}{% endif %}</p>
             </div>
 
             <div class="card-actions">
@@ -567,10 +568,10 @@
 <div id="logsModal" class="modal-overlay">
     <div class="logs-box">
         <div class="logs-topbar">
-            <span class="logs-title">▶ Terminal — stdout / stderr</span>
-            <button class="btn-modal-close" style="border-color:#1f2a1f;color:#4ade80;" onclick="document.getElementById('logsModal').classList.remove('open')">Cerrar ✕</button>
+            <span class="logs-title">{% trans "▶ Terminal — stdout / stderr" %}</span>
+            <button class="btn-modal-close" style="border-color:#1f2a1f;color:#4ade80;" onclick="document.getElementById('logsModal').classList.remove('open')">{% trans "Cerrar ✕" %}</button>
         </div>
-        <pre id="logsContent">&gt; Conectando con Docker daemon...</pre>
+        <pre id="logsContent">{% trans "&gt; Conectando con Docker daemon..." %}</pre>
     </div>
 </div>
 
@@ -596,15 +597,15 @@
 
 <div id="confirmModal" class="modal-overlay">
     <div class="confirm-box">
-        <div class="confirm-title" id="confirmTitle">¿Confirmar acción?</div>
-        <p class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</p>
+        <div class="confirm-title" id="confirmTitle">{% trans "¿Confirmar acción?" %}</div>
+        <p class="confirm-desc" id="confirmDesc">{% trans "Esta acción no se puede deshacer." %}</p>
         <div class="confirm-module" id="confirmModuleName">—</div>
         <form method="post" action="" id="confirmForm">
             {% csrf_token %}
             <input type="hidden" name="manifest_folder_name" id="confirmFolderInput" value="">
             <div class="confirm-actions">
-                <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Cancelar</button>
-                <button type="submit" class="btn-confirm-danger" id="confirmSubmitText">Confirmar</button>
+                <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">{% trans "Cancelar" %}</button>
+                <button type="submit" class="btn-confirm-danger" id="confirmSubmitText">{% trans "Confirmar" %}</button>
             </div>
         </form>
     </div>
@@ -612,6 +613,27 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Strings traducibles consumidas por apps.js y los confirms. Se expone
+    // como window.i18n antes de cargar el JS estático para que tenga acceso
+    // a las traducciones del idioma activo.
+    window.i18n = {
+        connecting_docker:   "{% trans '> Conectando con Docker daemon...' %}",
+        loading_streams:     "{% trans '> Cargando streams...' %}",
+        error_kernel:        "{% trans 'CRITICAL ERROR: No se pudo contactar con el Kernel.' %}",
+        loading_config:      "{% trans '# Cargando configuración...' %}",
+        error_filesystem:    "{% trans '# ERROR: No se pudo conectar con el sistema de archivos.' %}",
+        applying:            "{% trans 'Aplicando…' %}",
+        save_error:          "{% trans 'Error al guardar: ' %}",
+        kernel_comm_error:   "{% trans 'Error de comunicación con el Kernel.' %}",
+        uninstall_title:     "{% trans '¿Desinstalar este módulo?' %}",
+        uninstall_desc:      "{% trans 'Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La carpeta del plugin se conserva.' %}",
+        uninstall_confirm:   "{% trans 'Sí, desinstalar' %}",
+        delete_title:        "{% trans '¿Borrar este módulo?' %}",
+        delete_desc:         "{% trans 'Se eliminará por completo de tu equipo (contenedores, imágenes y carpeta local). Esta acción no se puede deshacer.' %}",
+        delete_confirm:      "{% trans 'Sí, borrar' %}"
+    };
+</script>
 <script src="{% static 'js/apps.js' %}"></script>
 <script>
     function openConfirmModal({ title, description, actionUrl, submitText, folder, name }) {
@@ -626,20 +648,20 @@
 
     function confirmUninstall(folder, name) {
         openConfirmModal({
-            title: '¿Desinstalar este módulo?',
-            description: 'Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La carpeta del plugin se conserva.',
+            title: window.i18n.uninstall_title,
+            description: window.i18n.uninstall_desc,
             actionUrl: "{% url 'uninstall_app' %}",
-            submitText: 'Sí, desinstalar',
+            submitText: window.i18n.uninstall_confirm,
             folder, name
         });
     }
 
     function confirmDelete(folder, name) {
         openConfirmModal({
-            title: '¿Borrar este módulo?',
-            description: 'Se eliminará por completo de tu equipo (contenedores, imágenes y carpeta local). Esta acción no se puede deshacer.',
+            title: window.i18n.delete_title,
+            description: window.i18n.delete_desc,
             actionUrl: "{% url 'delete_app' %}",
-            submitText: 'Sí, borrar',
+            submitText: window.i18n.delete_confirm,
             folder, name
         });
     }
