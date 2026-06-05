@@ -436,18 +436,18 @@
     <div class="filter-bar">
         <div class="filter-search-wrap">
             <input type="text" id="filterSearch" class="filter-search"
-                   placeholder="Buscar módulo" autocomplete="off" oninput="applyFilters()">
+                   placeholder="{% trans 'Buscar módulo' %}" autocomplete="off" oninput="applyFilters()">
         </div>
         <div class="filter-pills">
-            <button class="filter-pill active" data-filter="all" onclick="setFilter('all', this)">Todos</button>
-            <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">Activos</button>
-            <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">Detenidos</button>
-            <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">Sin instalar</button>
+            <button class="filter-pill active" data-filter="all" onclick="setFilter('all', this)">{% trans "Todos" %}</button>
+            <button class="filter-pill" data-filter="running" onclick="setFilter('running', this)">{% trans "Activos" %}</button>
+            <button class="filter-pill" data-filter="stopped" onclick="setFilter('stopped', this)">{% trans "Detenidos" %}</button>
+            <button class="filter-pill" data-filter="fresh" onclick="setFilter('fresh', this)">{% trans "Sin instalar" %}</button>
         </div>
-        <span class="filter-count" id="filterCount">{{ apps|length }} módulos</span>
-        <button class="btn-refresh" id="btnRefresh" onclick="refreshCatalog()" title="Re-escanear plugins en disco">
+        <span class="filter-count" id="filterCount">{% blocktrans count counter=apps|length %}{{ counter }} módulo{% plural %}{{ counter }} módulos{% endblocktrans %}</span>
+        <button class="btn-refresh" id="btnRefresh" onclick="refreshCatalog()" title="{% trans 'Re-escanear plugins en disco' %}">
             <span class="refresh-icon">↻</span>
-            <span class="refresh-label">Actualizar</span>
+            <span class="refresh-label">{% trans "Actualizar" %}</span>
         </button>
     </div>
 
@@ -549,7 +549,7 @@
         {% endfor %}
 
         <div class="filter-empty" id="filterEmpty">
-            <p>Ningún módulo coincide con <span id="filterEmptyTerm"></span></p>
+            <p>{% blocktrans trimmed %}Ningún módulo coincide con <span id="filterEmptyTerm"></span>{% endblocktrans %}</p>
         </div>
     </div>
 </div>
@@ -559,7 +559,7 @@
     <div class="app-modal-box">
         <div class="modal-topbar">
             <div class="modal-dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
-            <button class="btn-modal-close" onclick="closeApp()">Cerrar ✕</button>
+            <button class="btn-modal-close" onclick="closeApp()">{% trans "Cerrar ✕" %}</button>
         </div>
         <iframe id="appIframe" src="" style="flex:1;border:none;width:100%;"></iframe>
     </div>
@@ -579,17 +579,17 @@
     <div class="config-box">
         <div class="config-topbar">
             <div class="config-title-group">
-                <span class="config-label">Configuración de módulo</span>
+                <span class="config-label">{% trans "Configuración de módulo" %}</span>
                 <span class="config-name" id="configTitle">—</span>
             </div>
-            <button class="btn-modal-close" onclick="closeConfigEditor()">Cerrar ✕</button>
+            <button class="btn-modal-close" onclick="closeConfigEditor()">{% trans "Cerrar ✕" %}</button>
         </div>
-        <textarea id="envEditor" spellcheck="false" placeholder="CLAVE=VALOR&#10;OTRA_CLAVE=VALOR"></textarea>
+        <textarea id="envEditor" spellcheck="false" placeholder="{% trans 'CLAVE=VALOR' %}&#10;{% trans 'OTRA_CLAVE=VALOR' %}"></textarea>
         <div class="config-footer">
-            <span class="config-hint">El contenedor se reiniciará al guardar</span>
+            <span class="config-hint">{% trans "El contenedor se reiniciará al guardar" %}</span>
             <div class="config-btns">
-                <button class="btn-sm-cancel" onclick="closeConfigEditor()">Cancelar</button>
-                <button class="btn-sm-save" onclick="saveConfig(event)">Guardar y aplicar</button>
+                <button class="btn-sm-cancel" onclick="closeConfigEditor()">{% trans "Cancelar" %}</button>
+                <button class="btn-sm-save" onclick="saveConfig(event)">{% trans "Guardar y aplicar" %}</button>
             </div>
         </div>
     </div>

@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Audit log{% endblock %}
-{% block page_label %}<span class="page-title">Audit log</span>{% endblock %}
+{% block title %}{% trans "Audit log" %}{% endblock %}
+{% block page_label %}<span class="page-title">{% trans "Audit log" %}</span>{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -157,40 +158,40 @@
     <div class="audit-toolbar">
         <form method="get">
             <select name="action">
-                <option value="">— acción —</option>
+                <option value="">{% trans "— acción —" %}</option>
                 {% for a in actions_choices %}
                 <option value="{{ a }}" {% if filters.action == a %}selected{% endif %}>{{ a }}</option>
                 {% endfor %}
             </select>
             <select name="source">
-                <option value="">— fuente —</option>
+                <option value="">{% trans "— fuente —" %}</option>
                 {% for s in sources_choices %}
                 <option value="{{ s }}" {% if filters.source == s %}selected{% endif %}>{{ s }}</option>
                 {% endfor %}
             </select>
-            <input type="text" name="target" value="{{ filters.target }}" placeholder="target contiene…">
+            <input type="text" name="target" value="{{ filters.target }}" placeholder="{% trans 'target contiene…' %}">
             <label>
                 <input type="checkbox" name="only_failures" value="1" {% if filters.only_failures %}checked{% endif %}>
-                solo errores
+                {% trans "solo errores" %}
             </label>
-            <button type="submit">Filtrar</button>
-            <a class="btn btn-clear" href="{% url 'audit' %}">Limpiar</a>
+            <button type="submit">{% trans "Filtrar" %}</button>
+            <a class="btn btn-clear" href="{% url 'audit' %}">{% trans "Limpiar" %}</a>
         </form>
     </div>
 
-    <div class="audit-meta">{{ total }} evento{{ total|pluralize }} · página {{ page.number }} de {{ page.paginator.num_pages }}</div>
+    <div class="audit-meta">{% with pn=page.number pt=page.paginator.num_pages %}{% blocktrans count counter=total trimmed %}{{ counter }} evento · página {{ pn }} de {{ pt }}{% plural %}{{ counter }} eventos · página {{ pn }} de {{ pt }}{% endblocktrans %}{% endwith %}</div>
 
     {% if page.object_list %}
     <table class="audit">
         <thead>
             <tr>
-                <th>Cuándo</th>
-                <th>Fuente</th>
-                <th>Acción</th>
-                <th>Target</th>
-                <th>Resultado</th>
-                <th>Usuario</th>
-                <th>Mensaje</th>
+                <th>{% trans "Cuándo" %}</th>
+                <th>{% trans "Fuente" %}</th>
+                <th>{% trans "Acción" %}</th>
+                <th>{% trans "Target" %}</th>
+                <th>{% trans "Resultado" %}</th>
+                <th>{% trans "Usuario" %}</th>
+                <th>{% trans "Mensaje" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -200,7 +201,7 @@
                 <td><span class="src-pill" data-s="{{ ev.source }}">{{ ev.source }}</span></td>
                 <td class="action">{{ ev.action }}</td>
                 <td class="target">{{ ev.target|default:'—' }}</td>
-                <td>{% if ev.success %}<span class="ok-pill">ok</span>{% else %}<span class="fail-pill">fail</span>{% endif %}</td>
+                <td>{% if ev.success %}<span class="ok-pill">{% trans "ok" %}</span>{% else %}<span class="fail-pill">{% trans "fail" %}</span>{% endif %}</td>
                 <td class="user">{{ ev.user.username|default:'—' }}</td>
                 <td class="msg">{{ ev.message|default:'' }}</td>
             </tr>
@@ -211,17 +212,17 @@
     {% if page.paginator.num_pages > 1 %}
     <div class="pager">
         {% if page.has_previous %}
-        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.previous_page_number }}">← anterior</a>
+        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.previous_page_number }}">{% trans "← anterior" %}</a>
         {% endif %}
         <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
         {% if page.has_next %}
-        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.next_page_number }}">siguiente →</a>
+        <a href="?{% if filters.action %}action={{ filters.action }}&{% endif %}{% if filters.source %}source={{ filters.source }}&{% endif %}{% if filters.target %}target={{ filters.target }}&{% endif %}{% if filters.only_failures %}only_failures=1&{% endif %}page={{ page.next_page_number }}">{% trans "siguiente →" %}</a>
         {% endif %}
     </div>
     {% endif %}
 
     {% else %}
-    <div class="empty">Sin eventos para esos filtros.</div>
+    <div class="empty">{% trans "Sin eventos para esos filtros." %}</div>
     {% endif %}
 </div>
 {% endblock %}

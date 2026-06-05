@@ -311,6 +311,87 @@ msgstr "Español"
 msgid "English"
 msgstr "English"
 
+msgid "Buscar módulo"
+msgstr "Buscar módulo"
+
+msgid "Activos"
+msgstr "Activos"
+
+msgid "Detenidos"
+msgstr "Detenidos"
+
+msgid "Sin instalar"
+msgstr "Sin instalar"
+
+msgid "Re-escanear plugins en disco"
+msgstr "Re-escanear plugins en disco"
+
+msgid "Configuración de módulo"
+msgstr "Configuración de módulo"
+
+msgid "CLAVE=VALOR"
+msgstr "CLAVE=VALOR"
+
+msgid "OTRA_CLAVE=VALOR"
+msgstr "OTRA_CLAVE=VALOR"
+
+msgid "El contenedor se reiniciará al guardar"
+msgstr "El contenedor se reiniciará al guardar"
+
+msgid "Guardar y aplicar"
+msgstr "Guardar y aplicar"
+
+msgid "— acción —"
+msgstr "— acción —"
+
+msgid "— fuente —"
+msgstr "— fuente —"
+
+msgid "target contiene…"
+msgstr "target contiene…"
+
+msgid "solo errores"
+msgstr "solo errores"
+
+msgid "Filtrar"
+msgstr "Filtrar"
+
+msgid "Limpiar"
+msgstr "Limpiar"
+
+msgid "Cuándo"
+msgstr "Cuándo"
+
+msgid "Fuente"
+msgstr "Fuente"
+
+msgid "Acción"
+msgstr "Acción"
+
+msgid "Target"
+msgstr "Target"
+
+msgid "Resultado"
+msgstr "Resultado"
+
+msgid "Mensaje"
+msgstr "Mensaje"
+
+msgid "ok"
+msgstr "ok"
+
+msgid "fail"
+msgstr "fail"
+
+msgid "← anterior"
+msgstr "← anterior"
+
+msgid "siguiente →"
+msgstr "siguiente →"
+
+msgid "Sin eventos para esos filtros."
+msgstr "Sin eventos para esos filtros."
+
 msgid "Información del usuario"
 msgstr "Información del usuario"
 
@@ -478,3 +559,8 @@ msgid "{{ counter }} módulo"
 msgid_plural "{{ counter }} módulos"
 msgstr[0] "{{ counter }} módulo"
 msgstr[1] "{{ counter }} módulos"
+
+msgid "{{ counter }} evento · página {{ pn }} de {{ pt }}"
+msgid_plural "{{ counter }} eventos · página {{ pn }} de {{ pt }}"
+msgstr[0] "{{ counter }} evento · página {{ pn }} de {{ pt }}"
+msgstr[1] "{{ counter }} eventos · página {{ pn }} de {{ pt }}"

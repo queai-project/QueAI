@@ -137,6 +137,39 @@ EN = {
     "Español": "Spanish",
     "English": "English",
 
+    # Hub filtros
+    "Buscar módulo": "Search module",
+    "Activos": "Running",
+    "Detenidos": "Stopped",
+    "Sin instalar": "Not installed",
+    "Re-escanear plugins en disco": "Re-scan plugins on disk",
+    "Configuración de módulo": "Module configuration",
+    "CLAVE=VALOR": "KEY=VALUE",
+    "OTRA_CLAVE=VALOR": "ANOTHER_KEY=VALUE",
+    "El contenedor se reiniciará al guardar": "The container will restart on save",
+    "Guardar y aplicar": "Save and apply",
+
+    # Audit log
+    "Audit log": "Audit log",
+    "— acción —": "— action —",
+    "— fuente —": "— source —",
+    "target contiene…": "target contains…",
+    "solo errores": "errors only",
+    "Filtrar": "Filter",
+    "Limpiar": "Clear",
+    "Cuándo": "When",
+    "Fuente": "Source",
+    "Acción": "Action",
+    "Target": "Target",
+    "Resultado": "Result",
+    "Usuario": "User",
+    "Mensaje": "Message",
+    "ok": "ok",
+    "fail": "fail",
+    "← anterior": "← previous",
+    "siguiente →": "next →",
+    "Sin eventos para esos filtros.": "No events match these filters.",
+
     # account.html (Mi cuenta ya está en navbar arriba)
     "Información del usuario": "User information",
     "Datos del usuario actual y estado de la sesión.":
@@ -210,6 +243,10 @@ EN = {
 PLURALS = {
     ("{{ counter }} módulo", "{{ counter }} módulos"):
         ("{{ counter }} module", "{{ counter }} modules"),
+    ("{{ counter }} evento · página {{ pn }} de {{ pt }}",
+     "{{ counter }} eventos · página {{ pn }} de {{ pt }}"):
+        ("{{ counter }} event · page {{ pn }} of {{ pt }}",
+         "{{ counter }} events · page {{ pn }} of {{ pt }}"),
 }
 
 

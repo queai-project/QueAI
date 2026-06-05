@@ -114,7 +114,7 @@ msgid "Usuario o contraseña incorrectos."
 msgstr "Wrong username or password."
 
 msgid "Usuario"
-msgstr "Username"
+msgstr "User"
 
 msgid "Contraseña"
 msgstr "Password"
@@ -307,6 +307,87 @@ msgstr "Spanish"
 msgid "English"
 msgstr "English"
 
+msgid "Buscar módulo"
+msgstr "Search module"
+
+msgid "Activos"
+msgstr "Running"
+
+msgid "Detenidos"
+msgstr "Stopped"
+
+msgid "Sin instalar"
+msgstr "Not installed"
+
+msgid "Re-escanear plugins en disco"
+msgstr "Re-scan plugins on disk"
+
+msgid "Configuración de módulo"
+msgstr "Module configuration"
+
+msgid "CLAVE=VALOR"
+msgstr "KEY=VALUE"
+
+msgid "OTRA_CLAVE=VALOR"
+msgstr "ANOTHER_KEY=VALUE"
+
+msgid "El contenedor se reiniciará al guardar"
+msgstr "The container will restart on save"
+
+msgid "Guardar y aplicar"
+msgstr "Save and apply"
+
+msgid "— acción —"
+msgstr "— action —"
+
+msgid "— fuente —"
+msgstr "— source —"
+
+msgid "target contiene…"
+msgstr "target contains…"
+
+msgid "solo errores"
+msgstr "errors only"
+
+msgid "Filtrar"
+msgstr "Filter"
+
+msgid "Limpiar"
+msgstr "Clear"
+
+msgid "Cuándo"
+msgstr "When"
+
+msgid "Fuente"
+msgstr "Source"
+
+msgid "Acción"
+msgstr "Action"
+
+msgid "Target"
+msgstr "Target"
+
+msgid "Resultado"
+msgstr "Result"
+
+msgid "Mensaje"
+msgstr "Message"
+
+msgid "ok"
+msgstr "ok"
+
+msgid "fail"
+msgstr "fail"
+
+msgid "← anterior"
+msgstr "← previous"
+
+msgid "siguiente →"
+msgstr "next →"
+
+msgid "Sin eventos para esos filtros."
+msgstr "No events match these filters."
+
 msgid "Información del usuario"
 msgstr "User information"
 
@@ -473,3 +554,8 @@ msgid "{{ counter }} módulo"
 msgid_plural "{{ counter }} módulos"
 msgstr[0] "{{ counter }} module"
 msgstr[1] "{{ counter }} modules"
+
+msgid "{{ counter }} evento · página {{ pn }} de {{ pt }}"
+msgid_plural "{{ counter }} eventos · página {{ pn }} de {{ pt }}"
+msgstr[0] "{{ counter }} event · page {{ pn }} of {{ pt }}"
+msgstr[1] "{{ counter }} events · page {{ pn }} of {{ pt }}"
