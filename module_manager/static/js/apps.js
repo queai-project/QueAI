@@ -2,7 +2,13 @@ const csrfToken =
   document.querySelector("meta[name=\"csrf-token\"]")?.content?.trim() ?? "";
 
 function openApp(url) {
-  document.getElementById("appIframe").src = url;
+  // Cache-bust: añadimos ?_t=<ms> al URL antes de cargarlo en el iframe.
+  // Sin esto el browser sirve el HTML del plugin desde su caché tras un
+  // rebuild del container y el usuario sigue viendo la versión vieja.
+  // El plugin ignora el query string (FastAPI lo permite).
+  const sep = url.includes("?") ? "&" : "?";
+  const busted = `${url}${sep}_t=${Date.now()}`;
+  document.getElementById("appIframe").src = busted;
   document.getElementById("appModal").classList.add("open");
 }
 
