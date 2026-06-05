@@ -283,12 +283,18 @@
         padding: 20px;
     }
     .modal-overlay.open { display: flex; }
-    #appModal { align-items: stretch; padding: 14px; }
+    /* Modal del plugin: centrado vertical/horizontal con max-width
+       controlado para que los laterales no queden vacíos cuando el
+       plugin centra su propio contenido. Si la viewport es más chica
+       que el max, ocupa todo el ancho disponible. */
+    #appModal { align-items: center; justify-content: center; padding: 24px; }
     .app-modal-box {
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         width: 100%;
+        max-width: 1200px;
+        height: min(92vh, 100%);
         display: flex; flex-direction: column; overflow: hidden;
         box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     }
