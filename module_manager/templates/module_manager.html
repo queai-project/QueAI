@@ -463,7 +463,13 @@
 
     <div class="section-header" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
         <span class="section-title">// {% trans "Hub" %}</span>
-        <span class="section-count">{% blocktrans count counter=apps|length %}{{ counter }} módulo disponible{% plural %}{{ counter }} módulos disponibles{% endblocktrans %}</span>
+        <span class="section-count">
+            {% if CUR_LANG == 'en' %}
+                {{ apps|length }} {% if apps|length == 1 %}module available{% else %}modules available{% endif %}
+            {% else %}
+                {{ apps|length }} {% if apps|length == 1 %}módulo disponible{% else %}módulos disponibles{% endif %}
+            {% endif %}
+        </span>
     </div>
 
     <div class="apps-grid">

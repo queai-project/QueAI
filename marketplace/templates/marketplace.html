@@ -217,7 +217,7 @@
             <div class="install-form">
                 <input type="text" name="git_url" required
                     class="install-input"
-                    placeholder="https://github.com/usuario/mi-plugin.git">
+                    placeholder="{% if CUR_LANG == 'en' %}https://github.com/user/my-plugin.git{% else %}https://github.com/usuario/mi-plugin.git{% endif %}">
                 <button type="submit" class="btn-install"
                         data-loading-text="{% if CUR_LANG == 'en' %}Downloading…{% else %}Descargando…{% endif %}"
                         data-loading-overlay="{% if CUR_LANG == 'en' %}Cloning repository…{% else %}Clonando repositorio…{% endif %}">{% trans "Descargar" %}</button>
@@ -227,7 +227,13 @@
 
     <div class="section-header">
         <span class="section-title">// {% trans "registro oficial" %}</span>
-        <span class="section-count">{% blocktrans count counter=remote_plugins|length %}{{ counter }} plugin disponible{% plural %}{{ counter }} plugins disponibles{% endblocktrans %}</span>
+        <span class="section-count">
+            {% if CUR_LANG == 'en' %}
+                {{ remote_plugins|length }} {% if remote_plugins|length == 1 %}plugin available{% else %}plugins available{% endif %}
+            {% else %}
+                {{ remote_plugins|length }} {% if remote_plugins|length == 1 %}plugin disponible{% else %}plugins disponibles{% endif %}
+            {% endif %}
+        </span>
     </div>
 
     <div class="filter-bar">
@@ -242,7 +248,13 @@
             <button class="filter-pill" data-filter="downloaded" onclick="setMpFilter('downloaded', this)">{% trans "Descargados" %}</button>
             <button class="filter-pill" data-filter="fresh" onclick="setMpFilter('fresh', this)">{% trans "Sin descargar" %}</button>
         </div>
-        <span class="filter-count" id="mpFilterCount">{% blocktrans count counter=remote_plugins|length %}{{ counter }} plugin{% plural %}{{ counter }} plugins{% endblocktrans %}</span>
+        <span class="filter-count" id="mpFilterCount">
+            {% if CUR_LANG == 'en' %}
+                {{ remote_plugins|length }} {% if remote_plugins|length == 1 %}plugin{% else %}plugins{% endif %}
+            {% else %}
+                {{ remote_plugins|length }} {% if remote_plugins|length == 1 %}plugin{% else %}plugins{% endif %}
+            {% endif %}
+        </span>
     </div>
 
     <div class="plugins-grid" id="mpGrid">
@@ -308,6 +320,7 @@
 {% block extra_js %}
 <script>
     let _mpFilter = 'all';
+    const MP_LANG = "{{ CUR_LANG|escapejs }}";
 
     function setMpFilter(name, btn) {
         _mpFilter = name;
@@ -329,8 +342,11 @@
         });
         const counter = document.getElementById('mpFilterCount');
         if (counter) {
-            const label = visible === 1 ? "{% trans 'plugin' %}" : "{% trans 'plugins' %}";
-            counter.textContent = `${visible} ${label}`;
+            if (MP_LANG === 'en') {
+                counter.textContent = `${visible} ${visible === 1 ? 'plugin' : 'plugins'}`;
+            } else {
+                counter.textContent = `${visible} ${visible === 1 ? 'plugin' : 'plugins'}`;
+            }
         }
     }
 </script>
