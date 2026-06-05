@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Mi cuenta{% endblock %}
-{% block page_label %}<span class="page-title">Mi cuenta</span>{% endblock %}
+{% block title %}{% trans "Mi cuenta" %}{% endblock %}
+{% block page_label %}<span class="page-title">{% trans "Mi cuenta" %}</span>{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -79,19 +80,19 @@
 {% block content %}
 <div class="account-wrap">
     <div class="account-card">
-        <h2>Información del usuario</h2>
-        <p>Datos del usuario actual y estado de la sesión.</p>
+        <h2>{% trans "Información del usuario" %}</h2>
+        <p>{% trans "Datos del usuario actual y estado de la sesión." %}</p>
         <dl class="kv">
-            <dt>Usuario</dt><dd>{{ user.username }}</dd>
-            <dt>Email</dt><dd>{{ user.email|default:'—' }}</dd>
-            <dt>Superuser</dt><dd>{% if user.is_superuser %}sí{% else %}no{% endif %}</dd>
-            <dt>Último login</dt><dd>{{ user.last_login|date:'Y-m-d H:i:s'|default:'—' }}</dd>
+            <dt>{% trans "Usuario" %}</dt><dd>{{ user.username }}</dd>
+            <dt>{% trans "Email" %}</dt><dd>{{ user.email|default:'—' }}</dd>
+            <dt>{% trans "Superuser" %}</dt><dd>{% if user.is_superuser %}{% trans "sí" %}{% else %}{% trans "no" %}{% endif %}</dd>
+            <dt>{% trans "Último login" %}</dt><dd>{{ user.last_login|date:'Y-m-d H:i:s'|default:'—' }}</dd>
         </dl>
     </div>
 
     <div class="account-card">
-        <h2>Cambiar contraseña</h2>
-        <p>Define una nueva contraseña. La sesión actual no se cerrará.</p>
+        <h2>{% trans "Cambiar contraseña" %}</h2>
+        <p>{% trans "Define una nueva contraseña. La sesión actual no se cerrará." %}</p>
 
         <form method="post" class="pw-form" autocomplete="off">
             {% csrf_token %}
@@ -103,7 +104,7 @@
             {% endif %}
 
             <div class="pw-field">
-                <label for="id_old_password">Contraseña actual</label>
+                <label for="id_old_password">{% trans "Contraseña actual" %}</label>
                 {{ password_form.old_password }}
                 {% if password_form.old_password.errors %}
                 <div class="pw-errors"><ul>{% for err in password_form.old_password.errors %}<li>{{ err }}</li>{% endfor %}</ul></div>
@@ -111,7 +112,7 @@
             </div>
 
             <div class="pw-field">
-                <label for="id_new_password1">Nueva contraseña</label>
+                <label for="id_new_password1">{% trans "Nueva contraseña" %}</label>
                 {{ password_form.new_password1 }}
                 <div class="pw-help">{{ password_form.new_password1.help_text|safe }}</div>
                 {% if password_form.new_password1.errors %}
@@ -120,14 +121,14 @@
             </div>
 
             <div class="pw-field">
-                <label for="id_new_password2">Confirma la nueva contraseña</label>
+                <label for="id_new_password2">{% trans "Confirma la nueva contraseña" %}</label>
                 {{ password_form.new_password2 }}
                 {% if password_form.new_password2.errors %}
                 <div class="pw-errors"><ul>{% for err in password_form.new_password2.errors %}<li>{{ err }}</li>{% endfor %}</ul></div>
                 {% endif %}
             </div>
 
-            <button type="submit" class="pw-submit">Cambiar contraseña</button>
+            <button type="submit" class="pw-submit">{% trans "Cambiar contraseña" %}</button>
         </form>
     </div>
 </div>

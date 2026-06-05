@@ -115,9 +115,9 @@
 <div class="welcome-wrap">
     <div class="welcome-intro">
         <img class="welcome-mascot" src="{% static 'welcome-emoji.png' %}" alt="{% trans 'Kyubit dando la bienvenida' %}">
-        <h1>{% blocktrans %}Bienvenido a <em>QueAI</em>{% endblocktrans %}</h1>
+        <h1>{% blocktrans trimmed %}Bienvenido a <em>QueAI</em>{% endblocktrans %}</h1>
         <p>
-            {% blocktrans %}
+            {% blocktrans trimmed %}
             El kernel está listo. Tres pasos para empezar a usarlo —
             puedes saltarlos y volver más tarde cuando quieras.
             {% endblocktrans %}
@@ -129,7 +129,7 @@
             <span class="step-num">{% trans "01 · Kernel" %}</span>
             <h3>{% trans "¿Qué hace el kernel?" %}</h3>
             <p>
-                {% blocktrans %}
+                {% blocktrans trimmed %}
                 QueAI gestiona módulos de IA empaquetados como contenedores Docker.
                 Cada módulo es independiente, expone su propia UI y se instala con
                 un click desde el Hub.
@@ -144,7 +144,7 @@
             <span class="step-num">{% trans "02 · Marketplace" %}</span>
             <h3>{% trans "Instala tu primer módulo" %}</h3>
             <p>
-                {% blocktrans %}
+                {% blocktrans trimmed %}
                 En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,
                 instálalos desde el Hub y empieza a usarlos en local.
                 {% endblocktrans %}
@@ -156,7 +156,7 @@
             <span class="step-num">{% trans "03 · Plugins" %}</span>
             <h3>{% trans "Crea tu propio plugin" %}</h3>
             <p>
-                {% blocktrans %}
+                {% blocktrans trimmed %}
                 Cualquier microservicio con un <code>manifest.json</code> y un
                 <code>docker-compose.yml</code> puede ser un plugin de QueAI.
                 Hay una plantilla lista para clonar.

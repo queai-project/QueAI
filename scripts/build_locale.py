@@ -32,22 +32,22 @@ EN = {
     "Bienvenida": "Welcome",
     "Kyubit dando la bienvenida": "Kyubit greeting you",
     "Bienvenido a <em>QueAI</em>": "Welcome to <em>QueAI</em>",
-    "El kernel está listo. Tres pasos para empezar a usarlo —\n            puedes saltarlos y volver más tarde cuando quieras.":
-        "The kernel is ready. Three steps to get going —\n            feel free to skip them and come back later.",
+    "El kernel está listo. Tres pasos para empezar a usarlo — puedes saltarlos y volver más tarde cuando quieras.":
+        "The kernel is ready. Three steps to get going — feel free to skip them and come back later.",
     "01 · Kernel": "01 · Kernel",
     "02 · Marketplace": "02 · Marketplace",
     "03 · Plugins": "03 · Plugins",
     "¿Qué hace el kernel?": "What does the kernel do?",
-    "QueAI gestiona módulos de IA empaquetados como contenedores Docker.\n                Cada módulo es independiente, expone su propia UI y se instala con\n                un click desde el Hub.":
-        "QueAI manages AI modules packaged as Docker containers.\n                Each module is independent, exposes its own UI and installs\n                with one click from the Hub.",
+    "QueAI gestiona módulos de IA empaquetados como contenedores Docker. Cada módulo es independiente, expone su propia UI y se instala con un click desde el Hub.":
+        "QueAI manages AI modules packaged as Docker containers. Each module is independent, exposes its own UI and installs with one click from the Hub.",
     "Ver arquitectura →": "See architecture →",
     "Instala tu primer módulo": "Install your first module",
-    "En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos,\n                instálalos desde el Hub y empieza a usarlos en local.":
-        "The Marketplace ships official OCR, STT and TTS. Download them,\n                install from the Hub and start running them locally.",
+    "En el Marketplace encuentras OCR, STT y TTS oficiales. Descárgalos, instálalos desde el Hub y empieza a usarlos en local.":
+        "The Marketplace ships official OCR, STT and TTS. Download them, install from the Hub and start running them locally.",
     "Ir al Marketplace →": "Open Marketplace →",
     "Crea tu propio plugin": "Build your own plugin",
-    "Cualquier microservicio con un <code>manifest.json</code> y un\n                <code>docker-compose.yml</code> puede ser un plugin de QueAI.\n                Hay una plantilla lista para clonar.":
-        "Any microservice with a <code>manifest.json</code> and a\n                <code>docker-compose.yml</code> can be a QueAI plugin.\n                There's a template ready to clone.",
+    "Cualquier microservicio con un <code>manifest.json</code> y un <code>docker-compose.yml</code> puede ser un plugin de QueAI. Hay una plantilla lista para clonar.":
+        "Any microservice with a <code>manifest.json</code> and a <code>docker-compose.yml</code> can be a QueAI plugin. There's a template ready to clone.",
     "Guía de plugins →": "Plugin guide →",
     "Explorar Marketplace": "Explore Marketplace",
     "Continuar al inicio": "Continue to home",
@@ -63,8 +63,8 @@ EN = {
     # home.html
     "Inicio": "Home",
     "Orquestador modular de IA": "Modular AI orchestrator",
-    "Instala, configura y monitorea módulos de IA desde una sola interfaz.\n            Local, cloud o híbrido — cada módulo es un contenedor con su propia API.":
-        "Install, configure and monitor AI modules from one place.\n            Local, cloud or hybrid — every module is a container with its own API.",
+    "Instala, configura y monitorea módulos de IA desde una sola interfaz. Local, cloud o híbrido — cada módulo es un contenedor con su propia API.":
+        "Install, configure and monitor AI modules from one place. Local, cloud or hybrid — every module is a container with its own API.",
     "01 · Hub": "01 · Hub",
     "Hub de módulos": "Module Hub",
     "Instala, detén, configura y consulta logs de todos tus plugins desde un solo lugar.":
@@ -136,6 +136,22 @@ EN = {
     # Settings (LANGUAGES)
     "Español": "Spanish",
     "English": "English",
+
+    # account.html (Mi cuenta ya está en navbar arriba)
+    "Información del usuario": "User information",
+    "Datos del usuario actual y estado de la sesión.":
+        "Current user data and session status.",
+    "Email": "Email",
+    "Superuser": "Superuser",
+    "sí": "yes",
+    "no": "no",
+    "Último login": "Last login",
+    "Cambiar contraseña": "Change password",
+    "Define una nueva contraseña. La sesión actual no se cerrará.":
+        "Set a new password. Your current session will not be closed.",
+    "Contraseña actual": "Current password",
+    "Nueva contraseña": "New password",
+    "Confirma la nueva contraseña": "Confirm the new password",
 
     # Mensajes flash (Python views.py)
     "Contraseña actualizada correctamente.": "Password updated successfully.",
