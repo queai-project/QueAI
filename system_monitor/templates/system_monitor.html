@@ -208,7 +208,14 @@
             <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
             <h3>{% trans "Sin módulos instalados" %}</h3>
             {% url 'get_apps' as hub_url %}
-            <p>{% blocktrans %}Instala módulos desde el <a href="{{ hub_url }}">Hub</a> para comenzar a monitorearlos aquí.{% endblocktrans %}</p>
+            {% get_current_language as CUR_LANG %}
+            <p>
+                {% if CUR_LANG == 'en' %}
+                Install modules from the <a href="{{ hub_url }}">Hub</a> to start monitoring them here.
+                {% else %}
+                Instala módulos desde el <a href="{{ hub_url }}">Hub</a> para comenzar a monitorearlos aquí.
+                {% endif %}
+            </p>
         </div>
         {% endfor %}
     </div>

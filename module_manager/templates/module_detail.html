@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}{{ app.display_name }}{% endblock %}
 {% block page_label %}
@@ -204,8 +204,10 @@
 {% endblock %}
 
 {% block content %}
+{% trans "Sin descripción disponible." as no_description %}
+{% get_current_language as CUR_LANG %}
 <div class="detail-wrap">
-    <a class="back-link" href="{% url 'get_apps' %}">← volver al hub</a>
+    <a class="back-link" href="{% url 'get_apps' %}">← {% trans "volver al hub" %}</a>
 
     <div class="detail-head">
         <div class="detail-logo">
@@ -219,20 +221,26 @@
             <div class="detail-name">
                 {{ app.display_name }}
                 {% if not app.is_installed %}
-                    <span class="state-badge fresh">sin instalar</span>
+                    <span class="state-badge fresh">{% trans "sin instalar" %}</span>
                 {% elif app.is_running %}
-                    <span class="state-badge running">activo</span>
+                    <span class="state-badge running">{% trans "activo" %}</span>
                 {% else %}
-                    <span class="state-badge stopped">detenido</span>
+                    <span class="state-badge stopped">{% trans "detenido" %}</span>
                 {% endif %}
             </div>
             <div class="detail-folder">{{ app.folder_name }}</div>
-            <p class="detail-desc">{{ app.description|default:"Sin descripción disponible." }}</p>
+            <p class="detail-desc">
+                {% if CUR_LANG == 'en' and app.description_en %}
+                    {{ app.description_en }}
+                {% else %}
+                    {{ app.description|default:no_description }}
+                {% endif %}
+            </p>
 
             <div class="detail-kv">
-                <div class="kv-item"><span class="kv-label">Versión</span><span class="kv-val">v{{ app.version }}</span></div>
-                <div class="kv-item"><span class="kv-label">Autor</span><span class="kv-val">{{ app.author|default:"—" }}</span></div>
-                <div class="kv-item"><span class="kv-label">Licencia</span><span class="kv-val">{{ app.lic|default:"—" }}</span></div>
+                <div class="kv-item"><span class="kv-label">{% trans "Versión" %}</span><span class="kv-val">v{{ app.version }}</span></div>
+                <div class="kv-item"><span class="kv-label">{% trans "Autor" %}</span><span class="kv-val">{{ app.author|default:"—" }}</span></div>
+                <div class="kv-item"><span class="kv-label">{% trans "Licencia" %}</span><span class="kv-val">{{ app.lic|default:"—" }}</span></div>
                 <div class="kv-item"><span class="kv-label">Slug</span><span class="kv-val">{{ app.name }}</span></div>
             </div>
         </div>
@@ -240,17 +248,17 @@
 
     <div class="tabs" role="tablist">
         <button class="tab {% if app.is_installed %}active{% endif %}" data-tab="env" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>.env</button>
-        <button class="tab" data-tab="logs" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>Logs</button>
-        <button class="tab {% if not app.is_installed %}active{% endif %}" data-tab="danger">Avanzado</button>
+        <button class="tab" data-tab="logs" {% if not app.is_installed %}disabled style="opacity:.4;cursor:not-allowed"{% endif %}>{% trans "Logs" %}</button>
+        <button class="tab {% if not app.is_installed %}active{% endif %}" data-tab="danger">{% trans "Avanzado" %}</button>
     </div>
 
     <div class="tab-content {% if app.is_installed %}active{% endif %}" id="tab-env">
         <div class="panel">
-            <h3>.env del módulo</h3>
-            <textarea id="detailEnv" spellcheck="false" placeholder="# Cargando…"></textarea>
+            <h3>{% trans ".env del módulo" %}</h3>
+            <textarea id="detailEnv" spellcheck="false" placeholder="{% trans '# Cargando…' %}"></textarea>
             <div class="panel-actions">
-                <button class="pa-btn" onclick="loadDetailEnv()">↻ Recargar</button>
-                <button class="pa-btn primary" onclick="saveDetailEnv(event)">Guardar y aplicar</button>
+                <button class="pa-btn" onclick="loadDetailEnv()">↻ {% trans "Recargar" %}</button>
+                <button class="pa-btn primary" onclick="saveDetailEnv(event)">{% trans "Guardar y aplicar" %}</button>
             </div>
         </div>
     </div>
@@ -258,46 +266,46 @@
     <div class="tab-content" id="tab-logs">
         <div class="panel">
             <h3 style="display:flex;align-items:center;gap:10px;">
-                Logs
-                <span id="logsStreamStatus" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);font-weight:400;">snapshot</span>
+                {% trans "Logs" %}
+                <span id="logsStreamStatus" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);font-weight:400;">{% trans "snapshot" %}</span>
             </h3>
-            <pre id="detailLogs">&gt; cargando…</pre>
+            <pre id="detailLogs">{% trans "> cargando…" %}</pre>
             <div class="panel-actions">
-                <button class="pa-btn" id="logsSnapshotBtn" onclick="loadDetailLogs()">↻ Snapshot</button>
-                <button class="pa-btn primary" id="logsStreamBtn" onclick="toggleLogsStream()">▶ Stream en vivo</button>
-                <button class="pa-btn" onclick="clearLogs()">Limpiar</button>
+                <button class="pa-btn" id="logsSnapshotBtn" onclick="loadDetailLogs()">↻ {% trans "Snapshot" %}</button>
+                <button class="pa-btn primary" id="logsStreamBtn" onclick="toggleLogsStream()">▶ {% trans "Stream en vivo" %}</button>
+                <button class="pa-btn" onclick="clearLogs()">{% trans "Limpiar" %}</button>
             </div>
         </div>
     </div>
 
     <div class="tab-content {% if not app.is_installed %}active{% endif %}" id="tab-danger">
         <div class="panel danger-panel">
-            <h3>Zona avanzada</h3>
+            <h3>{% trans "Zona avanzada" %}</h3>
             <p style="color:var(--text-muted);font-size:13px;line-height:1.55;">
-                Acciones destructivas. Pensadas para mantenimiento — no debe ser parte del uso diario.
+                {% trans "Acciones destructivas. Pensadas para mantenimiento — no debe ser parte del uso diario." %}
             </p>
 
             <div class="danger-action">
                 <div>
-                    <div class="d-title">Desinstalar módulo</div>
-                    <div class="d-desc">Detiene el contenedor y elimina imágenes/volúmenes. La carpeta del plugin se conserva, puedes reinstalar desde el Hub.</div>
+                    <div class="d-title">{% trans "Desinstalar módulo" %}</div>
+                    <div class="d-desc">{% trans "Detiene el contenedor y elimina imágenes/volúmenes. La carpeta del plugin se conserva, puedes reinstalar desde el Hub." %}</div>
                 </div>
-                <form method="post" action="{% url 'uninstall_app' %}" onsubmit="return confirm('¿Desinstalar este módulo? Se conserva la carpeta.');">
+                <form method="post" action="{% url 'uninstall_app' %}" onsubmit="return confirm('{% trans "¿Desinstalar este módulo? Se conserva la carpeta." %}');">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="d-btn">Desinstalar</button>
+                    <button type="submit" class="d-btn">{% trans "Desinstalar" %}</button>
                 </form>
             </div>
 
             <div class="danger-action">
                 <div>
-                    <div class="d-title">Borrar por completo</div>
-                    <div class="d-desc">Uninstall + elimina la carpeta del plugin en disco. <strong>No reversible.</strong></div>
+                    <div class="d-title">{% trans "Borrar por completo" %}</div>
+                    <div class="d-desc">{% trans "Desinstala y elimina la carpeta del plugin en disco." %} <strong>{% trans "No reversible." %}</strong></div>
                 </div>
-                <form method="post" action="{% url 'delete_app' %}" onsubmit="return confirm('¿Borrar TODO el módulo (contenedores + imágenes + carpeta)? No es reversible.');">
+                <form method="post" action="{% url 'delete_app' %}" onsubmit="return confirm('{% trans "¿Borrar TODO el módulo (contenedores + imágenes + carpeta)? No es reversible." %}');">
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
-                    <button type="submit" class="d-btn danger">Borrar definitivamente</button>
+                    <button type="submit" class="d-btn danger">{% trans "Borrar definitivamente" %}</button>
                 </form>
             </div>
         </div>
@@ -308,6 +316,28 @@
 {% block extra_js %}
 <script>
     const FOLDER = "{{ app.folder_name|escapejs }}";
+    const t = (key, fallback) => (window.i18n && window.i18n[key]) || fallback;
+
+    window.i18n = {
+        loading_env: "{% trans '# Cargando…' %}",
+        loading_logs: "{% trans '> cargando…' %}",
+        loading_connecting: "{% trans '> conectando…' %}",
+        loading_stream_live: "{% trans '▶ Stream en vivo' %}",
+        loading_stream_stop: "{% trans '⏸ Detener stream' %}",
+        loading_snapshot: "{% trans 'Snapshot' %}",
+        loading_applying: "{% trans 'Aplicando…' %}",
+        env_error_prefix: "{% trans '# ERROR: ' %}",
+        logs_error_prefix: "{% trans '> ERROR: ' %}",
+        loading_error: "{% trans 'Error: ' %}",
+        loading_network_error: "{% trans 'Error de red: ' %}",
+        logs_snapshot: "{% trans 'snapshot' %}",
+        logs_live: "{% trans '● live' %}",
+        logs_stopped: "{% trans 'detenido' %}",
+        logs_empty: "{% trans '> sin logs' %}",
+        stream_error_prefix: "{% trans '[error del stream: ' %}",
+        stream_error_suffix: "{% trans ']' %}",
+        env_applied: "{% trans '.env aplicado, el contenedor se recreó' %}",
+    };
 
     function csrf() {
         return document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -334,13 +364,13 @@
 
     async function loadDetailEnv() {
         const ta = document.getElementById('detailEnv');
-        ta.value = '# Cargando…';
+        ta.value = t('loading_env', '# Cargando…');
         try {
             const r = await fetch(`/manager/get_env/${FOLDER}/`);
             const d = await r.json();
-            ta.value = d.status === 'ok' ? d.content : '# ERROR: ' + d.message;
+            ta.value = d.status === 'ok' ? d.content : t('env_error_prefix', '# ERROR: ') + d.message;
         } catch (e) {
-            ta.value = '# ERROR: ' + e.message;
+            ta.value = t('env_error_prefix', '# ERROR: ') + e.message;
         }
     }
 
@@ -348,7 +378,7 @@
         const ta = document.getElementById('detailEnv');
         const btn = ev.currentTarget;
         const original = btn.textContent;
-        btn.disabled = true; btn.textContent = 'Aplicando…';
+        btn.disabled = true; btn.textContent = t('loading_applying', 'Aplicando…');
         try {
             const data = new FormData();
             data.append('folder_name', FOLDER);
@@ -357,12 +387,12 @@
             const r = await fetch('/manager/save_env/', { method: 'POST', body: data });
             const d = await r.json();
             if (d.status === 'ok') {
-                if (window.toast) window.toast('.env aplicado, el contenedor se recreó', 'success');
+                if (window.toast) window.toast(t('env_applied', '.env aplicado, el contenedor se recreó'), 'success');
             } else {
-                if (window.toast) window.toast('Error: ' + d.message, 'error');
+                if (window.toast) window.toast(t('loading_error', 'Error: ') + d.message, 'error');
             }
         } catch (e) {
-            if (window.toast) window.toast('Error de red: ' + e.message, 'error');
+            if (window.toast) window.toast(t('loading_network_error', 'Error de red: ') + e.message, 'error');
         } finally {
             btn.disabled = false; btn.textContent = original;
         }
@@ -371,15 +401,15 @@
     async function loadDetailLogs() {
         stopLogsStream();
         const pre = document.getElementById('detailLogs');
-        pre.textContent = '> cargando…';
+        pre.textContent = t('loading_logs', '> cargando…');
         try {
             const r = await fetch(`/manager/logs/${FOLDER}/`);
             const d = await r.json();
-            pre.textContent = d.status === 'ok' ? (d.logs || '> sin logs') : '> ERROR: ' + d.message;
+            pre.textContent = d.status === 'ok' ? (d.logs || t('logs_empty', '> sin logs')) : t('logs_error_prefix', '> ERROR: ') + d.message;
         } catch (e) {
-            pre.textContent = '> ERROR: ' + e.message;
+            pre.textContent = t('logs_error_prefix', '> ERROR: ') + e.message;
         }
-        setLogsStatus('snapshot');
+        setLogsStatus(t('logs_snapshot', 'snapshot'));
     }
 
     // ───── Stream (SSE) ─────
@@ -389,7 +419,7 @@
         const el = document.getElementById('logsStreamStatus');
         if (!el) return;
         el.textContent = s;
-        el.style.color = s.startsWith('● live') ? '#86efac' : 'var(--text-dim)';
+        el.style.color = s === t('logs_live', '● live') ? '#86efac' : 'var(--text-dim)';
     }
 
     function toggleLogsStream() {
@@ -403,17 +433,17 @@
     function startLogsStream() {
         const pre = document.getElementById('detailLogs');
         const btn = document.getElementById('logsStreamBtn');
-        pre.textContent = '> conectando…\n';
+        pre.textContent = t('loading_connecting', '> conectando…') + '\n';
         _logsSource = new EventSource(`/manager/logs/${FOLDER}/stream`);
-        btn.textContent = '⏸ Detener stream';
-        setLogsStatus('● live');
+        btn.textContent = t('loading_stream_stop', '⏸ Detener stream');
+        setLogsStatus(t('logs_live', '● live'));
         _logsSource.onmessage = (ev) => {
             pre.textContent += ev.data + '\n';
             pre.scrollTop = pre.scrollHeight;
         };
         _logsSource.addEventListener('error', (ev) => {
             const data = ev.data || 'connection lost';
-            pre.textContent += `\n[stream error: ${data}]\n`;
+            pre.textContent += `\n${t('stream_error_prefix', '[error del stream: ')}${data}${t('stream_error_suffix', ']')}\n`;
             stopLogsStream();
         });
         _logsSource.onerror = () => {
@@ -431,8 +461,8 @@
             _logsSource = null;
         }
         const btn = document.getElementById('logsStreamBtn');
-        if (btn) btn.textContent = '▶ Stream en vivo';
-        setLogsStatus('detenido');
+        if (btn) btn.textContent = t('loading_stream_live', '▶ Stream en vivo');
+        setLogsStatus(t('logs_stopped', 'detenido'));
     }
 
     function clearLogs() {

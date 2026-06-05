@@ -451,7 +451,7 @@
                 <span class="logo-name">Que<em>AI</em></span>
             </a>
             {% if queai_version %}
-            <span class="queai-version" title="Versión del kernel">v{{ queai_version }}</span>
+            <span class="queai-version" title="{% trans 'Versión del kernel' %}">v{{ queai_version }}</span>
             {% endif %}
             {% block page_label %}{% if page_title %}<span class="page-title">{{ page_title }}</span>{% endif %}{% endblock %}
         </div>
@@ -516,7 +516,7 @@
                     {% if 'error' in message.tags %}⚠{% elif 'success' in message.tags %}✓{% elif 'warning' in message.tags %}!{% else %}ℹ{% endif %}
                 </span>
                 <div class="toast-body">{{ message }}</div>
-                <button type="button" class="toast-close" aria-label="Cerrar" onclick="dismissToast(this.parentElement)">×</button>
+                <button type="button" class="toast-close" aria-label="{% trans 'Cerrar' %}" onclick="dismissToast(this.parentElement)">×</button>
             </div>
             {% endfor %}
         {% endif %}
@@ -560,6 +560,7 @@
 
         window.toast = function (body, kind = 'info', timeout = 4000) {
             const icons = { error: '⚠', success: '✓', warning: '!', info: 'ℹ' };
+            const closeLabel = "{% trans 'Cerrar' %}";
             const stack = document.getElementById('toast-stack');
             if (!stack) return;
             const el = document.createElement('div');
@@ -567,7 +568,7 @@
             el.innerHTML = `
                 <span class="toast-icon">${icons[kind] || icons.info}</span>
                 <div class="toast-body"></div>
-                <button type="button" class="toast-close" aria-label="Cerrar">×</button>
+                <button type="button" class="toast-close" aria-label="${closeLabel}">×</button>
             `;
             el.querySelector('.toast-body').textContent = body;
             el.querySelector('.toast-close').addEventListener('click', () => dismissToast(el));

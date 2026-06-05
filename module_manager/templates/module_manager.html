@@ -51,6 +51,15 @@
 
     .filter-count { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; align-self: center; }
 
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    .section-title { font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; letter-spacing: 0.3px; }
+    .section-count { font-size: 13px; color: var(--text-muted); }
+
     .btn-refresh {
         margin-left: auto;
         background: transparent;
@@ -432,6 +441,7 @@
 {% endblock %}
 
 {% block content %}
+{% get_current_language as CUR_LANG %}
 <div class="content">
     <div class="filter-bar">
         <div class="filter-search-wrap">
@@ -449,6 +459,11 @@
             <span class="refresh-icon">↻</span>
             <span class="refresh-label">{% trans "Actualizar" %}</span>
         </button>
+    </div>
+
+    <div class="section-header" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <span class="section-title">// {% trans "Hub" %}</span>
+        <span class="section-count">{% blocktrans count counter=apps|length %}{{ counter }} módulo disponible{% plural %}{{ counter }} módulos disponibles{% endblocktrans %}</span>
     </div>
 
     <div class="apps-grid">
@@ -473,16 +488,16 @@
                         <span>{{ app.display_name }}</span>
                         {% if app.is_installed %}
                             {% if app.is_running %}
-                            <span class="state-dot running" title="activo"></span>
+                            <span class="state-dot running" title="{% trans 'activo' %}"></span>
                             {% else %}
-                            <span class="state-dot stopped" title="detenido"></span>
+                            <span class="state-dot stopped" title="{% trans 'detenido' %}"></span>
                             {% endif %}
                             <span class="health-pill" data-folder="{{ app.folder_name }}" hidden>
                                 <span class="h-dot"></span>
                                 <span class="h-label">—</span>
                             </span>
                         {% else %}
-                            <span class="state-dot fresh" title="sin instalar"></span>
+                            <span class="state-dot fresh" title="{% trans 'sin instalar' %}"></span>
                         {% endif %}
                     </div>
                     <div class="card-author">{{ app.author|default:"" }}</div>
@@ -500,8 +515,8 @@
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
                     <button type="submit" class="btn-install-card"
-                            data-loading-text="{% trans 'Instalando…' %}"
-                            data-loading-overlay="{% blocktrans with name=app.display_name %}Instalando {{ name }}{% endblocktrans %}">{% trans "Instalar" %}</button>
+                            data-loading-text="{% if CUR_LANG == 'en' %}Installing…{% else %}Instalando…{% endif %}"
+                            data-loading-overlay="{% if CUR_LANG == 'en' %}Installing {{ app.display_name }}{% else %}Instalando {{ app.display_name }}{% endif %}">{% trans "Instalar" %}</button>
                 </form>
 
                 {% elif app.is_running %}
@@ -519,7 +534,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
                         <button type="submit" class="stop-action"
-                                data-loading-text="{% trans 'Deteniendo…' %}">{% trans "Detener" %}</button>
+                                data-loading-text="{% if CUR_LANG == 'en' %}Stopping…{% else %}Deteniendo…{% endif %}">{% trans "Detener" %}</button>
                     </form>
                 </div>
 
@@ -528,8 +543,8 @@
                     {% csrf_token %}
                     <input type="hidden" name="manifest_folder_name" value="{{ app.folder_name }}">
                     <button type="submit" class="btn-resume-card"
-                            data-loading-text="{% trans 'Iniciando…' %}"
-                            data-loading-overlay="{% blocktrans with name=app.display_name %}Iniciando {{ name }}{% endblocktrans %}">{% trans "Reanudar" %}</button>
+                            data-loading-text="{% if CUR_LANG == 'en' %}Starting…{% else %}Iniciando…{% endif %}"
+                            data-loading-overlay="{% if CUR_LANG == 'en' %}Starting {{ app.display_name }}{% else %}Iniciando {{ app.display_name }}{% endif %}">{% trans "Reanudar" %}</button>
                 </form>
                 <div class="card-secondary">
                     <button onclick="showLogs('{{ app.folder_name }}')">{% trans "Logs" %}</button>
@@ -544,7 +559,14 @@
             <img class="empty-mascot" src="{% static 'sad-emoji.png' %}" alt="">
             <h3>{% trans "Sin módulos detectados" %}</h3>
             {% url 'marketplace' as mp_url %}
-            <p>{% blocktrans %}Agrega plugins en la carpeta <code>/plugins</code> o <a href="{{ mp_url }}">descárgalos desde el Marketplace</a>.{% endblocktrans %}</p>
+            {% get_current_language as CUR_LANG %}
+            <p>
+                {% if CUR_LANG == 'en' %}
+                Drop plugins into the <code>/plugins</code> folder or <a href="{{ mp_url }}">grab them from the Marketplace</a>.
+                {% else %}
+                Agrega plugins en la carpeta <code>/plugins</code> o <a href="{{ mp_url }}">descárgalos desde el Marketplace</a>.
+                {% endif %}
+            </p>
         </div>
         {% endfor %}
 
@@ -626,6 +648,18 @@
         applying:            "{% trans 'Aplicando…' %}",
         save_error:          "{% trans 'Error al guardar: ' %}",
         kernel_comm_error:   "{% trans 'Error de comunicación con el Kernel.' %}",
+        module_singular:     "{% trans 'módulo' %}",
+        module_plural:       "{% trans 'módulos' %}",
+        of:                  "{% trans 'de' %}",
+        in_label:            "{% trans 'en' %}",
+        starting:            "{% trans 'iniciando…' %}",
+        down:                "{% trans 'caído' %}",
+        timeout:             "{% trans 'timeout' %}",
+        unhealthy:           "{% trans 'no saludable' %}",
+        err:                 "{% trans 'error' %}",
+        refreshing_catalog:  "{% trans 'Actualizando…' %}",
+        catalog_updated:     "{% trans 'Catálogo actualizado' %}",
+        catalog_update_error: "{% trans 'Error al actualizar: ' %}",
         uninstall_title:     "{% trans '¿Desinstalar este módulo?' %}",
         uninstall_desc:      "{% trans 'Se detendrán los contenedores y se eliminarán imágenes y volúmenes. La carpeta del plugin se conserva.' %}",
         uninstall_confirm:   "{% trans 'Sí, desinstalar' %}",
@@ -705,14 +739,18 @@
         });
         const total = cards.length;
         const countEl = document.getElementById('filterCount');
-        if (visible === total) countEl.textContent = `${total} plugin${total !== 1 ? 's' : ''}`;
-        else countEl.textContent = `${visible} de ${total}`;
+        if (visible === total) {
+            const label = total === 1 ? window.i18n.module_singular : window.i18n.module_plural;
+            countEl.textContent = `${total} ${label}`;
+        } else {
+            countEl.textContent = `${visible} ${window.i18n.of} ${total}`;
+        }
 
         const emptyEl = document.getElementById('filterEmpty');
         const termEl  = document.getElementById('filterEmptyTerm');
         if (visible === 0 && total > 0) {
             emptyEl.classList.add('visible');
-            termEl.textContent = term ? `"${term}"` : 'ese estado';
+            termEl.textContent = term ? `"${term}"` : "{% trans 'ese estado' %}";
         } else {
             emptyEl.classList.remove('visible');
         }
@@ -739,29 +777,29 @@
         // app aún no responde. Mostramos "iniciando" en vez de "down".
         if (err === 'starting') {
             pill.dataset.state = 'starting';
-            label.textContent = '· iniciando…';
-            pill.title = 'El contenedor está arrancando, esperando respuesta del healthcheck.';
+            label.textContent = '· ' + window.i18n.starting;
+            pill.title = "{% trans 'El contenedor está arrancando, esperando respuesta del healthcheck.' %}";
             return;
         }
 
         if (err === 'not_running') {
             pill.dataset.state = 'unhealthy';
-            label.textContent = '· down';
-            pill.title = 'El contenedor no está corriendo.';
+            label.textContent = '· ' + window.i18n.down;
+            pill.title = "{% trans 'El contenedor no está corriendo.' %}";
             return;
         }
 
         if (healthy === true) {
             pill.dataset.state = 'healthy';
             label.textContent = '· ' + (payload.latency_ms != null ? payload.latency_ms + 'ms' : 'ok');
-            pill.title = `${payload.url || ''} → ${payload.status_code} en ${payload.latency_ms}ms`;
+            pill.title = `${payload.url || ''} → ${payload.status_code} ${window.i18n.in_label} ${payload.latency_ms}ms`;
             return;
         }
 
         if (healthy === false) {
             pill.dataset.state = 'unhealthy';
-            label.textContent = '· ' + (payload.error === 'timeout' ? 'timeout' : 'down');
-            pill.title = payload.error || 'unhealthy';
+            label.textContent = '· ' + (payload.error === 'timeout' ? window.i18n.timeout : window.i18n.down);
+            pill.title = payload.error || window.i18n.unhealthy;
             return;
         }
 
@@ -780,8 +818,8 @@
             pill.dataset.state = 'unhealthy';
             pill.hidden = false;
             const label = pill.querySelector('.h-label');
-            if (label) label.textContent = 'err';
-            pill.title = e.message || 'error';
+            if (label) label.textContent = window.i18n.err;
+            pill.title = e.message || window.i18n.err;
         }
     }
 
@@ -810,7 +848,7 @@
         btn.disabled = true;
         const label = btn.querySelector('.refresh-label');
         const original = label.textContent;
-        label.textContent = 'Actualizando…';
+        label.textContent = window.i18n.refreshing_catalog;
         try {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const r = await fetch("{% url 'refresh_catalog' %}", {
@@ -818,11 +856,11 @@
                 headers: { 'X-CSRFToken': csrf },
             });
             if (!r.ok) throw new Error('HTTP ' + r.status);
-            if (window.toast) window.toast('Catálogo actualizado', 'success', 2400);
+            if (window.toast) window.toast(window.i18n.catalog_updated, 'success', 2400);
             // Recargamos para que el server re-escanee y veamos los cambios.
             setTimeout(() => window.location.reload(), 350);
         } catch (e) {
-            if (window.toast) window.toast('Error al actualizar: ' + e.message, 'error', 5000);
+            if (window.toast) window.toast(window.i18n.catalog_update_error + e.message, 'error', 5000);
             btn.classList.remove('spinning');
             btn.disabled = false;
             label.textContent = original;

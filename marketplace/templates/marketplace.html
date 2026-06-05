@@ -204,6 +204,7 @@
 {% endblock %}
 
 {% block content %}
+{% get_current_language as CUR_LANG %}
 <div class="content">
 
     <div class="install-panel">
@@ -218,10 +219,15 @@
                     class="install-input"
                     placeholder="https://github.com/usuario/mi-plugin.git">
                 <button type="submit" class="btn-install"
-                        data-loading-text="{% trans 'Descargando…' %}"
-                        data-loading-overlay="{% trans 'Clonando repositorio…' %}">{% trans "Descargar" %}</button>
+                        data-loading-text="{% if CUR_LANG == 'en' %}Downloading…{% else %}Descargando…{% endif %}"
+                        data-loading-overlay="{% if CUR_LANG == 'en' %}Cloning repository…{% else %}Clonando repositorio…{% endif %}">{% trans "Descargar" %}</button>
             </div>
         </form>
+    </div>
+
+    <div class="section-header">
+        <span class="section-title">// {% trans "registro oficial" %}</span>
+        <span class="section-count">{% blocktrans count counter=remote_plugins|length %}{{ counter }} plugin disponible{% plural %}{{ counter }} plugins disponibles{% endblocktrans %}</span>
     </div>
 
     <div class="filter-bar">
@@ -236,12 +242,7 @@
             <button class="filter-pill" data-filter="downloaded" onclick="setMpFilter('downloaded', this)">{% trans "Descargados" %}</button>
             <button class="filter-pill" data-filter="fresh" onclick="setMpFilter('fresh', this)">{% trans "Sin descargar" %}</button>
         </div>
-        <span class="filter-count" id="mpFilterCount">{% blocktrans count counter=remote_plugins|length %}{{ counter }} módulo{% plural %}{{ counter }} módulos{% endblocktrans %}</span>
-    </div>
-
-    <div class="section-header">
-        <span class="section-title">// registro oficial</span>
-        <span class="section-count">{{ remote_plugins|length }} disponibles</span>
+        <span class="filter-count" id="mpFilterCount">{% blocktrans count counter=remote_plugins|length %}{{ counter }} plugin{% plural %}{{ counter }} plugins{% endblocktrans %}</span>
     </div>
 
     <div class="plugins-grid" id="mpGrid">
@@ -260,9 +261,9 @@
                 <div class="plugin-meta">
                     <div class="plugin-cat">{{ plugin.category|default:"General" }}</div>
                     <div class="plugin-name">{{ plugin.name }}</div>
-                    <div class="plugin-version">Registry: v{{ plugin.version|default:"1.0.0" }}</div>
+                    <div class="plugin-version">{% trans "Registro" %}: v{{ plugin.version|default:"1.0.0" }}</div>
                     {% if plugin.local_version %}
-                    <div class="plugin-local-version">Local: v{{ plugin.local_version }}</div>
+                    <div class="plugin-local-version">{% trans "Local" %}: v{{ plugin.local_version }}</div>
                     {% endif %}
                 </div>
             </div>
@@ -277,8 +278,8 @@
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
                     <button type="submit" class="btn-update"
-                            data-loading-text="{% trans 'Actualizando…' %}"
-                            data-loading-overlay="{% blocktrans with name=plugin.name %}Actualizando {{ name }}{% endblocktrans %}">{% trans "Actualizar" %}</button>
+                            data-loading-text="{% if CUR_LANG == 'en' %}Updating…{% else %}Actualizando…{% endif %}"
+                            data-loading-overlay="{% if CUR_LANG == 'en' %}Updating {{ plugin.name }}{% else %}Actualizando {{ plugin.name }}{% endif %}">{% trans "Actualizar" %}</button>
                 </form>
                 {% elif plugin.is_downloaded %}
                 <div class="btn-downloaded">{% trans "descargado" %}</div>
@@ -287,8 +288,8 @@
                     {% csrf_token %}
                     <input type="hidden" name="git_url" value="{{ plugin.git_url }}">
                     <button type="submit" class="btn-add"
-                            data-loading-text="{% trans 'Descargando…' %}"
-                            data-loading-overlay="{% blocktrans with name=plugin.name %}Descargando {{ name }}{% endblocktrans %}">{% trans "Descargar" %}</button>
+                            data-loading-text="{% if CUR_LANG == 'en' %}Downloading…{% else %}Descargando…{% endif %}"
+                            data-loading-overlay="{% if CUR_LANG == 'en' %}Downloading {{ plugin.name }}{% else %}Descargando {{ plugin.name }}{% endif %}">{% trans "Descargar" %}</button>
                 </form>
                 {% endif %}
             </div>
@@ -327,7 +328,10 @@
             if (show) visible++;
         });
         const counter = document.getElementById('mpFilterCount');
-        if (counter) counter.textContent = `${visible} plugin${visible === 1 ? '' : 's'}`;
+        if (counter) {
+            const label = visible === 1 ? "{% trans 'plugin' %}" : "{% trans 'plugins' %}";
+            counter.textContent = `${visible} ${label}`;
+        }
     }
 </script>
 {% endblock %}

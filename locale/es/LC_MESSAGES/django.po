@@ -564,3 +564,196 @@ msgid "{{ counter }} evento · página {{ pn }} de {{ pt }}"
 msgid_plural "{{ counter }} eventos · página {{ pn }} de {{ pt }}"
 msgstr[0] "{{ counter }} evento · página {{ pn }} de {{ pt }}"
 msgstr[1] "{{ counter }} eventos · página {{ pn }} de {{ pt }}"
+
+msgid "módulo"
+msgstr "módulo"
+
+msgid "módulos"
+msgstr "módulos"
+
+msgid "de"
+msgstr "de"
+
+msgid "iniciando…"
+msgstr "iniciando…"
+
+msgid "caído"
+msgstr "caído"
+
+msgid "no saludable"
+msgstr "no saludable"
+
+msgid "error"
+msgstr "error"
+
+msgid "ese estado"
+msgstr "ese estado"
+
+msgid "El contenedor está arrancando, esperando respuesta del healthcheck."
+msgstr "El contenedor está arrancando, esperando respuesta del healthcheck."
+
+msgid "El contenedor no está corriendo."
+msgstr "El contenedor no está corriendo."
+
+msgid "Catálogo actualizado"
+msgstr "Catálogo actualizado"
+
+msgid "Versión del kernel"
+msgstr "Versión del kernel"
+
+msgid "Cerrar"
+msgstr "Cerrar"
+
+msgid "registro oficial"
+msgstr "registro oficial"
+
+msgid "plugin disponible"
+msgid_plural "plugins disponibles"
+msgstr[0] "plugin disponible"
+msgstr[1] "plugins disponibles"
+
+msgid "plugins disponibles"
+msgstr "plugins disponibles"
+
+msgid "Registro"
+msgstr "Registro"
+
+msgid "Local"
+msgstr "Local"
+
+msgid "plugin"
+msgstr "plugin"
+
+msgid "plugins"
+msgstr "plugins"
+
+msgid "volver al hub"
+msgstr "volver al hub"
+
+msgid "sin instalar"
+msgstr "sin instalar"
+
+msgid "activo"
+msgstr "activo"
+
+msgid "detenido"
+msgstr "detenido"
+
+msgid "Versión"
+msgstr "Versión"
+
+msgid "Autor"
+msgstr "Autor"
+
+msgid "Licencia"
+msgstr "Licencia"
+
+msgid "Avanzado"
+msgstr "Avanzado"
+
+msgid ".env del módulo"
+msgstr ".env del módulo"
+
+msgid "Recargar"
+msgstr "Recargar"
+
+msgid "snapshot"
+msgstr "snapshot"
+
+msgid "> cargando…"
+msgstr "> cargando…"
+
+msgid "Snapshot"
+msgstr "Snapshot"
+
+msgid "Stream en vivo"
+msgstr "Stream en vivo"
+
+msgid "Zona avanzada"
+msgstr "Zona avanzada"
+
+msgid ""
+"Acciones destructivas. Pensadas para mantenimiento — no debe ser parte del "
+"uso diario."
+msgstr ""
+"Acciones destructivas. Pensadas para mantenimiento — no debe ser parte del "
+"uso diario."
+
+msgid "Desinstalar módulo"
+msgstr "Desinstalar módulo"
+
+msgid ""
+"Detiene el contenedor y elimina imágenes/volúmenes. La carpeta del plugin se"
+" conserva, puedes reinstalar desde el Hub."
+msgstr ""
+"Detiene el contenedor y elimina imágenes/volúmenes. La carpeta del plugin se"
+" conserva, puedes reinstalar desde el Hub."
+
+msgid "¿Desinstalar este módulo? Se conserva la carpeta."
+msgstr "¿Desinstalar este módulo? Se conserva la carpeta."
+
+msgid "Desinstalar"
+msgstr "Desinstalar"
+
+msgid "Borrar por completo"
+msgstr "Borrar por completo"
+
+msgid "Desinstala y elimina la carpeta del plugin en disco."
+msgstr "Desinstala y elimina la carpeta del plugin en disco."
+
+msgid "No reversible."
+msgstr "No reversible."
+
+msgid ""
+"¿Borrar TODO el módulo (contenedores + imágenes + carpeta)? No es "
+"reversible."
+msgstr ""
+"¿Borrar TODO el módulo (contenedores + imágenes + carpeta)? No es "
+"reversible."
+
+msgid "Borrar definitivamente"
+msgstr "Borrar definitivamente"
+
+msgid "# Cargando…"
+msgstr "# Cargando…"
+
+msgid "> conectando…"
+msgstr "> conectando…"
+
+msgid "⏸ Detener stream"
+msgstr "⏸ Detener stream"
+
+msgid "● live"
+msgstr "● live"
+
+msgid "Error de red: "
+msgstr "Error de red: "
+
+msgid ".env aplicado, el contenedor se recreó"
+msgstr ".env aplicado, el contenedor se recreó"
+
+msgid "Error: "
+msgstr "Error: "
+
+msgid "módulo disponible"
+msgid_plural "módulos disponibles"
+msgstr[0] "módulo disponible"
+msgstr[1] "módulos disponibles"
+
+msgid "módulos disponibles"
+msgstr "módulos disponibles"
+
+msgid "en"
+msgstr "en"
+
+msgid "> sin logs"
+msgstr "> sin logs"
+
+msgid "[error del stream: "
+msgstr "[error del stream: "
+
+msgid "]"
+msgstr "]"
+
+msgid "▶ Stream en vivo"
+msgstr "▶ Stream en vivo"
