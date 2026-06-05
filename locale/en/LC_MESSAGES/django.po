@@ -114,7 +114,7 @@ msgid "Usuario o contraseña incorrectos."
 msgstr "Wrong username or password."
 
 msgid "Usuario"
-msgstr "User"
+msgstr "Username"
 
 msgid "Contraseña"
 msgstr "Password"

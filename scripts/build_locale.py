@@ -149,8 +149,7 @@ EN = {
     "El contenedor se reiniciará al guardar": "The container will restart on save",
     "Guardar y aplicar": "Save and apply",
 
-    # Audit log
-    "Audit log": "Audit log",
+    # Audit log (Audit log y Usuario ya están en navbar/login arriba)
     "— acción —": "— action —",
     "— fuente —": "— source —",
     "target contiene…": "target contains…",
@@ -162,7 +161,6 @@ EN = {
     "Acción": "Action",
     "Target": "Target",
     "Resultado": "Result",
-    "Usuario": "User",
     "Mensaje": "Message",
     "ok": "ok",
     "fail": "fail",
