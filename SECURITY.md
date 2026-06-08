@@ -1,72 +1,72 @@
 # Security Policy
 
-Gracias por ayudar a mantener QueAI seguro para sus usuarios.
+Thanks for helping keep QueAI safe for its users.
 
-## Versiones soportadas
+## Supported versions
 
-| Versión | Soporte de seguridad |
+| Version | Security support |
 |---|---|
-| `1.x` (rama `main`) | ✅ activamente mantenida |
-| `< 1.0` (release candidates) | sin garantía retroactiva — actualízate al último tag |
+| `1.x` (`main` branch) | ✅ actively maintained |
+| `< 1.0` (release candidates) | no retroactive guarantee — please upgrade to the latest tag |
 
-## Cómo reportar una vulnerabilidad
+## How to report a vulnerability
 
-**No abras un issue público** para vulnerabilidades de seguridad.
+**Do not open a public issue** for security vulnerabilities.
 
-Usa uno de estos canales (en orden de preferencia):
+Use one of these channels (in order of preference):
 
 1. **GitHub Private Vulnerability Reporting** —
    https://github.com/queai-project/QueAI/security/advisories/new
 2. **Email** — `security@queai.dev`
 
-Incluye al menos:
-- Versión del kernel y de los plugins involucrados (`queai health`,
+Please include at least:
+- Kernel and plugin versions involved (`queai health`,
   `git rev-parse HEAD`).
-- Pasos para reproducir el problema.
-- Impacto observado o esperado (lectura no autorizada, escritura,
-  RCE, escalada de privilegios, etc.).
-- Tu disponibilidad para coordinar la divulgación.
+- Reproduction steps.
+- Observed or expected impact (unauthorized read/write, RCE,
+  privilege escalation, etc.).
+- Your availability to coordinate disclosure.
 
-## Qué esperar
+## What to expect
 
-- **Acuse de recibo en 72 h** desde el envío.
-- **Triage en 7 días**: confirmamos si es un problema, su severidad
-  estimada y la fecha objetivo de fix.
-- **Disclosure coordinado**: trabajamos en un fix privado, te
-  acreditamos al publicar el aviso de seguridad y la versión
-  parcheada, salvo que prefieras anonimato.
-- Si pasados **30 días** sin respuesta de nuestra parte, eres libre
-  de divulgar — pero no es un objetivo, queremos resolverlo antes.
+- **Acknowledgement within 72 h** of submission.
+- **Triage within 7 days**: we confirm whether it's an issue, its
+  estimated severity and a target fix date.
+- **Coordinated disclosure**: we work on a private fix and credit
+  you when publishing the security advisory and the patched
+  version, unless you prefer to stay anonymous.
+- If **30 days pass** without a response from our side, you're
+  free to disclose — but that's not the goal; we want to resolve
+  it before then.
 
-## Qué consideramos in-scope
+## What we consider in-scope
 
-- Vulnerabilidades en el código del kernel (`core/`,
+- Vulnerabilities in the kernel code (`core/`,
   `module_manager/`, `marketplace/`, `system_monitor/`, `cli/`).
-- Vulnerabilidades en la API REST `/api/v1/*`.
-- Vulnerabilidades en la cadena de instalación (`install.sh`).
-- Defectos del flujo de auth / sesión / token.
-- Riesgos de la integración con Docker socket que no estén
-  documentados.
+- Vulnerabilities in the REST API `/api/v1/*`.
+- Vulnerabilities in the installation chain (`install.sh`).
+- Defects in the auth / session / token flow.
+- Undocumented risks of the Docker socket integration.
 
-## Qué consideramos out-of-scope
+## What we consider out-of-scope
 
-- Vulnerabilidades en plugins individuales (reportar al mantenedor
-  del plugin afectado; lista en `register.json`).
-- Problemas que requieran acceso físico al host.
-- Ataques que requieran credenciales válidas del operador del
-  kernel (DoS por carga legítima, abuso intencional).
-- Configuraciones inseguras explícitamente desaconsejadas en
-  [`docs/SECURITY.md`](docs/SECURITY.md) (p.ej. `DEBUG=True` en
-  producción).
+- Vulnerabilities in individual plugins (report to the plugin's
+  maintainer; list is in `register.json`).
+- Issues requiring physical access to the host.
+- Attacks requiring valid kernel operator credentials (DoS via
+  legitimate load, intentional abuse).
+- Insecure configurations explicitly discouraged in
+  [`docs/SECURITY.md`](docs/SECURITY.md) (e.g., `DEBUG=True` in
+  production).
 
-## Modelo de seguridad y recomendaciones
+## Security model and recommendations
 
-El detalle técnico (superficie de ataque, mitigaciones aplicadas y
-configuración recomendada por entorno) vive en
+Technical detail (attack surface, applied mitigations and
+recommended configuration per environment) lives in
 [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Bug bounty
 
-QueAI no ofrece recompensas monetarias. Sí ofrece crédito público
-en el changelog y en el aviso de seguridad publicado, salvo que
-prefieras anonimato.
+QueAI does not offer monetary rewards. It does offer public credit
+in the changelog and the published security advisory, unless you
+prefer to remain anonymous.

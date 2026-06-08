@@ -1,183 +1,199 @@
 # Changelog
 
-Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versionado: [SemVer](https://semver.org/spec/v2.0.0.html).
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] — 2026-06-08
 
-Primer release Open Source estable. El kernel pasa de "rc estable
-con docs/branding pendiente" a producto publicable: bilingüe,
-visualmente coherente con sus plugins oficiales, instalador con
-prompt de credenciales y feedback visual en operaciones largas.
+First stable Open Source release. The kernel moves from "stable rc
+with docs/branding pending" to a publishable product: bilingual,
+visually coherent with its official plugins, with an installer
+that prompts for credentials and visual feedback during long
+operations.
 
 ### Added
-- **UI bilingüe ES/EN** vía `gettext`: middleware `LocaleMiddleware`,
-  switch `ES · EN` en la navbar, locale embebido en `locale/{es,en}/`
-  cubriendo navbar, welcome, login, home, hub, marketplace, monitor,
-  audit log, account, modales de confirmación, mensajes flash de
-  Django y strings dinámicas de JS vía `window.i18n`.
-- **`AvailableApp.description_en`** + migración 0002: el manifest del
-  plugin puede declarar `description_en` y el Hub elige la versión
-  según el idioma activo.
-- **Feedback visual en operaciones largas**: spinner inline en el
-  botón + overlay persistente abajo a la derecha al hacer
-  Descargar / Instalar / Detener / Reanudar / Actualizar. Sin
-  cambios en el backend síncrono.
-- **Prompt interactivo de credenciales admin** en `install.sh`: pide
-  usuario + password con confirmación, validación de longitud,
-  blocklist de caracteres que rompen `.env`. En `--unattended` o
-  sin tty genera una password random urlsafe y la muestra una sola
-  vez en el banner final.
-- **Auto-generación de `SECRET_KEY` y `QUEAI_API_TOKEN`** en el
-  primer arranque (idempotente: no rota valores ya seteados).
-- **Detección de puerto ocupado** en `install.sh` (con fallback a
-  instrucciones manuales) — el puerto del kernel es fijo (ver
+
+- **Bilingual ES/EN UI** via `gettext`: `LocaleMiddleware`,
+  `ES · EN` switch in the navbar, embedded locale at
+  `locale/{es,en}/` covering navbar, welcome, login, home, hub,
+  marketplace, monitor, audit log, account, confirmation modals,
+  Django flash messages and JS dynamic strings via `window.i18n`.
+- **`AvailableApp.description_en`** + migration 0002: the plugin
+  manifest can declare `description_en` and the Hub picks the
+  version that matches the active language.
+- **Visual feedback during long operations**: inline button
+  spinner + persistent bottom-right overlay when running
+  Download / Install / Stop / Resume / Update. No backend changes.
+- **Interactive admin credentials prompt** in `install.sh`: asks
+  for username + password with confirmation, length validation,
+  and a blocklist of characters that break `.env`. In
+  `--unattended` or without a TTY it generates a random urlsafe
+  password and shows it once in the final banner.
+- **Auto-generation of `SECRET_KEY` and `QUEAI_API_TOKEN`** on
+  first boot (idempotent: won't rotate already-set values).
+- **Port-in-use detection** in `install.sh` (with a fallback to
+  manual install instructions) — the kernel port is fixed (see
   Changed).
-- **`docs/DESIGN_TOKENS.md`** como fuente única del look & feel
-  (paleta, tipografía DM Sans/DM Mono, radius, principios). Los 3
-  plugins oficiales embeben una copia de los tokens.
-- **Onboarding revisado**: `/` → `/login/` → `/welcome/` siempre en
-  el primer login; el welcome se salta automáticamente si ya fue
-  dismisseado en la sesión. `?force=1` lo fuerza.
+- **`docs/DESIGN_TOKENS.md`** as the single source of truth for
+  look & feel (palette, DM Sans/DM Mono typography, radius,
+  principles). The 3 official plugins embed a copy of these
+  tokens.
+- **Reworked onboarding**: `/` → `/login/` → `/welcome/` on every
+  first login; the welcome is skipped automatically if it was
+  dismissed in the session. `?force=1` forces it.
 - **Issue templates** (`bug_report`, `feature_request`,
-  `plugin_proposal`), PR template y CODE_OF_CONDUCT (Contributor
+  `plugin_proposal`), PR template and CODE_OF_CONDUCT (Contributor
   Covenant 2.1).
-- **Plugin tooling**: `scripts/build_locale.py` para regenerar el
-  locale sin gettext-bin instalado.
+- **Plugin tooling**: `scripts/build_locale.py` to regenerate the
+  locale without `gettext-bin` installed.
 
 ### Changed
-- **Puerto fijo del kernel: `:8473`** (dashboard Traefik `:9473`).
-  La landing, README y docs anuncian el puerto sin condiciones; el
-  instalador aborta con instrucciones claras si está ocupado.
-- **Look & feel del kernel y plugins unificados**: paleta plana
-  `#141414` / `#1c1c1c` / `#262626`, sin gradientes, sin
-  glassmorphism, radius `14px` para tarjetas / `9px` para botones,
-  tipografía DM Sans + DM Mono, switch de idioma en la navbar.
-- **Iframe del plugin en el Hub**: ancho cap a `1200px` centrado en
-  vez de pantalla completa. Cache-bust automático con
-  `?_t=Date.now()` para que un rebuild del plugin se refleje en el
-  acto.
-- **OnLogin** redirige a `/welcome/` (era `/manager/`).
-- **`AvailableApp.description`** ahora también soporta
-  `description_en` en el `manifest.json`.
-- **Botón "Añadir al Hub" del Marketplace** renombrado a
-  **"Descargar"** (refleja mejor lo que hace: `git clone` al
-  filesystem; la instalación es un segundo paso aparte).
-- **Banner final del instalador** colapsa los 4 deep-links del
-  kernel a una sola URL `http://localhost:8473/`; el usuario
-  descubre Hub/Marketplace/Monitor vía la UI tras el primer login.
+
+- **Fixed kernel port: `:8473`** (Traefik dashboard `:9473`). The
+  landing page, README and docs advertise the port unconditionally;
+  the installer aborts with clear instructions if it's busy.
+- **Unified look & feel across kernel and plugins**: flat palette
+  `#141414` / `#1c1c1c` / `#262626`, no gradients, no
+  glassmorphism, `14px` radius for cards / `9px` for buttons,
+  DM Sans + DM Mono typography, language switch in the navbar.
+- **Plugin iframe in the Hub**: capped at `1200px` and centered
+  instead of full screen. Automatic cache-bust with
+  `?_t=Date.now()` so a plugin rebuild is reflected immediately.
+- **Login redirect** now lands on `/welcome/` (was `/manager/`).
+- **`AvailableApp.description`** now also supports
+  `description_en` in the `manifest.json`.
+- **"Add to Hub" button in the Marketplace** renamed to
+  **"Download"** (better reflects what it does: `git clone` to the
+  filesystem; install is a separate second step).
+- **Installer final banner** collapses the 4 kernel deep-links
+  into a single `http://localhost:8473/` URL; the user discovers
+  Hub/Marketplace/Monitor through the UI after the first login.
 
 ### Fixed
-- **Swagger `/docs` de los plugins** se sirve siempre (era gateado
-  por `is_dev` y el compose de STT forzaba production → 404).
-- **Plugins descargados con permisos correctos** (`HOST_UID`/`GID`
-  pasados al contenedor `alpine/git`).
-- **CSRF / login no se rompen** al cambiar `QUEAI_PORT` desde
-  `install.sh`: la actualización del `.env` mantiene
-  `CSRF_TRUSTED_ORIGINS` consistente.
-- **`{% blocktrans %}` con saltos de línea** (home, welcome) ahora
-  usa `trimmed` para que los msgid normalizados sean los que
-  realmente se traducen.
+
+- **Plugins' Swagger `/docs`** is always served (was gated by
+  `is_dev` and the STT compose forced production → 404).
+- **Plugins downloaded with correct permissions** (`HOST_UID`/`GID`
+  passed to the `alpine/git` container).
+- **CSRF / login no longer break** when changing `QUEAI_PORT` from
+  `install.sh`: the `.env` update keeps `CSRF_TRUSTED_ORIGINS`
+  consistent.
+- **Multi-line `{% blocktrans %}`** (home, welcome) now uses
+  `trimmed` so the normalized msgid is what actually gets
+  translated.
 
 ### Removed
-- Notas de planificación internas (`docs/ROADMAP.md`).
-- Workflow `sync-installer.yml` (el instalador se copia a mano al
-  repo de la landing).
+
+- Internal planning notes (`docs/ROADMAP.md`).
+- `sync-installer.yml` workflow (the installer is copied by hand
+  to the landing-page repo).
 
 ---
 
 ## [1.0.0-rc1] — 2026-06-03
 
-Primer *release candidate*. El núcleo del kernel está completo,
-estable, con auth, observabilidad, API REST + CLI, healthcheck real,
-backup/restore. Pendiente para v1.0 final: gobernanza OSS completa,
-docs profesionales y branding.
+First release candidate. The kernel core is complete and stable,
+with auth, observability, REST API + CLI, real healthcheck,
+backup/restore. Pending for the final v1.0: full OSS governance,
+professional docs and branding.
 
 ### Added
-- **Auth Django obligatorio** en `/manager/`, `/marketplace/`,
-  `/monitor/`, `/account/`, `/audit/`. Login en `/login/`, logout
-  en `/logout/`.
-- **Management command `ensure_admin`** para autocreación del
-  superuser desde `QUEAI_ADMIN_USER` / `QUEAI_ADMIN_PASSWORD` con
-  rotación opcional.
-- **Endpoint `/health`** público.
-- **API REST `/api/v1/*`** con bearer token (`QUEAI_API_TOKEN`),
-  Swagger UI en `/api/v1/docs`, OpenAPI 3 en `/api/v1/openapi.json`.
-- **CLI `queai`** instalable con `pipx install ./cli`: comandos
-  `health`, `list`, `show`, `install`, `start`, `stop`, `uninstall`,
-  `delete`, `logs [-f]`, `stats`, `env [--edit]`, `marketplace`,
-  `download`, `audit`, `backup`, `restore [--apply]`.
-- **Healthcheck por plugin** que invoca `healthcheck_entry_point`
-  del manifest, con cache de 5s y estado `starting` durante el
-  grace period tras `install` / `start` / `save_env`.
-- **Audit log** con modelo `AuditEvent` y auto-purga configurable
-  (`QUEAI_AUDIT_MAX_EVENTS` / `QUEAI_AUDIT_KEEP_AFTER_PURGE`).
-- **Logs en vivo (SSE)** por plugin con límite de 2 streams
-  simultáneos.
-- **Backup / restore *light*** (db.sqlite3 + .env del kernel + .env
-  de cada plugin) accesible solo desde CLI / API.
-- **Vista `/manager/app/<folder>/`** con tabs `.env`, Logs, Avanzado.
-- **Wizard de primer arranque** `/welcome/`.
-- **Página `/account/`** con cambio de password.
-- **Instalador no-destructivo** multi-distro Linux (apt/dnf/yum/pacman)
-  + macOS (brew). Servido desde `https://queai.dev/install.sh`.
-- **CI con GitHub Actions** (`ci.yml`: lint con `ruff` + tests en
-  Python 3.11/3.12).
-- **Workflow espejo** (`sync-installer.yml`) que mantiene
-  `queai.dev/install.sh` sincronizado con `install.sh` del kernel.
-- **3 plugins oficiales** publicados como repos independientes:
-  OCR (Tesseract), STT (faster-whisper), TTS (Piper).
-- **Plantilla de plugin** en repo separado `queai-project/QueAI-Plugin-Template`.
-- **Documentación** inicial:
-  `docs/ARCHITECTURE.md`, `docs/OPERATIONS.md`,
-  `docs/PLUGIN_DEVELOPMENT.md`, `docs/API_REFERENCE.md`,
-  `docs/PRODUCTVISION.md`, `CLAUDE.md`.
+
+- **Mandatory Django auth** on `/manager/`, `/marketplace/`,
+  `/monitor/`, `/account/`, `/audit/`. Login at `/login/`, logout
+  at `/logout/`.
+- **`ensure_admin` management command** for superuser
+  auto-creation from `QUEAI_ADMIN_USER` / `QUEAI_ADMIN_PASSWORD`
+  with optional rotation.
+- **Public `/health`** endpoint.
+- **REST API `/api/v1/*`** with bearer token (`QUEAI_API_TOKEN`),
+  Swagger UI at `/api/v1/docs`, OpenAPI 3 at
+  `/api/v1/openapi.json`.
+- **`queai` CLI** installable with `pipx install ./cli`: commands
+  `health`, `list`, `show`, `install`, `start`, `stop`,
+  `uninstall`, `delete`, `logs [-f]`, `stats`, `env [--edit]`,
+  `marketplace`, `download`, `audit`, `backup`,
+  `restore [--apply]`.
+- **Per-plugin healthcheck** invoking the manifest's
+  `healthcheck_entry_point`, with a 5 s cache and a `starting`
+  state during the grace period after
+  `install` / `start` / `save_env`.
+- **Audit log** with `AuditEvent` model and configurable
+  auto-purge (`QUEAI_AUDIT_MAX_EVENTS` /
+  `QUEAI_AUDIT_KEEP_AFTER_PURGE`).
+- **Live logs (SSE)** per plugin with a cap of 2 simultaneous
+  streams.
+- **Light backup / restore** (db.sqlite3 + the kernel's `.env` +
+  each plugin's `.env`) accessible only from CLI / API.
+- **`/manager/app/<folder>/`** view with `.env`, Logs, Advanced
+  tabs.
+- **First-boot wizard** at `/welcome/`.
+- **`/account/` page** with password change.
+- **Non-destructive installer** for multi-distro Linux
+  (apt/dnf/yum/pacman) + macOS (brew). Served from
+  `https://queai.dev/install.sh`.
+- **CI with GitHub Actions** (`ci.yml`: lint with `ruff` + tests
+  on Python 3.11/3.12).
+- **Mirror workflow** (`sync-installer.yml`) keeping
+  `queai.dev/install.sh` in sync with the kernel's `install.sh`.
+- **3 official plugins** published as independent repos: OCR
+  (Tesseract), STT (faster-whisper), TTS (Piper).
+- **Plugin template** in a separate
+  `queai-project/QueAI-Plugin-Template` repo.
+- **Initial documentation**: `docs/ARCHITECTURE.md`,
+  `docs/OPERATIONS.md`, `docs/PLUGIN_DEVELOPMENT.md`,
+  `docs/API_REFERENCE.md`, `docs/PRODUCTVISION.md`, `CLAUDE.md`.
 
 ### Changed
-- **Puerto del kernel**: `:80` → `:8080`; Traefik dashboard a `:9090`.
-- **Red Docker compartida**: `odoo_network` → `queai_network`.
-- **`runserver` → `gunicorn`** (3 workers x 2 threads). Modo dev
-  detrás de `QUEAI_DEV=true`.
-- **`requirements.txt`** limpiado: fuera `djangorestframework` y
-  `dotenv` (no usados). Dentro `gunicorn` y `whitenoise`.
-- **Templates** consolidados con `core/templates/base.html` + context
-  processor (versión visible en todas las pantallas) y rediseño
-  minimalista en hub, marketplace, monitor y detalle.
-- **Documentación interna** reescrita: rutas reales
-  (`/manager/`, `/marketplace/`, `/monitor/`) en lugar del histórico
+
+- **Kernel port**: `:80` → `:8080`; Traefik dashboard at `:9090`.
+- **Shared Docker network**: `odoo_network` → `queai_network`.
+- **`runserver` → `gunicorn`** (3 workers × 2 threads). Dev mode
+  behind `QUEAI_DEV=true`.
+- **`requirements.txt`** trimmed: out `djangorestframework` and
+  `dotenv` (unused). In `gunicorn` and `whitenoise`.
+- **Templates** consolidated under `core/templates/base.html` +
+  a context processor (the version is visible on every screen)
+  and a minimalist redesign across hub, marketplace, monitor and
+  detail.
+- **Internal documentation** rewritten: real routes
+  (`/manager/`, `/marketplace/`, `/monitor/`) instead of the old
   `/store/`.
-- **Positioning**: de "local-first" a "modular AI orchestrator —
-  local, cloud o hybrid". Refleja que un plugin puede ser modelo
-  local **o** thin proxy a una API pública.
+- **Positioning**: from "local-first" to "modular AI orchestrator
+  — local, cloud or hybrid". Reflects the fact that a plugin can
+  be a local model **or** a thin proxy to a public API.
 
 ### Fixed
-- Plugin identifier: la API y la CLI ahora aceptan tanto el slug
-  corto (`ocr_local_cpu`) como el folder completo
-  (`QueAI-OCR-CPU-LOCAL-MS`) y normalizan internamente al folder
-  real antes de invocar Docker.
-- Traefik fijado a `v2.11` por incompatibilidad de negociación de
-  API entre Traefik v3 y daemons Docker más viejos.
-- Backup/restore eliminados de la UI web (quedan solo en CLI/API)
-  por decisión de UX — operación delicada, no debe estar a un
-  click de distancia.
+
+- Plugin identifier: the API and the CLI now accept both the
+  short slug (`ocr_local_cpu`) and the full folder
+  (`QueAI-OCR-CPU-LOCAL-MS`) and normalize internally to the
+  real folder before calling Docker.
+- Traefik pinned to `v2.11` because of an API-negotiation
+  incompatibility between Traefik v3 and older Docker daemons.
+- Backup/restore removed from the web UI (CLI/API only) by UX
+  decision — sensitive operation, shouldn't be one click away.
 
 ### Removed
-- Workflow `docker.yml` (publicaba la imagen a GHCR). Decidido que
-  para v1.0 el `install.sh` local-build es suficiente.
-- Marquee decorativo, cards "Use Cases" y "Principles" y "Big CTA"
-  de la landing.
+
+- `docker.yml` workflow (which used to publish the image to
+  GHCR). Decided that for v1.0 the local-build `install.sh` is
+  enough.
+- The decorative marquee, the "Use Cases" / "Principles" cards
+  and the "Big CTA" of the landing page.
 
 ### Security
-- `DEBUG=False` por defecto.
-- `SECRET_KEY` requerido en producción (el kernel se rehúsa a
-  arrancar sin él cuando `DEBUG=False`).
-- `QUEAI_API_TOKEN` requerido en producción con la misma regla.
-- Cookies seguras + headers anti-XSS / clickjacking cuando
+
+- `DEBUG=False` by default.
+- `SECRET_KEY` required in production (the kernel refuses to
+  start without it when `DEBUG=False`).
+- `QUEAI_API_TOKEN` required in production with the same rule.
+- Secure cookies + anti-XSS / clickjacking headers when
   `DEBUG=False`.
-- Token de API validado con `hmac.compare_digest` (timing-safe).
-- Dashboard de Traefik protegido por basic-auth.
+- API token validated with `hmac.compare_digest` (timing-safe).
+- Traefik dashboard protected with basic auth.
 
 ---
 
-[Unreleased]: https://github.com/queai-project/QueAI/compare/v1.0.0-rc1...HEAD
+[1.0.0]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0
 [1.0.0-rc1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0-rc1

@@ -1,161 +1,139 @@
-# Contribuir a QueAI
+# Contributing to QueAI
 
-¡Gracias por interesarte en QueAI! Esta guía cubre lo mínimo que necesitas
-saber para abrir un issue, mandar un parche o publicar un módulo.
+Thanks for being interested in QueAI! This guide covers the minimum you need to know to open an issue, send a patch or publish a module.
 
-Si algo no queda claro, abre un issue de tipo *Question* y lo resolvemos.
-
----
-
-## Tabla de contenidos
-
-- [Antes de empezar](#antes-de-empezar)
-- [Cómo abrir un issue](#cómo-abrir-un-issue)
-- [Cómo abrir un Pull Request](#cómo-abrir-un-pull-request)
-  - [Setup local](#setup-local)
-  - [Estilo de código y commits](#estilo-de-código-y-commits)
-  - [Tests y lint](#tests-y-lint)
-- [Publicar un módulo nuevo](#publicar-un-módulo-nuevo)
-- [Reportar una vulnerabilidad](#reportar-una-vulnerabilidad)
-- [Código de conducta](#código-de-conducta)
-- [Licencia de tus contribuciones](#licencia-de-tus-contribuciones)
+If anything is unclear, open a *Question* issue and we'll sort it out.
 
 ---
 
-## Antes de empezar
+## Table of contents
 
-1. **Lee la [Product Vision](docs/PRODUCTVISION.md)** — entender qué
-   pretende ser QueAI evita propuestas que choquen con el rumbo (ej.
-   pedir multi-tenant cuando explícitamente está fuera de alcance).
-2. **Busca en issues abiertos y cerrados** antes de crear uno nuevo:
+- [Before you start](#before-you-start)
+- [How to open an issue](#how-to-open-an-issue)
+- [How to open a Pull Request](#how-to-open-a-pull-request)
+  - [Local setup](#local-setup)
+  - [Code and commit style](#code-and-commit-style)
+  - [Tests and lint](#tests-and-lint)
+- [Publish a new module](#publish-a-new-module)
+- [Reporting a vulnerability](#reporting-a-vulnerability)
+- [Code of Conduct](#code-of-conduct)
+- [License of your contributions](#license-of-your-contributions)
+
+---
+
+## Before you start
+
+1. **Read the [Product Vision](docs/PRODUCTVISION.md)** — understanding what QueAI is trying to be saves you from proposals that clash with the project's direction (e.g. asking for multi-tenant when it's explicitly out of scope).
+2. **Search existing open and closed issues** before creating a new one:
    `https://github.com/queai-project/QueAI/issues?q=...`.
 
-## Cómo abrir un issue
+## How to open an issue
 
-Usa siempre las plantillas. La razón es que filtran la información
-mínima que necesitamos para no rebotar el ticket:
+Always use the templates. The reason is that they collect the minimum info we need to avoid bouncing the ticket back:
 
-| Tipo | Cuándo usarla |
+| Type | When to use it |
 |---|---|
-| **Bug report** | Algo se comporta distinto a lo que dice la doc o tira un error |
-| **Feature request** | Una capacidad nueva o un cambio de comportamiento del kernel |
-| **Plugin proposal** | Quieres publicar un módulo nuevo en el registry oficial |
-| **Question** | Duda sobre uso o arquitectura — primero busca en docs |
+| **Bug report** | Something behaves differently from what the docs say or throws an error |
+| **Feature request** | A new capability or a behavior change in the kernel |
+| **Plugin proposal** | You want to publish a new module in the official registry |
+| **Question** | Usage or architecture question — first search the docs |
 
-Para reportes de seguridad **no abras un issue público**. Usa el flujo
-en [SECURITY.md](SECURITY.md).
+For security reports, **do not open a public issue**. Use the flow in [SECURITY.md](SECURITY.md).
 
-## Cómo abrir un Pull Request
+## How to open a Pull Request
 
-### Setup local
+### Local setup
 
-Necesitas Python 3.11+, Docker, Docker Compose v2 y git.
+You'll need Python 3.11+, Docker, Docker Compose v2 and git.
 
 ```bash
 git clone https://github.com/queai-project/QueAI.git
 cd QueAI
 
-# Entorno virtual + dependencias
+# Virtual environment + dependencies
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-pip install ruff                # para lint local
+pip install ruff                # for local linting
 
-# Variables mínimas para correr el kernel en modo dev
+# Minimum environment to run the kernel in dev mode
 cp .env.example .env
-# (Edita .env: como mínimo, define SECRET_KEY y QUEAI_ADMIN_PASSWORD)
+# (Edit .env: at minimum, set SECRET_KEY and QUEAI_ADMIN_PASSWORD)
 
-# Smoke test sin levantar Docker
+# Smoke test without bringing up Docker
 SECRET_KEY=dev DEBUG=True python manage.py check
 SECRET_KEY=dev DEBUG=True python manage.py test
 ```
 
-Para probar con Docker:
+To test with Docker:
 
 ```bash
 docker compose up -d --build
 docker compose logs -f django-kernel
-# El hub queda en http://localhost:8473
+# The hub lives at http://localhost:8473
 ```
 
-### Estilo de código y commits
+### Code and commit style
 
 **Python**:
-- Formateo: el repo usa `ruff` (configurado en `pyproject.toml`).
-  Antes de mandar PR:
+
+- Formatting: the repo uses `ruff` (configured in `pyproject.toml`). Before sending a PR:
   ```bash
   ruff check .
   ```
-- Imports ordenados (lo hace `ruff` también).
-- Type hints donde aporten claridad — no obligatorios en todos lados,
-  sí en interfaces públicas (vistas, helpers reusables, CLI commands).
+- Imports sorted (also done by `ruff`).
+- Type hints where they add clarity — not required everywhere, but yes on public interfaces (views, reusable helpers, CLI commands).
 
 **Commits**:
-- Mensajes en inglés, imperativo presente (`fix: ...`, `feat: ...`,
-  `docs: ...`). No es Conventional Commits estricto pero sí cercano.
-- Cuerpos descriptivos: explica el **por qué**, no solo el qué — el qué
-  ya lo dice el diff. Si tu cambio responde a un issue, refiérelo.
-- Co-author en el footer cuando aplique:
+
+- Messages in English, present-tense imperative (`fix: ...`, `feat: ...`, `docs: ...`). Not strict Conventional Commits, but close.
+- Descriptive bodies: explain the **why**, not just the what — the what is already in the diff. If your change responds to an issue, reference it.
+- Co-author in the footer when applicable:
   ```
-  Co-Authored-By: Nombre <email@example.com>
+  Co-Authored-By: Name <email@example.com>
   ```
 
 **Templates**:
-- Si tocas una vista que tiene template, mantén el estilo minimalista
-  acordado (sin emojis decorativos, paleta del kernel, dot único de
-  estado por elemento). Ver [`docs/BRAND.md`](docs/BRAND.md) cuando
-  exista.
 
-### Tests y lint
+- If you touch a view that has a template, keep the agreed minimalist style (no decorative emojis, kernel palette, single status dot per element). See [`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md).
 
-Todo PR pasa el workflow `ci.yml`:
-- `ruff check .` en Python 3.11 y 3.12.
-- `python manage.py test` en Python 3.11 y 3.12.
+### Tests and lint
 
-Si tu cambio toca lógica de negocio (no solo docs o templates):
+Every PR runs the `ci.yml` workflow:
 
-1. **Añade test** que falle sin tu fix / que ejerce la rama nueva.
-2. Si mockeás un comando externo (Docker, requests), prefiere mocks
-   estrechos en lugar de monkey-patching global.
-3. Tests rápidos: el suite entero tarda menos de 10s en CI hoy.
-   Mantengámoslo así.
+- `ruff check .` on Python 3.11 and 3.12.
+- `python manage.py test` on Python 3.11 and 3.12.
 
-Si tu cambio introduce una migración Django:
-- `python manage.py makemigrations <app>` y commiteá el archivo.
-- Verificá que `python manage.py migrate` se aplica limpio sobre la BD
-  de testing (lo hace CI).
+If your change touches business logic (not just docs or templates):
 
-## Publicar un módulo nuevo
+1. **Add a test** that fails without your fix / that exercises the new branch.
+2. If you mock an external command (Docker, requests), prefer tight mocks rather than global monkey-patching.
+3. Fast tests: the whole suite takes under 10 s in CI today. Let's keep it that way.
 
-Si querés que tu módulo aparezca en el marketplace oficial:
+If your change introduces a Django migration:
 
-1. Lee [`docs/PLUGIN_DEVELOPMENT.md`](docs/PLUGIN_DEVELOPMENT.md) —
-   contrato del manifest, layout del repo, dos ejemplos completos
-   (local CPU y proxy cloud).
-2. Tu repo del módulo debe ser público y tener LICENSE compatible
-   con MIT (MIT, Apache-2, BSD-3, ISC).
-3. Abre un issue del tipo **Plugin proposal** apuntando a tu repo
-   con manifest visible.
-4. Para módulos que se conectan a APIs externas: documenta claramente
-   en su README qué credenciales necesita, qué tráfico saliente
-   genera y qué se queda en el host vs. qué viaja al provider.
+- `python manage.py makemigrations <app>` and commit the file.
+- Verify that `python manage.py migrate` applies cleanly on the test DB (CI does this).
 
-Los módulos no se mergean al repo del kernel — se mantienen como
-repos independientes. El registry (`register.json`) referencia su
-`git_url`, no su código.
+## Publish a new module
 
-## Reportar una vulnerabilidad
+If you want your module to appear in the official marketplace:
 
-Ver [SECURITY.md](SECURITY.md). **Por favor no abras un issue público**
-para problemas de seguridad.
+1. Read [`docs/PLUGIN_DEVELOPMENT.md`](docs/PLUGIN_DEVELOPMENT.md) — the manifest contract, the repo layout, and two complete examples (local CPU and cloud proxy).
+2. Your module repo must be public and have a license compatible with MIT (MIT, Apache-2, BSD-3, ISC).
+3. Open a **Plugin proposal** issue pointing to your repo with a visible manifest.
+4. For modules that connect to external APIs: clearly document in their README what credentials are needed, what outbound traffic is generated, and what stays on the host vs. what travels to the provider.
 
-## Código de conducta
+Modules are **not** merged into the kernel repo — they're kept as independent repos. The registry (`register.json`) references their `git_url`, not their code.
 
-Este proyecto adopta el [Contributor Covenant 2.1](CODE_OF_CONDUCT.md).
-Al participar (issues, PRs, discussions) aceptas seguirlo.
+## Reporting a vulnerability
 
-## Licencia de tus contribuciones
+See [SECURITY.md](SECURITY.md). **Please don't open a public issue** for security problems.
 
-QueAI se distribuye bajo licencia MIT. Cualquier contribución que mandes
-se incorpora bajo la misma licencia. No requerimos CLA — el commit de
-firma estándar de git es suficiente.
+## Code of Conduct
+
+This project adopts the [Contributor Covenant 2.1](CODE_OF_CONDUCT.md). By participating (issues, PRs, discussions) you agree to follow it.
+
+## License of your contributions
+
+QueAI is distributed under the MIT license. Any contribution you send is incorporated under the same license. We don't require a CLA — git's standard signature commit is enough.

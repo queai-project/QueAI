@@ -1,63 +1,62 @@
 name: Feature request
-description: Una capacidad nueva o un cambio de comportamiento del kernel.
+description: A new capability or a behavior change in the kernel.
 title: "[feature] "
 labels: ["enhancement", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Antes de abrir el issue:
-        - Revisa el [Roadmap](https://github.com/queai-project/QueAI/blob/main/docs/ROADMAP.md)
-          y la [Product Vision](https://github.com/queai-project/QueAI/blob/main/docs/PRODUCTVISION.md).
-          Quizás ya está planeado o tiene una razón explícita para no estarlo.
-        - Si tu idea es un módulo nuevo (no un cambio del kernel),
-          usa la plantilla **Plugin proposal**.
+        Before opening the issue:
+        - Review the [Product Vision](https://github.com/queai-project/QueAI/blob/main/docs/PRODUCTVISION.md).
+          It may already be planned, or there may be an explicit reason it isn't.
+        - If your idea is a new module (not a kernel change),
+          use the **Plugin proposal** template.
 
   - type: textarea
     id: problem
     attributes:
-      label: ¿Qué problema resuelve?
-      description: Empieza por el problema concreto, no por la solución.
-      placeholder: "Hoy, cuando quiero hacer X, tengo que ... Esto me cuesta porque ..."
+      label: What problem does it solve?
+      description: Start with the concrete problem, not the solution.
+      placeholder: "Today, when I want to do X, I have to ... This is painful because ..."
     validations:
       required: true
 
   - type: textarea
     id: proposal
     attributes:
-      label: Propuesta
-      description: Cómo crees que debería funcionar.
-      placeholder: "Que el catálogo tenga un toggle para ..."
+      label: Proposal
+      description: How you think it should work.
+      placeholder: "The catalog should have a toggle for ..."
     validations:
       required: true
 
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternativas consideradas
-      placeholder: "Probé ... pero ..."
+      label: Alternatives considered
+      placeholder: "I tried ... but ..."
 
   - type: dropdown
     id: scope
     attributes:
-      label: Dónde encaja
+      label: Where it fits
       options:
         - "Kernel — UI / hub"
-        - "Kernel — API REST"
-        - "Kernel — CLI queai"
-        - "Kernel — instalación / despliegue"
-        - "Kernel — observabilidad (audit, healthcheck, logs)"
-        - "Documentación"
-        - "No estoy seguro"
+        - "Kernel — REST API"
+        - "Kernel — queai CLI"
+        - "Kernel — installation / deployment"
+        - "Kernel — observability (audit, healthcheck, logs)"
+        - "Documentation"
+        - "Not sure"
     validations:
       required: true
 
   - type: checkboxes
     id: checks
     attributes:
-      label: Verificaciones
+      label: Checks
       options:
-        - label: Revisé el Roadmap y no está propuesto allí.
+        - label: I reviewed the Product Vision and this isn't already proposed there.
           required: true
-        - label: Mi propuesta es compatible con la Product Vision (single-user, local+cloud, etc.).
+        - label: My proposal is compatible with the Product Vision (single-user, local+cloud, etc.).
           required: true
