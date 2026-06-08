@@ -27,10 +27,7 @@ Si algo no queda claro, abre un issue de tipo *Question* y lo resolvemos.
 1. **Lee la [Product Vision](docs/PRODUCTVISION.md)** — entender qué
    pretende ser QueAI evita propuestas que choquen con el rumbo (ej.
    pedir multi-tenant cuando explícitamente está fuera de alcance).
-2. **Revisa el [ROADMAP](docs/ROADMAP.md)** — quizás lo que ibas a
-   proponer ya está planeado, o tiene una razón documentada para no
-   estar.
-3. **Busca en issues abiertos y cerrados** antes de crear uno nuevo:
+2. **Busca en issues abiertos y cerrados** antes de crear uno nuevo:
    `https://github.com/queai-project/QueAI/issues?q=...`.
 
 ## Cómo abrir un issue

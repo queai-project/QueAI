@@ -126,7 +126,7 @@ Desde `http://localhost:8080/manager/` puedes:
 - **Consultar logs** del módulo (últimas 150 líneas, bajo demanda).
 
 ## Marketplace
-- El catálogo remoto se obtiene desde un `register.json` en GitHub (URL hardcoded en `marketplace/views.py:REGISTRY_URL`; hacerlo configurable es Fase 2 del ROADMAP).
+- El catálogo remoto se obtiene desde un `register.json` en GitHub (URL en `marketplace/views.py:REGISTRY_URL`).
 - Al descargar un módulo, el kernel ejecuta `git clone` dentro de un contenedor auxiliar `alpine/git` con el UID/GID del host para que los archivos queden con permisos del usuario.
 
 ## Monitoreo
@@ -147,8 +147,6 @@ Elementos a respaldar:
 - `.env` de cada módulo.
 
 ## Seguridad recomendada para producción
-
-> ⚠️ El kernel hoy es apto para **desarrollo/laboratorio**. El endurecimiento para producción es la Fase 1 del [`ROADMAP`](./ROADMAP.md).
 
 Mínimo antes de exponer a una red no confiable:
 

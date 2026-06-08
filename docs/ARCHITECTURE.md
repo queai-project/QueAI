@@ -66,7 +66,7 @@ El kernel está dividido en tres apps Django, cada una con su responsabilidad bi
 4. Para los plugins que existían en BD pero ya no en disco, ejecuta `_cleanup_missing_plugin_docker_artifacts` (barrido por label `com.docker.compose.project=<folder>` → elimina contenedores, redes, volúmenes e imágenes huérfanas) y elimina la fila.
 5. Renderiza UI con acciones disponibles por estado.
 
-> `get_apps` también es el reconciliador: corre en cada visita. Es síncrono y puede ser lento con muchos plugins; cachearlo es parte de la Fase 1 del ROADMAP.
+> `get_apps` también es el reconciliador: corre en cada visita. Es síncrono y puede ser lento con muchos plugins; tiene un cache locmem de 5 s por worker (`_is_app_running_cached`) y un endpoint manual `POST /manager/refresh/` para invalidarlo.
 
 ## Modelo de datos principal
 Tabla `AvailableApp` (`module_manager/models.py`):
@@ -148,5 +148,5 @@ QueAI/
 ## Riesgos operativos a considerar
 - Exponer el socket Docker al contenedor del kernel implica alto privilegio.
 - `DEBUG=True` y `ALLOWED_HOSTS` permisivos son apropiados para desarrollo, no para producción.
-- El kernel hoy **no tiene autenticación**: cualquiera con acceso a la red puede instalar/desinstalar módulos. La auth básica está planificada en Fase 1 del [`ROADMAP`](./ROADMAP.md).
+- Todas las vistas que mutan estado (`/manager/`, `/marketplace/`, `/monitor/`, `/account/`, `/audit/`) requieren login. Rutas públicas: `/`, `/health`, `/login/`. El admin se autocrea en el primer arranque desde `QUEAI_ADMIN_USER`/`QUEAI_ADMIN_PASSWORD`. La API REST usa bearer token (`QUEAI_API_TOKEN`).
 - `delete_app` elimina imágenes, volúmenes y la carpeta completa del módulo (`--rmi all --volumes` + `rmtree`).

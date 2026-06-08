@@ -8,7 +8,7 @@ locally on CPU, proxy a public API (OpenAI, Anthropic, ElevenLabs), or
 chain several together — the kernel routes, monitors and audits everything
 from one place.
 
-> Estado: preparación para lanzamiento `v1.0` Open Source. Plan completo en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Último estado etiquetado: `v1.0.0-rc1`.
+> Versión estable: **`v1.0.0`** — primer release Open Source.
 
 ## Qué resuelve
 
@@ -87,16 +87,17 @@ La guía completa está en [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPM
 - [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
 - [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md)
 - [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md)
-- [`docs/ROADMAP.md`](./docs/ROADMAP.md) — plan hacia v1.0 / lanzamiento Open Source
+- [`docs/DESIGN_TOKENS.md`](./docs/DESIGN_TOKENS.md)
+- [`docs/SECURITY.md`](./docs/SECURITY.md)
 
 ## Estado del proyecto
 
-| Etiqueta más reciente | `v1.0.0-rc1` (primer release candidate) |
+| Última versión | `v1.0.0` |
 |---|---|
-| Tests | 29/29 pasando |
+| Tests | pasando |
 | Lint | `ruff check .` limpio |
-| CI | `ci.yml` (lint + tests py3.11/3.12) y `sync-installer.yml` (espejo del instalador) |
-| Pendiente antes de `v1.0` | gobernanza OSS (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/CHANGELOG/templates) y documentación profesional completa — ver [`docs/ROADMAP.md`](./docs/ROADMAP.md) |
+| CI | `ci.yml` (lint + tests py3.11/3.12) |
+| UI bilingüe | español por defecto, inglés con switch en la navbar |
 
 El núcleo es apto para self-host hoy: auth obligatoria, gunicorn,
 configuración por env, audit log, backup/restore vía CLI. HTTPS y

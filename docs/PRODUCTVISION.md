@@ -118,7 +118,7 @@ QueAI **no** está pensado para:
 3. **Self-update** del kernel desde la UI (hoy es manual).
 4. **Múltiples registries** para que cada equipo pueda tener su propio
    catálogo privado además del oficial.
-5. **i18n** del kernel (inglés y español; hoy es es-AR mayoritariamente).
-6. **Firma de plugins** (cadena de procedencia opcional).
+5. **Firma de plugins** (cadena de procedencia opcional).
 
-El roadmap detallado vive en [`ROADMAP.md`](./ROADMAP.md).
+Para sugerencias y prioridades de la comunidad, abre un *issue* en
+[GitHub](https://github.com/queai-project/QueAI/issues).

@@ -3,18 +3,86 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versionado: [SemVer](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] — 2026-06-08
+
+Primer release Open Source estable. El kernel pasa de "rc estable
+con docs/branding pendiente" a producto publicable: bilingüe,
+visualmente coherente con sus plugins oficiales, instalador con
+prompt de credenciales y feedback visual en operaciones largas.
+
+### Added
+- **UI bilingüe ES/EN** vía `gettext`: middleware `LocaleMiddleware`,
+  switch `ES · EN` en la navbar, locale embebido en `locale/{es,en}/`
+  cubriendo navbar, welcome, login, home, hub, marketplace, monitor,
+  audit log, account, modales de confirmación, mensajes flash de
+  Django y strings dinámicas de JS vía `window.i18n`.
+- **`AvailableApp.description_en`** + migración 0002: el manifest del
+  plugin puede declarar `description_en` y el Hub elige la versión
+  según el idioma activo.
+- **Feedback visual en operaciones largas**: spinner inline en el
+  botón + overlay persistente abajo a la derecha al hacer
+  Descargar / Instalar / Detener / Reanudar / Actualizar. Sin
+  cambios en el backend síncrono.
+- **Prompt interactivo de credenciales admin** en `install.sh`: pide
+  usuario + password con confirmación, validación de longitud,
+  blocklist de caracteres que rompen `.env`. En `--unattended` o
+  sin tty genera una password random urlsafe y la muestra una sola
+  vez en el banner final.
+- **Auto-generación de `SECRET_KEY` y `QUEAI_API_TOKEN`** en el
+  primer arranque (idempotente: no rota valores ya seteados).
+- **Detección de puerto ocupado** en `install.sh` (con fallback a
+  instrucciones manuales) — el puerto del kernel es fijo (ver
+  Changed).
+- **`docs/DESIGN_TOKENS.md`** como fuente única del look & feel
+  (paleta, tipografía DM Sans/DM Mono, radius, principios). Los 3
+  plugins oficiales embeben una copia de los tokens.
+- **Onboarding revisado**: `/` → `/login/` → `/welcome/` siempre en
+  el primer login; el welcome se salta automáticamente si ya fue
+  dismisseado en la sesión. `?force=1` lo fuerza.
+- **Issue templates** (`bug_report`, `feature_request`,
+  `plugin_proposal`), PR template y CODE_OF_CONDUCT (Contributor
+  Covenant 2.1).
+- **Plugin tooling**: `scripts/build_locale.py` para regenerar el
+  locale sin gettext-bin instalado.
 
 ### Changed
 - **Puerto fijo del kernel: `:8473`** (dashboard Traefik `:9473`).
-  Decisión deliberada: la landing, README y docs anuncian el puerto
-  sin condiciones, así que dejamos de ofrecer auto-reasignación
-  para evitar incongruencias. Si el puerto está ocupado, el
-  instalador aborta con instrucciones claras para instalar manual.
+  La landing, README y docs anuncian el puerto sin condiciones; el
+  instalador aborta con instrucciones claras si está ocupado.
+- **Look & feel del kernel y plugins unificados**: paleta plana
+  `#141414` / `#1c1c1c` / `#262626`, sin gradientes, sin
+  glassmorphism, radius `14px` para tarjetas / `9px` para botones,
+  tipografía DM Sans + DM Mono, switch de idioma en la navbar.
+- **Iframe del plugin en el Hub**: ancho cap a `1200px` centrado en
+  vez de pantalla completa. Cache-bust automático con
+  `?_t=Date.now()` para que un rebuild del plugin se refleje en el
+  acto.
+- **OnLogin** redirige a `/welcome/` (era `/manager/`).
+- **`AvailableApp.description`** ahora también soporta
+  `description_en` en el `manifest.json`.
+- **Botón "Añadir al Hub" del Marketplace** renombrado a
+  **"Descargar"** (refleja mejor lo que hace: `git clone` al
+  filesystem; la instalación es un segundo paso aparte).
+- **Banner final del instalador** colapsa los 4 deep-links del
+  kernel a una sola URL `http://localhost:8473/`; el usuario
+  descubre Hub/Marketplace/Monitor vía la UI tras el primer login.
 
-### Added
-- *(en preparación: gobernanza OSS completa, nueva documentación
-  profesional, branding consolidado — ver `docs/ROADMAP.md`)*
+### Fixed
+- **Swagger `/docs` de los plugins** se sirve siempre (era gateado
+  por `is_dev` y el compose de STT forzaba production → 404).
+- **Plugins descargados con permisos correctos** (`HOST_UID`/`GID`
+  pasados al contenedor `alpine/git`).
+- **CSRF / login no se rompen** al cambiar `QUEAI_PORT` desde
+  `install.sh`: la actualización del `.env` mantiene
+  `CSRF_TRUSTED_ORIGINS` consistente.
+- **`{% blocktrans %}` con saltos de línea** (home, welcome) ahora
+  usa `trimmed` para que los msgid normalizados sean los que
+  realmente se traducen.
+
+### Removed
+- Notas de planificación internas (`docs/ROADMAP.md`).
+- Workflow `sync-installer.yml` (el instalador se copia a mano al
+  repo de la landing).
 
 ---
 
@@ -63,7 +131,7 @@ docs profesionales y branding.
 - **Documentación** inicial:
   `docs/ARCHITECTURE.md`, `docs/OPERATIONS.md`,
   `docs/PLUGIN_DEVELOPMENT.md`, `docs/API_REFERENCE.md`,
-  `docs/PRODUCTVISION.md`, `docs/ROADMAP.md`, `CLAUDE.md`.
+  `docs/PRODUCTVISION.md`, `CLAUDE.md`.
 
 ### Changed
 - **Puerto del kernel**: `:80` → `:8080`; Traefik dashboard a `:9090`.
