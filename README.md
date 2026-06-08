@@ -8,59 +8,54 @@ locally on CPU, proxy a public API (OpenAI, Anthropic, ElevenLabs), or
 chain several together — the kernel routes, monitors and audits everything
 from one place.
 
-> Versión estable: **`v1.0.0`** — primer release Open Source.
+> Stable version: **`v1.0.0`** — first Open Source release.
 
-## Qué resuelve
+## What it solves
 
-| Problema | Cómo lo aborda QueAI |
+| Problem | How QueAI handles it |
 |---|---|
-| Cada capacidad de IA viene con su propio servidor, su `.env`, su puerto | El kernel descubre, instala y orquesta cada módulo como contenedor Docker desacoplado |
-| Conectar 3 modelos = 3 stacks distintos | Un solo dashboard (`/manager`), un solo API REST (`/api/v1`), un solo CLI (`queai`) |
-| Mezclar modelos locales y APIs cloud requiere pegamento manual | Un plugin puede ser CPU local o un thin proxy a una API pública, el contrato es el mismo |
-| Probar arrancar/parar/configurar es trabajo de DevOps | Acciones desde la UI o la CLI; el kernel maneja Docker por debajo |
-| Producción seguro fuera de la caja | Auth obligatoria, audit log, healthchecks reales, backup/restore desde CLI |
+| Every AI capability ships its own server, its own `.env`, its own port | The kernel discovers, installs and orchestrates each module as a decoupled Docker container |
+| Wiring 3 models = 3 different stacks | One dashboard (`/manager`), one REST API (`/api/v1`), one CLI (`queai`) |
+| Mixing local models and cloud APIs needs manual glue | A plugin can be a local CPU model or a thin proxy to a public API — same contract either way |
+| Start/stop/configure is DevOps work | All actions from the UI or the CLI; the kernel drives Docker underneath |
+| Production-safe out of the box | Mandatory auth, audit log, real healthchecks, CLI backup/restore |
 
-## Componentes principales
-- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8473`.
-- `django-kernel`: backend Django + UI del hub.
-- `plugins/*`: módulos independientes (típicamente FastAPI, pero cualquier contenedor sirve).
-- `db.sqlite3`: estado del catálogo (no versionado en el repo).
-- `queai` CLI: cliente Python para automatizar desde scripts o CI.
-- Red Docker `queai_network`: compartida entre kernel y todos los plugins.
+## Core components
 
-Flujo: cliente → Traefik → Django (`/manager`, `/marketplace`, `/monitor`, `/api/v1`) → operaciones Docker → módulos.
+- `traefik`: HTTP routing by prefix; exposes the hub on `:8473`.
+- `django-kernel`: Django backend + hub UI.
+- `plugins/*`: independent modules (typically FastAPI containers, but anything that speaks HTTP works).
+- `db.sqlite3`: local catalog state (not versioned in the repo).
+- `queai` CLI: Python client to automate from scripts or CI.
+- Docker network `queai_network`: shared between the kernel and all plugins.
 
-## Arquitectura rápida
-- `traefik`: ruteo HTTP por prefijos, expone el hub en `:8473`.
-- `django-kernel`: backend Django + UI del hub.
-- `plugins/*`: módulos independientes (típicamente contenedores FastAPI).
-- `db.sqlite3`: persistencia local del catálogo (no versionado en el repo).
-- Red Docker `queai_network`: compartida entre el kernel y todos los plugins.
+Flow: client → Traefik → Django (`/manager`, `/marketplace`, `/monitor`, `/api/v1`) → Docker operations → modules.
 
-Flujo: cliente → Traefik → Django (`/manager`, `/marketplace`, `/monitor`) → operaciones Docker → módulos.
+## Requirements
 
-## Requisitos
-- Docker Engine y Docker Compose v2 (`docker compose`)
+- Docker Engine and Docker Compose v2 (`docker compose`)
 - Git
-- Linux (Debian/Ubuntu, Fedora/RHEL, Arch), macOS, o **Windows vía WSL2** (ver [`docs/OPERATIONS.md`](./docs/OPERATIONS.md#windows-vía-wsl2))
+- Linux (Debian/Ubuntu, Fedora/RHEL, Arch), macOS, or **Windows via WSL2** (see [`docs/OPERATIONS.md`](./docs/OPERATIONS.md))
 
-## Ejecutar el proyecto
+## Quick start
 
-### Instalación automática
+### One-line install
+
 ```bash
 curl -fsSL https://queai.dev/install.sh | bash
 ```
 
-El instalador es **no destructivo**: detecta Docker existente y lo reutiliza en vez de reinstalarlo. Opciones:
+The installer is **non-destructive**: it detects an existing Docker setup and reuses it instead of reinstalling. Options:
 
 ```bash
-bash install.sh --dry-run         # ver qué haría sin ejecutar nada
-bash install.sh --unattended      # sin preguntas
-bash install.sh --dir ~/QueAI     # directorio personalizado
-bash install.sh --branch develop  # otra rama
+bash install.sh --dry-run         # show what it would do without changing anything
+bash install.sh --unattended      # no prompts
+bash install.sh --dir ~/QueAI     # custom install directory
+bash install.sh --branch develop  # different branch
 ```
 
-### Instalación manual
+### Manual install
+
 ```bash
 git clone https://github.com/queai-project/QueAI.git
 cd QueAI
@@ -69,40 +64,48 @@ docker compose up -d --build
 ```
 
 ## URLs
-- Hub:                `http://localhost:8473/`
-- Catálogo de apps:   `http://localhost:8473/manager/`
-- Marketplace:        `http://localhost:8473/marketplace/`
-- Dashboard monitor:  `http://localhost:8473/monitor/`
-- Dashboard Traefik:  `http://localhost:9473/dashboard/` (interno)
 
-> El puerto del hub es configurable vía `QUEAI_PORT` en `.env`.
+- Hub:               `http://localhost:8473/`
+- Module catalog:    `http://localhost:8473/manager/`
+- Marketplace:       `http://localhost:8473/marketplace/`
+- Monitor dashboard: `http://localhost:8473/monitor/`
+- Traefik dashboard: `http://localhost:9473/dashboard/` (internal)
 
-## Crear un plugin
-La guía completa está en [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md). Incluye estructura mínima, `manifest.json`, `docker-compose.yml`, integración con Traefik, `.env.example` y checklist de publicación.
+> The hub port is configurable via `QUEAI_PORT` in `.env`.
 
-## Documentación
-- [`docs/README.md`](./docs/README.md)
-- [`docs/PRODUCTVISION.md`](./docs/PRODUCTVISION.md)
-- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
-- [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
-- [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md)
-- [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md)
-- [`docs/DESIGN_TOKENS.md`](./docs/DESIGN_TOKENS.md)
-- [`docs/SECURITY.md`](./docs/SECURITY.md)
+## Build a plugin
 
-## Estado del proyecto
+Full guide in [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md). Covers the minimal layout, `manifest.json`, `docker-compose.yml`, Traefik integration, `.env.example`, and a publication checklist.
 
-| Última versión | `v1.0.0` |
+## Documentation
+
+- [`docs/README.md`](./docs/README.md) — index
+- [`docs/PRODUCTVISION.md`](./docs/PRODUCTVISION.md) — product vision
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — technical architecture
+- [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) — operations and deployment
+- [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md) — kernel REST API
+- [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md) — plugin author guide
+- [`docs/DESIGN_TOKENS.md`](./docs/DESIGN_TOKENS.md) — visual design tokens
+- [`docs/SECURITY.md`](./docs/SECURITY.md) — security policy
+
+## Project status
+
+| Latest release | `v1.0.0` |
 |---|---|
-| Tests | pasando |
-| Lint | `ruff check .` limpio |
-| CI | `ci.yml` (lint + tests py3.11/3.12) |
-| UI bilingüe | español por defecto, inglés con switch en la navbar |
+| Tests | passing |
+| Lint | `ruff check .` clean |
+| CI | `ci.yml` (lint + tests on Python 3.11/3.12) |
+| Bilingual UI | Spanish by default, English via the navbar switch |
 
-El núcleo es apto para self-host hoy: auth obligatoria, gunicorn,
-configuración por env, audit log, backup/restore vía CLI. HTTPS y
-reverse proxy se cubren en `docs/DEPLOYMENT.md` (en preparación).
+The core is fit for self-hosting today: mandatory auth, gunicorn, env-based
+configuration, audit log, CLI backup/restore.
 
-## Licencia
+## Show your support
 
-MIT — ver [`LICENSE`](./LICENSE).
+If QueAI is useful to you, **a GitHub star helps me know it does** — and helps other people find the project.
+
+[![Star this repo](https://img.shields.io/github/stars/queai-project/QueAI?style=social)](https://github.com/queai-project/QueAI/stargazers)
+
+## License
+
+MIT — see [`LICENSE`](./LICENSE).
