@@ -2,12 +2,6 @@
 # =============================================================================
 #  QueAI — Instalador
 # =============================================================================
-#  Filosofía:
-#    * NO destruir nada existente sin permiso explícito.
-#    * Detectar lo que ya hay y reutilizarlo (Docker, repo, etc).
-#    * Soportar Linux multi-distro (Debian/Ubuntu/Fedora/RHEL/Arch) y macOS.
-#    * Idempotente: correrlo dos veces no rompe nada.
-#
 #  Uso:
 #    curl -fsSL https://queai.dev/install.sh | bash
 #    bash install.sh [--dry-run] [--unattended] [--dir <ruta>] [--branch <name>]
