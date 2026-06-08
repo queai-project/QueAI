@@ -2,123 +2,123 @@
 
 ## TL;DR
 
-**QueAI es un orquestador modular de capacidades de IA.** El kernel es un
-runtime open-source; las capacidades (chat, OCR, STT, TTS, RAG, etc.) son
-módulos Docker desacoplados. Un módulo puede correr un modelo localmente
-en CPU, ser un *thin proxy* a una API pública, o encadenar varios pasos
-en un pipeline. El kernel **no asume nada sobre el modelo** — su trabajo
-es descubrir, instalar, configurar, monitorizar y auditar.
+**QueAI is a modular orchestrator for AI capabilities.** The kernel is an
+open-source runtime; capabilities (chat, OCR, STT, TTS, RAG, etc.) are
+decoupled Docker modules. A module can run a model locally on CPU, act as
+a *thin proxy* to a public API, or chain several steps in a pipeline. The
+kernel **assumes nothing about the model** — its job is to discover,
+install, configure, monitor and audit.
 
-## El problema
+## The problem
 
-Quien quiere construir algo "con IA" hoy se encuentra con tres frentes:
+Anyone trying to build something "with AI" today faces three fronts:
 
-1. **Heterogeneidad.** Cada modelo y cada API trae su propio servidor,
-   su propio `.env`, su propio puerto, su propio formato de logs.
-   Mezclar tres se convierte en un proyecto de integración.
-2. **Falsa dicotomía local vs cloud.** La discusión "self-host vs
-   provider" se plantea como excluyente. En la práctica casi todos los
-   proyectos reales acaban mezclando: OCR offline + LLM en Anthropic +
-   embeddings locales. Conectarlo todo a mano es donde se va el tiempo.
-3. **Operación.** Probar, instalar, parar, reconfigurar, ver logs,
-   monitorizar, hacer backup, rotar credenciales: cada cosa es un comando
-   manual en un servidor que el usuario no quería administrar.
+1. **Heterogeneity.** Every model and every API ships its own server, its
+   own `.env`, its own port, its own log format. Mixing three turns into
+   an integration project.
+2. **The false local-vs-cloud dichotomy.** The "self-host vs provider"
+   discussion is framed as either/or. In practice, almost every real
+   project ends up mixing both: offline OCR + Anthropic LLM + local
+   embeddings. Wiring it together by hand is where the time goes.
+3. **Operations.** Trying, installing, stopping, reconfiguring, reading
+   logs, monitoring, backing up, rotating credentials: each one is a
+   manual command on a server the user never wanted to administer.
 
-## La hipótesis
+## The hypothesis
 
-Si las capacidades de IA se distribuyen y operan como **contenedores con
-un contrato común** (un `manifest.json` + un `docker-compose.yml`),
-entonces:
+If AI capabilities are distributed and operated as **containers with a
+shared contract** (a `manifest.json` + a `docker-compose.yml`), then:
 
-- El kernel orquesta sin preocuparse del backend.
-- El usuario instala un módulo "OCR Tesseract" igual que "Chat OpenAI proxy".
-- La operación (start/stop/logs/healthcheck/backup) es uniforme.
-- La sustitución es barata: cambiar el módulo "CHAT local Ollama" por
-  "CHAT proxy Anthropic" no implica reescribir nada del kernel.
+- The kernel orchestrates without caring about the backend.
+- The user installs an "OCR Tesseract" module the same way as
+  "Chat OpenAI proxy".
+- Operations (start/stop/logs/healthcheck/backup) are uniform.
+- Swapping is cheap: replacing "CHAT local Ollama" with "CHAT proxy
+  Anthropic" requires zero rewriting in the kernel.
 
-## El producto
+## The product
 
-### Capacidades del kernel (v1.0)
+### Kernel capabilities (v1.0)
 
-| Capacidad | Estado |
+| Capability | Status |
 |---|---|
-| Descubrimiento de módulos en `plugins/` por `manifest.json` | ✅ |
-| Ciclo de vida: install / start / stop / uninstall / delete | ✅ |
-| Configuración por módulo vía `.env` con recreación atómica | ✅ |
-| Logs por módulo en tiempo real (SSE) | ✅ |
-| Métricas CPU / RAM / red por contenedor | ✅ |
-| Healthcheck real por módulo con estado `starting` durante el grace | ✅ |
-| Marketplace remoto + descarga desde URL Git arbitraria | ✅ |
-| Audit log de operaciones (UI / API / CLI / system) con auto-purga | ✅ |
-| Auth obligatoria + endpoint `/health` público | ✅ |
-| API REST `/api/v1` con bearer token + Swagger UI | ✅ |
-| CLI `queai` para automatizar desde scripts / CI | ✅ |
-| Backup / restore *light* (db + envs) desde CLI | ✅ |
+| Module discovery in `plugins/` via `manifest.json` | ✅ |
+| Lifecycle: install / start / stop / uninstall / delete | ✅ |
+| Per-module configuration via `.env` with atomic recreation | ✅ |
+| Real-time per-module logs (SSE) | ✅ |
+| CPU / RAM / network metrics per container | ✅ |
+| Real per-module healthcheck with a `starting` grace state | ✅ |
+| Remote marketplace + install from any Git URL | ✅ |
+| Audit log of operations (UI / API / CLI / system) with auto-purge | ✅ |
+| Mandatory auth + public `/health` endpoint | ✅ |
+| REST API `/api/v1` with bearer token + Swagger UI | ✅ |
+| `queai` CLI to automate from scripts / CI | ✅ |
+| Lightweight backup / restore (db + envs) from the CLI | ✅ |
 
-### Módulos oficiales en v1.0
+### Official modules in v1.0
 
-| Módulo | Backend | Tipo |
+| Module | Backend | Type |
 |---|---|---|
 | **OCR** | Tesseract + Redis RQ workers | Local, CPU |
-| **STT** | faster-whisper int8, VAD opcional | Local, CPU |
-| **TTS** | Piper EN/ES, baja latencia | Local, CPU |
+| **STT** | faster-whisper int8, optional VAD | Local, CPU |
+| **TTS** | Piper EN/ES, low latency | Local, CPU |
 
-### Roadmap próximo
+### What's coming next
 
-| Módulo | Backend planeado | Tipo |
+| Module | Planned backend | Type |
 |---|---|---|
-| **CHAT** | Ollama + adapters a OpenAI / Anthropic | Local **o** cloud |
-| **RAG** | Chroma / Qdrant local + embeddings de proveedor | Local **o** híbrido |
-| **VISION** | Modelo local o proxy a Gemini / GPT-4V | Local **o** cloud |
+| **CHAT** | Ollama + adapters for OpenAI / Anthropic | Local **or** cloud |
+| **RAG** | Local Chroma / Qdrant + provider embeddings | Local **or** hybrid |
+| **VISION** | Local model or proxy to Gemini / GPT-4V | Local **or** cloud |
 
-## Usuario objetivo
+## Target user
 
-- **Desarrolladores** que están construyendo productos sobre IA y necesitan
-  poder cambiar el modelo subyacente sin reescribir el wiring.
-- **Equipos** que quieren autonomía operacional: poder ver logs, healthcheck
-  reales, audit log, hacer rollback, sin depender del soporte de un SaaS.
-- **Operadores técnicos** que quieren un entorno reproducible entre dev,
-  staging y prod sin reinventar la stack en cada paso.
+- **Developers** building products on top of AI who need to be able to
+  swap the underlying model without rewriting the wiring.
+- **Teams** that want operational autonomy: real logs, real healthchecks,
+  an audit log, the ability to roll back — without depending on a SaaS
+  vendor's support.
+- **Technical operators** who want a reproducible environment across
+  dev, staging and prod without reinventing the stack at each step.
 
-QueAI **no** está pensado para:
-- Usuario final no técnico que solo quiere un chatbot.
-- Empresas con requisitos enterprise pesados (SSO, audit firmado, SLA) —
-  podría llegar ahí pero hoy no es el alcance.
+QueAI **is not** aimed at:
+- Non-technical end users who just want a chatbot.
+- Enterprises with heavy enterprise requirements (SSO, signed audit, SLA)
+  — it could get there, but that's not today's scope.
 
-## Principios
+## Principles
 
-1. **Contrato sobre tecnología.** Lo que define un módulo es el contrato
-   (`manifest.json` + endpoints declarados), no la librería que use.
-2. **Local y cloud son iguales para el kernel.** El cliente que usa un
-   módulo no sabe (ni necesita saber) si el cómputo es local o remoto.
-   El operador elige por módulo, no por arquitectura.
-3. **Operación primero, marketing después.** Healthcheck, audit, logs en
-   vivo y backup son requisitos, no extras.
-4. **CLI = API = UI.** Cualquier cosa que se pueda hacer en el navegador
-   se puede hacer con un comando `queai` y un POST a `/api/v1`. Sin
-   asimetría.
-5. **Open source MIT, sin freemium escondido.** El core no tiene puertas
-   pagas. Servicios alrededor (registries privados, soporte) son
-   negocio aparte y no se camuflan dentro del producto.
+1. **Contract over technology.** What defines a module is its contract
+   (`manifest.json` + declared endpoints), not the library it uses.
+2. **Local and cloud are equal to the kernel.** A client using a module
+   doesn't know (and doesn't need to know) whether the compute is local
+   or remote. The operator picks per module, not per architecture.
+3. **Operations first, marketing second.** Healthchecks, audit, live
+   logs and backup are requirements, not extras.
+4. **CLI = API = UI.** Anything you can do in the browser you can do
+   with a `queai` command and a `POST` to `/api/v1`. No asymmetry.
+5. **Open source MIT, no hidden freemium.** The core has no paywalls.
+   Services around it (private registries, support) are a separate
+   business and don't get camouflaged inside the product.
 
-## Fuera de alcance (a propósito)
+## Out of scope (on purpose)
 
-- **Multi-tenant / multi-usuario con roles.** Single user, single admin.
-- **Firma criptográfica de plugins.** Confianza por procedencia (URL Git)
-  por ahora.
-- **Telemetría histórica persistente.** Las métricas son el "ahora" — si
-  necesitas series temporales, exporta a Prometheus desde la API.
-- **Auto-scaling / clustering.** Un kernel por host.
-- **Marketplace con pagos.** Solo distribución open source.
+- **Multi-tenant / multi-user with roles.** Single user, single admin.
+- **Cryptographic plugin signing.** Trust by provenance (Git URL) for
+  now.
+- **Persistent historical telemetry.** Metrics are the "now" — if you
+  need time series, export to Prometheus from the API.
+- **Auto-scaling / clustering.** One kernel per host.
+- **Marketplace with payments.** Open-source distribution only.
 
-## Hacia dónde va (post-v1.0)
+## Where it's going (post-v1.0)
 
-1. **Módulo CHAT** con adapter local + cloud unificados.
-2. **Módulo RAG** que se integra con CHAT.
-3. **Self-update** del kernel desde la UI (hoy es manual).
-4. **Múltiples registries** para que cada equipo pueda tener su propio
-   catálogo privado además del oficial.
-5. **Firma de plugins** (cadena de procedencia opcional).
+1. **CHAT module** with unified local + cloud adapter.
+2. **RAG module** that integrates with CHAT.
+3. **Kernel self-update** from the UI (currently manual).
+4. **Multiple registries** so each team can have its own private catalog
+   alongside the official one.
+5. **Plugin signing** (optional provenance chain).
 
-Para sugerencias y prioridades de la comunidad, abre un *issue* en
+For community suggestions and prioritization, open an *issue* on
 [GitHub](https://github.com/queai-project/QueAI/issues).

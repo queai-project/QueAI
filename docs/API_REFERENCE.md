@@ -1,137 +1,146 @@
 # API Reference (Kernel)
 
-Base URL local: `http://localhost:8080` (configurable vía `QUEAI_PORT`).
+Local base URL: `http://localhost:8473` (configurable via `QUEAI_PORT`).
 
-Las URLs están organizadas por la app Django que las sirve. La **fuente de verdad** de las rutas son los `urls.py` de cada app (`core/urls.py`, `module_manager/urls.py`, `marketplace/urls.py`, `system_monitor/urls.py`).
+URLs are organized by the Django app that serves them. The **source of truth** for routes is each app's `urls.py` (`core/urls.py`, `module_manager/urls.py`, `marketplace/urls.py`, `system_monitor/urls.py`).
 
-## Dos superficies de API
+## Two API surfaces
 
-El kernel expone dos superficies distintas:
+The kernel exposes two distinct surfaces:
 
-1. **UI web** (todo lo siguiente) — auth por sesión Django, devuelve HTML.
-2. **API REST `/api/v1/`** — auth por bearer token (`QUEAI_API_TOKEN`), devuelve JSON. Pensada para scripts, CI y la CLI `queai`. Documentada al final.
+1. **Web UI** (everything below) — Django session auth, returns HTML.
+2. **REST API `/api/v1/`** — bearer token auth (`QUEAI_API_TOKEN`), returns JSON. Designed for scripts, CI and the `queai` CLI. Documented at the end.
 
-## Generales (`core/`)
-- `GET /` — Home del kernel (`home.html`).
-- `GET /admin/` — Admin de Django (deshabilitable en producción).
+## General (`core/`)
 
-## `module_manager/` — gestor del catálogo local
+- `GET /` — Kernel home (`home.html`).
+- `GET /admin/` — Django admin (can be disabled in production).
+
+## `module_manager/` — local catalog manager
 
 - `GET /manager/`
-  - Sincroniza plugins en disco con BD y renderiza el catálogo. También ejecuta el reconciliador (borra plugins huérfanos y limpia sus recursos Docker).
+  - Syncs on-disk plugins with the DB and renders the catalog. Also runs the reconciler (removes orphaned plugins and cleans up their Docker resources).
 
 - `POST /manager/install/`
   - Form data: `manifest_folder_name`
-  - Acción: `docker compose up -d --build --force-recreate` sobre el módulo.
+  - Action: `docker compose up -d --build --force-recreate` on the module.
 
 - `POST /manager/start/`
   - Form data: `manifest_folder_name`
-  - Acción: `docker compose start`.
+  - Action: `docker compose start`.
 
 - `POST /manager/stop/`
   - Form data: `manifest_folder_name`
-  - Acción: `docker compose stop`.
+  - Action: `docker compose stop`.
 
 - `POST /manager/uninstall/`
   - Form data: `manifest_folder_name`
-  - Acción: `docker compose down --rmi all --volumes --remove-orphans`. Conserva la carpeta del plugin y el registro en BD (sigue listado como disponible).
+  - Action: `docker compose down --rmi all --volumes --remove-orphans`. Keeps the plugin folder and the DB row (still listed as available).
 
 - `POST /manager/delete/`
   - Form data: `manifest_folder_name`
-  - Acción: uninstall completo + `rmtree` de la carpeta + borrado del registro.
+  - Action: full uninstall + `rmtree` of the folder + DB row removal.
 
 - `GET /manager/logo/<plugin_name>/<filename>`
-  - Devuelve el logo desde `plugins/<plugin_name>/assets/<filename>`.
+  - Returns the logo from `plugins/<plugin_name>/assets/<filename>`.
 
 - `GET /manager/logs/<folder_name>/`
-  - Respuesta JSON: últimas 150 líneas de `docker compose logs`.
+  - JSON response: last 150 lines of `docker compose logs`.
 
 - `GET /manager/get_env/<folder_name>/`
-  - Si no existe `.env`, lo crea desde `.env.example` (o crea un placeholder vacío). Devuelve el contenido.
+  - If `.env` doesn't exist, it's created from `.env.example` (or an empty placeholder). Returns the content.
 
 - `POST /manager/save_env/`
   - Form data: `folder_name`, `content`
-  - Guarda el `.env` y aplica `docker compose up -d --force-recreate` para recrear el contenedor.
+  - Saves the `.env` and applies `docker compose up -d --force-recreate` to recreate the container.
 
-## `marketplace/` — catálogo remoto
+## `marketplace/` — remote catalog
 
 - `GET /marketplace/`
-  - Renderiza el catálogo remoto. Hace fetch del `register.json` con cache-busting y cruza contra el disco local para reportar `is_downloaded`, `local_version` e `is_update_available` por plugin.
+  - Renders the remote catalog. Fetches `register.json` with cache-busting and cross-references against local disk to report `is_downloaded`, `local_version` and `is_update_available` per plugin.
 
 - `POST /marketplace/download/`
   - Form data: `git_url`
-  - Clona / actualiza el plugin desde Git en un contenedor `alpine/git` efímero con el UID/GID del host. Si el repo no contiene un `manifest.json` válido, se rechaza y se limpia.
+  - Clones/updates the plugin from Git in an ephemeral `alpine/git` container using the host's UID/GID. If the repo doesn't contain a valid `manifest.json`, it's rejected and cleaned up.
 
-## `system_monitor/` — observabilidad
+## `system_monitor/` — observability
 
 - `GET /monitor/`
-  - Renderiza el dashboard de monitoreo.
+  - Renders the monitoring dashboard.
 
 - `GET /monitor/stats/<folder_name>/`
-  - Respuesta JSON con CPU, RAM, red e ID de cada contenedor del módulo. Fuente: `docker ps --filter label=com.docker.compose.project=<folder.lower()>` + `docker stats --no-stream`.
+  - JSON response with CPU, RAM, network and ID for each module container. Source: `docker ps --filter label=com.docker.compose.project=<folder.lower()>` + `docker stats --no-stream`.
 
-## API REST (`/api/v1/`)
+## REST API (`/api/v1/`)
 
-Autenticación con header `Authorization: Bearer <QUEAI_API_TOKEN>` en cada request (excepto health y openapi.json). El token se define en `.env`; si está vacío y `DEBUG=True`, el kernel genera uno efímero por sesión y lo imprime en logs.
+Authentication: `Authorization: Bearer <QUEAI_API_TOKEN>` header on every request (except `health` and `openapi.json`). The token is set in `.env`; if empty and `DEBUG=True`, the kernel generates an ephemeral one per session and logs it.
 
-UI navegable en `GET /api/v1/docs` (Swagger UI, requiere navegar y luego pulsar **Authorize**). Schema crudo en `GET /api/v1/openapi.json`.
+Browsable UI at `GET /api/v1/docs` (Swagger UI; press **Authorize** after loading). Raw schema at `GET /api/v1/openapi.json`.
 
 ### Meta
-- `GET /api/v1/health` — público. JSON con `status`, `version`, `plugins`.
-- `GET /api/v1/openapi.json` — schema OpenAPI 3.
+
+- `GET /api/v1/health` — public. JSON with `status`, `version`, `plugins`.
+- `GET /api/v1/openapi.json` — OpenAPI 3 schema.
 - `GET /api/v1/docs` — Swagger UI.
 
-### Catálogo y ciclo de vida
-- `GET  /api/v1/plugins/` — lista todos los plugins con su estado.
-- `GET  /api/v1/plugins/<folder>/` — detalle.
+### Catalog and lifecycle
+
+- `GET  /api/v1/plugins/` — lists all plugins with their state.
+- `GET  /api/v1/plugins/<folder>/` — detail.
 - `POST /api/v1/plugins/<folder>/install` — `docker compose up --build`. Status 202.
-- `POST /api/v1/plugins/<folder>/start` — inicia el contenedor.
-- `POST /api/v1/plugins/<folder>/stop` — detiene.
-- `POST /api/v1/plugins/<folder>/uninstall` — down con `--rmi all --volumes` (conserva carpeta).
-- `POST /api/v1/plugins/<folder>/delete` — uninstall + borrado de la carpeta del plugin.
+- `POST /api/v1/plugins/<folder>/start` — starts the container.
+- `POST /api/v1/plugins/<folder>/stop` — stops it.
+- `POST /api/v1/plugins/<folder>/uninstall` — down with `--rmi all --volumes` (keeps the folder).
+- `POST /api/v1/plugins/<folder>/delete` — uninstall + delete the plugin folder.
 
-### Logs y métricas
-- `GET /api/v1/plugins/<folder>/logs?tail=N` — últimas N líneas (default 150, máx 2000).
-- `GET /api/v1/plugins/<folder>/stats` — CPU/RAM/red por contenedor.
+### Logs and metrics
 
-### Configuración
-- `GET /api/v1/plugins/<folder>/env` — lee el `.env` (lo crea desde `.env.example` si no existe).
-- `PUT /api/v1/plugins/<folder>/env` — body JSON `{ "content": "KEY=VAL\n...", "apply": true }`. Si `apply=true`, recrea el contenedor.
+- `GET /api/v1/plugins/<folder>/logs?tail=N` — last N lines (default 150, max 2000).
+- `GET /api/v1/plugins/<folder>/stats` — CPU/RAM/network per container.
+
+### Configuration
+
+- `GET /api/v1/plugins/<folder>/env` — reads the `.env` (creates it from `.env.example` if missing).
+- `PUT /api/v1/plugins/<folder>/env` — JSON body `{ "content": "KEY=VAL\n...", "apply": true }`. If `apply=true`, the container is recreated.
 
 ### Marketplace
-- `GET  /api/v1/marketplace/` — lista del registry remoto cruzada con estado local.
-- `POST /api/v1/marketplace/download` — body JSON `{ "git_url": "https://..." }`. Status 201 si el clone es exitoso y el manifest válido.
 
-### Observabilidad (Bloque D)
-- `GET /api/v1/plugins/<folder>/healthcheck` — pega al `healthcheck_entry_point` del manifest y devuelve `{healthy, latency_ms, status_code, error}`. Cache 5s. `healthy=null` si el plugin no declara el endpoint.
-- `GET /api/v1/plugins/<folder>/logs/stream?tail=50` — Server-Sent Events con `docker compose logs -f`. **Máx 2 streams simultáneos** en el kernel. Líneas como `data: <line>\n\n`.
-- `GET /api/v1/audit/?action=...&target=...&source=...&limit=100` — historial de acciones del kernel (sin auth necesaria entre source).
+- `GET  /api/v1/marketplace/` — remote registry list cross-referenced with local state.
+- `POST /api/v1/marketplace/download` — JSON body `{ "git_url": "https://..." }`. Status 201 if the clone succeeds and the manifest is valid.
+
+### Observability
+
+- `GET /api/v1/plugins/<folder>/healthcheck` — hits the manifest's `healthcheck_entry_point` and returns `{healthy, latency_ms, status_code, error}`. 5 s cache. `healthy=null` if the plugin doesn't declare the endpoint.
+- `GET /api/v1/plugins/<folder>/logs/stream?tail=50` — Server-Sent Events with `docker compose logs -f`. **Max 2 concurrent streams** in the kernel. Lines as `data: <line>\n\n`.
+- `GET /api/v1/audit/?action=...&target=...&source=...&limit=100` — kernel action history.
 
 ### Backup / restore
-- `GET /api/v1/backup` — descarga `tar.gz` con `db.sqlite3` + `.env` del kernel + `.env` de cada plugin. **No** incluye `plugins/` ni runtimes.
-- `POST /api/v1/restore` (multipart, campo `backup`) — extrae el tar a `restore-staging/`. No aplica nada.
-- `POST /api/v1/restore/apply` — mueve el staging al sistema en vivo. Guarda `db.sqlite3.pre-restore` y `.env.pre-restore` por si tienes que revertir. **Requiere reiniciar el kernel** después porque Django mantiene el handle de la BD abierto.
 
-### Códigos de error
+- `GET /api/v1/backup` — downloads a `tar.gz` with `db.sqlite3` + the kernel's `.env` + each plugin's `.env`. **Does not** include `plugins/` or runtime data.
+- `POST /api/v1/restore` (multipart, `backup` field) — extracts the tar into `restore-staging/`. Doesn't apply anything.
+- `POST /api/v1/restore/apply` — moves the staging into the live system. Saves `db.sqlite3.pre-restore` and `.env.pre-restore` in case you need to roll back. **Requires a kernel restart** afterwards because Django keeps the DB handle open.
 
-| Status | error                  | Significado |
-|--------|------------------------|-------------|
-| 400    | `bad_request`          | Body o query inválidos. |
-| 401    | `unauthorized`         | Falta header Authorization. |
-| 403    | `forbidden`            | Token inválido. |
-| 404    | `not_found`            | Plugin no existe. |
-| 500    | `internal`             | Subprocess falló u otro error servidor. |
-| 503    | `degraded`             | (`/health` cuando la DB no responde). |
+### Error codes
 
-### CLI cliente
+| Status | error | Meaning |
+|--------|-------|---------|
+| 400    | `bad_request`  | Invalid body or query. |
+| 401    | `unauthorized` | Missing Authorization header. |
+| 403    | `forbidden`    | Invalid token. |
+| 404    | `not_found`    | Plugin doesn't exist. |
+| 500    | `internal`     | Subprocess failed or other server error. |
+| 503    | `degraded`     | (`/health` when the DB doesn't respond). |
 
-Ver [`cli/README.md`](../cli/README.md) — `queai login`, `queai list`, `queai install`, etc.
+### Client CLI
 
-## Contrato esperado para plugins
-Para interoperar correctamente, cada plugin debería exponer:
+See [`cli/README.md`](../cli/README.md) — `queai login`, `queai list`, `queai install`, etc.
 
-- `<base_path>/health` para healthcheck básico.
-- `<base_path>/ui` para interfaz web embebible en iframe.
-- Ruta base consistente con las labels de Traefik: `PathPrefix(/api/<module_name>)`.
+## Expected contract for plugins
 
-Donde `<base_path>` = `/api/<module_name>` (definido en el `manifest.json` como `ui_entry_point`, `healthcheck_entry_point`, etc).
+To interoperate correctly, each plugin should expose:
+
+- `<base_path>/health` for the basic healthcheck.
+- `<base_path>/ui` for an iframe-embeddable web interface.
+- A base path consistent with the Traefik labels: `PathPrefix(/api/<module_name>)`.
+
+Where `<base_path>` = `/api/<module_name>` (defined in `manifest.json` as `ui_entry_point`, `healthcheck_entry_point`, etc.).

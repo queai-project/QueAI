@@ -1,51 +1,46 @@
 # QueAI Design Tokens
 
-Esta es la **fuente única de verdad** para el look & feel del kernel y los
-plugins oficiales. Cada plugin es independiente y **embebe su propia copia**
-de estos tokens; no carga CSS del kernel. Cuando estos tokens cambian aquí,
-se replican manualmente a los 3 plugins oficiales (OCR, STT, TTS).
+This is the **single source of truth** for the look & feel of the kernel and the official plugins. Each plugin is independent and **embeds its own copy** of these tokens; it does not load CSS from the kernel. When the tokens change here, they're manually replicated to the 3 official plugins (OCR, STT, TTS).
 
-## Por qué
+## Why
 
-- Los plugins se publican como contenedores autónomos y deben verse igual de
-  bien estando dentro del kernel (iframe) o abiertos directos en su URL.
-- Compartir CSS por HTTP entre dominios distintos genera CORS y rompe el
-  contrato de "plugin = caja negra Docker".
-- Duplicación deliberada > acoplamiento al kernel.
+- Plugins are published as standalone containers and have to look just as good inside the kernel (iframe) or opened directly at their URL.
+- Sharing CSS over HTTP across different domains pulls in CORS issues and breaks the "plugin = black-box Docker" contract.
+- Deliberate duplication > coupling to the kernel.
 
-## Paleta
+## Palette
 
 ```css
 :root {
-    /* Fondo */
-    --bg:            #141414;  /* página */
-    --bg-card:       #1c1c1c;  /* tarjetas, paneles */
-    --surface:       #262626;  /* hover sobre cards, pills activos */
-    --surface2:      #2c2c2c;  /* inputs, modales */
+    /* Background */
+    --bg:            #141414;  /* page */
+    --bg-card:       #1c1c1c;  /* cards, panels */
+    --surface:       #262626;  /* card hover, active pills */
+    --surface2:      #2c2c2c;  /* inputs, modals */
 
-    /* Líneas */
-    --border:        #2a2a2a;  /* borde por defecto */
-    --border-subtle: #1f1f1f;  /* separadores discretos */
+    /* Lines */
+    --border:        #2a2a2a;  /* default border */
+    --border-subtle: #1f1f1f;  /* subtle separators */
 
-    /* Texto */
-    --text:          #eaeae6;  /* primario */
-    --text-muted:    #909090;  /* descripciones */
-    --text-dim:      #707070;  /* etiquetas, valores monospace */
+    /* Text */
+    --text:          #eaeae6;  /* primary */
+    --text-muted:    #909090;  /* descriptions */
+    --text-dim:      #707070;  /* labels, monospace values */
 
-    /* Marca */
+    /* Brand */
     --red:           #e8180c;  /* CTA, brand, focus */
     --red-soft:      rgba(232,24,12,0.10);  /* error bg */
-    --ok:            #4ade80;  /* éxito, estado running */
+    --ok:            #4ade80;  /* success, running state */
     --warn:          #f5c042;
     --danger:        #ff5d5d;
 
-    /* Geometría */
-    --radius:        14px;     /* tarjetas, paneles */
-    --radius-sm:     9px;      /* botones, pills, inputs */
+    /* Geometry */
+    --radius:        14px;     /* cards, panels */
+    --radius-sm:     9px;      /* buttons, pills, inputs */
 }
 ```
 
-## Tipografía
+## Typography
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,26 +54,21 @@ body {
     font-size: 15px;
     -webkit-font-smoothing: antialiased;
 }
-/* Monospace para versiones, IDs, métricas, etiquetas */
+/* Monospace for versions, IDs, metrics, labels */
 .mono, code, kbd { font-family: 'DM Mono', monospace; }
 ```
 
-## Principios visuales
+## Visual principles
 
-1. **Plano, no glassmorphism.** Sin `backdrop-filter`, sin gradientes
-   radiales de fondo. Solo capas planas (`--bg`, `--bg-card`, `--surface`).
-2. **Sin sombras agresivas.** Como mucho `box-shadow: 0 8px 24px
-   rgba(0,0,0,0.3)` en modales. Las tarjetas no flotan.
-3. **Borde, no elevación.** La separación entre superficies se marca con
-   `1px solid var(--border)`, no con sombras.
-4. **El rojo se usa con cuidado.** Solo CTAs principales, foco, marca. Nunca
-   como fondo de tarjeta.
-5. **Mayúsculas con `letter-spacing: 0.08em`** para etiquetas
-   monospace (status, eyebrows). El cuerpo normal nunca va en mayúsculas.
+1. **Flat, no glassmorphism.** No `backdrop-filter`, no radial background gradients. Only flat layers (`--bg`, `--bg-card`, `--surface`).
+2. **No aggressive shadows.** At most `box-shadow: 0 8px 24px rgba(0,0,0,0.3)` on modals. Cards don't float.
+3. **Edges, not elevation.** Separation between surfaces is marked with `1px solid var(--border)`, not shadows.
+4. **Red is used sparingly.** Only for primary CTAs, focus, brand. Never as a card background.
+5. **Uppercase with `letter-spacing: 0.08em`** for monospace labels (status, eyebrows). Body copy never goes in uppercase.
 
-## Componentes core
+## Core components
 
-### Botón primario (CTA)
+### Primary button (CTA)
 
 ```css
 .btn-primary {
@@ -97,7 +87,7 @@ body {
 .btn-primary:disabled { opacity: 0.6; cursor: progress; }
 ```
 
-### Botón ghost (acción secundaria)
+### Ghost button (secondary action)
 
 ```css
 .btn-ghost {
@@ -143,7 +133,7 @@ input[type=text], input[type=password], textarea {
 input:focus, textarea:focus { border-color: var(--red); }
 ```
 
-### Spinner (para botones de carga)
+### Spinner (for loading buttons)
 
 ```css
 .btn-spinner {
@@ -159,11 +149,11 @@ input:focus, textarea:focus { border-color: var(--red); }
 @keyframes btn-spin { to { transform: rotate(360deg); } }
 ```
 
-## Lo que NO usamos
+## What we don't use
 
-- Gradientes radiales o lineales de fondo (no encajan con el flat).
+- Radial or linear background gradients (don't match the flat aesthetic).
 - `backdrop-filter: blur(...)`.
-- Sombras coloreadas (rgba con tinte rojo, azul, etc.).
-- Bordes redondeados >14px (excepto pills 9999px para etiquetas circulares).
-- Más de 3 capas de superficie (bg, bg-card, surface).
-- Tipografías serif o cursivas.
+- Colored shadows (rgba with red/blue/etc. tint).
+- Border radii larger than 14px (except 9999px pills for circular tags).
+- More than 3 surface layers (bg, bg-card, surface).
+- Serif or cursive typefaces.

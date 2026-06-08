@@ -1,13 +1,15 @@
-# Guía de Creación de Plugins
+# Plugin development guide
 
-## Objetivo
-Definir la estructura mínima para que un módulo sea detectado y operado por QueAI.
+## Goal
 
-## Estructura mínima
-Crea una carpeta en `plugins/<nombre_modulo>/` con:
+Define the minimum structure required for a module to be detected and operated by QueAI.
+
+## Minimum layout
+
+Create a folder at `plugins/<module_name>/` with:
 
 ```text
-plugins/<nombre_modulo>/
+plugins/<module_name>/
 ├── app/
 │   └── main.py
 ├── frontend_dist/
@@ -19,14 +21,15 @@ plugins/<nombre_modulo>/
 └── Dockerfile
 ```
 
-Opcional recomendado:
+Optional but recommended:
 
 - `.env.example`
 - `.env`
 - `requirements.txt`
 
-## Manifest requerido
-Archivo `manifest.json` (campos esperados por el kernel):
+## Required manifest
+
+The `manifest.json` file (fields expected by the kernel):
 
 ```json
 {
@@ -38,20 +41,23 @@ Archivo `manifest.json` (campos esperados por el kernel):
   "healthcheck_entry_point": "/api/my_module/health",
   "version": "1.0.0",
   "logo": "logo.png",
-  "description": "Descripción corta del módulo",
+  "description": "Short description of the module",
+  "description_en": "Optional English translation of the description",
   "author": "Your Team",
   "license": "MIT"
 }
 ```
 
-Reglas prácticas:
+Practical rules:
 
-- `name` debe ser estable y único.
-- `ui_entry_point` debe coincidir con el `root_path`/rutas del servicio.
-- `logo` debe existir en `assets/`.
+- `name` must be stable and unique.
+- `ui_entry_point` must match the service's `root_path`/routes.
+- `logo` must exist under `assets/`.
+- `description_en` is optional; if present, the Hub will use it when the active UI language is English.
 
-## Backend mínimo (FastAPI)
-Ejemplo de `app/main.py`:
+## Minimum backend (FastAPI)
+
+Example `app/main.py`:
 
 ```python
 from fastapi import FastAPI
@@ -66,7 +72,7 @@ def health():
 app.mount("/ui", StaticFiles(directory="frontend_dist", html=True), name="ui")
 ```
 
-## Dockerfile mínimo
+## Minimum Dockerfile
 
 ```dockerfile
 FROM python:3.11-slim
@@ -78,15 +84,16 @@ COPY ./frontend_dist /code/frontend_dist
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-## docker-compose del plugin
-Puntos críticos:
+## Plugin docker-compose
 
-- Conectar a la red externa **`queai_network`** (la crea el `docker-compose.yml` del kernel).
-- Habilitar Traefik.
-- Definir router con `PathPrefix('/api/<tu_modulo>')`.
-- Definir puerto interno del servicio (`8000`).
+Critical points:
 
-Ejemplo:
+- Join the external **`queai_network`** (created by the kernel's `docker-compose.yml`).
+- Enable Traefik.
+- Define a router with `PathPrefix('/api/<your_module>')`.
+- Define the service's internal port (`8000`).
+
+Example:
 
 ```yaml
 services:
@@ -106,26 +113,23 @@ networks:
     external: true
 ```
 
-> No declares `version:` — la directiva está obsoleta en Compose v2 y genera warnings.
+> Don't declare `version:` — the directive is obsolete in Compose v2 and produces warnings.
 
-## Variables de entorno
-Si incluyes `.env.example`, el kernel puede usarlo como plantilla al abrir configuración del módulo por primera vez.
+## Environment variables
 
-Buenas prácticas:
+If you include a `.env.example`, the kernel uses it as a template the first time someone opens the module's configuration.
 
-- Documentar cada variable en comentarios.
-- Nunca commitear secretos reales.
-- Validar defaults seguros en tiempo de arranque del módulo.
+Good practice:
 
-## Ejemplo alternativo: plugin que proxya una API externa
+- Document every variable in comments.
+- Never commit real secrets.
+- Validate safe defaults at module startup.
 
-QueAI no asume que tu plugin ejecute el modelo localmente. Un patrón
-muy útil es exponer una capacidad estándar (transcripción, chat, OCR)
-pero por dentro delegar a una API pública. Ventajas: arranque
-instantáneo, sin descargar modelos pesados, latencia previsible. Costo:
-internet saliente y credenciales en el `.env`.
+## Alternative example: a plugin that proxies an external API
 
-`app/main.py` mínimo para un plugin "chat proxy a OpenAI":
+QueAI doesn't assume your plugin runs the model locally. A useful pattern is to expose a standard capability (transcription, chat, OCR) and internally delegate to a public API. Benefits: instant startup, no heavy model downloads, predictable latency. Trade-offs: outbound internet and credentials in the `.env`.
+
+Minimum `app/main.py` for a "chat proxy to OpenAI" plugin:
 
 ```python
 import os
@@ -162,16 +166,15 @@ async def chat(body: ChatIn):
         return r.json()
 ```
 
-`.env.example` del módulo:
+Module `.env.example`:
 
 ```env
-# Secreto. Edítalo desde /manager/ → tu plugin → .env (el kernel reinicia el contenedor al guardar).
+# Secret. Edit from /manager/ → your plugin → .env (the kernel restarts the container on save).
 OPENAI_API_KEY=sk-replace-me
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-`docker-compose.yml` del plugin (idéntico al patrón local, solo cambia
-el comando de arranque y no necesitas descargar modelos):
+Plugin `docker-compose.yml` (identical pattern to local; only the startup command changes and you don't need to download models):
 
 ```yaml
 services:
@@ -192,35 +195,32 @@ networks:
     external: true
 ```
 
-> **El kernel ve este plugin idéntico a uno local.** En el catálogo
-> aparece con su nombre, su healthcheck dot, sus logs, su métrica de
-> CPU/RAM (que será mínima — solo el cliente HTTP). El audit log registra
-> install/start/stop/save_env igual. La CLI `queai` lo trata igual.
+> **The kernel sees this plugin identically to a local one.** It shows up in the catalog with its name, its healthcheck dot, its logs, its CPU/RAM metric (which will be minimal — just the HTTP client). The audit log records install/start/stop/save_env the same way. The `queai` CLI handles it the same way.
 >
-> Si publicas un plugin de este tipo, deja claro en su README que requiere
-> credenciales del proveedor y que el tráfico saliente está habilitado por
-> diseño. Es información que el operador del kernel necesita saber antes
-> de instalarlo.
+> If you publish a plugin of this kind, make it clear in its README that it requires provider credentials and that outbound traffic is on by design. That's information the kernel operator needs before installing it.
 
-## Flujo de prueba
-1. Crear estructura del módulo en `plugins/<tu_modulo>/`.
-2. Levantar el kernel: `docker compose up -d --build`.
-3. Entrar a `http://localhost:8080/manager/`.
-4. Verificar que aparece en el catálogo.
-5. Instalar el módulo desde la UI.
-6. Abrir UI del módulo (`/api/<modulo>/ui`) y el endpoint `/health`.
-7. Revisar logs y dashboard de monitoreo en `/monitor/`.
+## Test flow
 
-## Checklist de compatibilidad
-Antes de publicar un plugin:
+1. Create the module structure under `plugins/<your_module>/`.
+2. Bring up the kernel: `docker compose up -d --build`.
+3. Open `http://localhost:8473/manager/`.
+4. Verify the module appears in the catalog.
+5. Install the module from the UI.
+6. Open the module's UI (`/api/<module>/ui`) and the `/health` endpoint.
+7. Check logs and the monitoring dashboard at `/monitor/`.
 
-- `manifest.json` válido.
-- `docker-compose.yml` presente y funcional.
-- `Dockerfile` construye sin errores.
-- Ruta `ui_entry_point` accesible.
-- Ruta de healthcheck operativa.
-- Logo renderiza correctamente.
-- Variables de entorno documentadas.
+## Compatibility checklist
 
-## Publicación en marketplace (opcional)
-Para distribuir un módulo, publica su repo Git y registra su `git_url` en el registro remoto usado por QueAI (`register.json`).
+Before publishing a plugin:
+
+- Valid `manifest.json`.
+- `docker-compose.yml` present and working.
+- `Dockerfile` builds without errors.
+- `ui_entry_point` route reachable.
+- Healthcheck route working.
+- Logo renders correctly.
+- Environment variables documented.
+
+## Marketplace publication (optional)
+
+To distribute a module, publish its Git repo and register its `git_url` in the remote registry used by QueAI (`register.json`).

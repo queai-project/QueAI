@@ -1,9 +1,9 @@
-# Índice de Documentación
+# Documentation index
 
-- [Visión de producto](./PRODUCTVISION.md)
-- [Arquitectura técnica](./ARCHITECTURE.md)
-- [Guía para crear plugins](./PLUGIN_DEVELOPMENT.md)
-- [Operación y despliegue](./OPERATIONS.md)
-- [Referencia de API del kernel](./API_REFERENCE.md)
-- [Tokens visuales del diseño](./DESIGN_TOKENS.md)
-- [Política de seguridad](./SECURITY.md)
+- [Product vision](./PRODUCTVISION.md)
+- [Technical architecture](./ARCHITECTURE.md)
+- [Plugin development guide](./PLUGIN_DEVELOPMENT.md)
+- [Operations and deployment](./OPERATIONS.md)
+- [Kernel REST API reference](./API_REFERENCE.md)
+- [Visual design tokens](./DESIGN_TOKENS.md)
+- [Security policy](./SECURITY.md)

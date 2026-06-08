@@ -1,158 +1,116 @@
-# Modelo de seguridad — QueAI
+# Security model — QueAI
 
-Este documento describe la superficie de ataque del kernel, las
-mitigaciones aplicadas en `v1.0` y las recomendaciones para distintos
-entornos de despliegue.
+This document describes the kernel's attack surface, the mitigations applied in `v1.0`, and recommendations for different deployment environments.
 
-Para reportar una vulnerabilidad, ver [`/SECURITY.md`](../SECURITY.md).
+To report a vulnerability, see [`/SECURITY.md`](../SECURITY.md).
 
 ---
 
-## 1. Superficie de ataque
+## 1. Attack surface
 
-### 1.1 Lo que el kernel expone
+### 1.1 What the kernel exposes
 
-| Superficie | Defecto | Comentario |
+| Surface | Default | Comment |
 |---|---|---|
-| Hub web (`/`, `/manager/`, `/marketplace/`, `/monitor/`, `/account/`, `/audit/`, `/welcome/`) | sesión Django con login obligatorio | el único endpoint público sin auth es `/health` y `/login` |
-| API REST (`/api/v1/*`) | bearer token `QUEAI_API_TOKEN` | `/api/v1/health` y `/api/v1/openapi.json` son públicos por diseño |
-| Dashboard de Traefik (`:9090/dashboard/`) | basic-auth obligatoria | hash bcrypt en `QUEAI_TRAEFIK_DASHBOARD_AUTH` |
-| UI de cada plugin (`/api/<name>/ui`) | sin auth en el kernel | el plugin decide si protege su propia UI |
+| Web hub (`/`, `/manager/`, `/marketplace/`, `/monitor/`, `/account/`, `/audit/`, `/welcome/`) | Django session, login required | the only public endpoints without auth are `/health` and `/login` |
+| REST API (`/api/v1/*`) | bearer token `QUEAI_API_TOKEN` | `/api/v1/health` and `/api/v1/openapi.json` are public by design |
+| Traefik dashboard (`:9473/dashboard/`) | mandatory basic-auth | bcrypt hash in `QUEAI_TRAEFIK_DASHBOARD_AUTH` |
+| Each plugin's UI (`/api/<name>/ui`) | no auth at the kernel level | the plugin decides whether to protect its own UI |
 
-### 1.2 Lo que el kernel consume
+### 1.2 What the kernel consumes
 
-| Dependencia | Origen | Riesgo |
+| Dependency | Origin | Risk |
 |---|---|---|
-| `/var/run/docker.sock` | montado en el contenedor del kernel | equivalente a root sobre el host |
-| Plugins en `plugins/<folder>/` | clonados desde Git via `marketplace` | código de terceros que se construye y ejecuta |
-| Registry `register.json` | URL hardcoded en `marketplace/views.py` | si lo comprometen, pueden ofrecer plugins maliciosos |
-| Imágenes Docker de plugins | descargadas desde el registry de cada plugin | confianza por procedencia del repo |
+| `/var/run/docker.sock` | mounted in the kernel container | root-equivalent on the host |
+| Plugins in `plugins/<folder>/` | cloned from Git via `marketplace` | third-party code that gets built and run |
+| Registry `register.json` | URL in `marketplace/views.py` | if compromised, can serve malicious plugins |
+| Plugin Docker images | downloaded from each plugin's registry | trust by repo provenance |
 
-## 2. Mitigaciones en v1.0
+## 2. Mitigations in v1.0
 
-### 2.1 Aplicadas
+### 2.1 Applied
 
-- **Auth obligatoria en sesión** (`@login_required` en todas las views
-  operativas) y **bearer token** en la API.
-- **`hmac.compare_digest`** para validar el token (resistente a timing
-  attacks).
-- **Cookies seguras** y headers anti-clickjacking / XSS cuando
-  `DEBUG=False` (ver `core/settings.py`).
-- **Subprocess con argv como lista**, nunca `shell=True`, en todas las
-  llamadas a `docker compose` / `docker`.
-- **CSRF** activo en la UI (las acciones via API requieren bearer
-  token, no CSRF).
-- **`.env` ignorado en git**; `db.sqlite3` nunca tracked.
-- **Audit log** de cada acción mutante (UI / API / CLI / system).
-- **Healthcheck con grace period** para evitar exponer ventanas de
-  arranque como "down" en monitoreo externo.
-- **`SECRET_KEY` requerido** explícitamente cuando `DEBUG=False` (el
-  kernel se rehúsa a arrancar si falta).
-- **Marketplace clona con `alpine/git` en sandbox** con UID/GID del
-  host, no como root en el contenedor del kernel.
+- **Mandatory session auth** (`@login_required` on every operational view) and **bearer token** on the API.
+- **`hmac.compare_digest`** to validate the token (timing-attack resistant).
+- **Secure cookies** and anti-clickjacking / XSS headers when `DEBUG=False` (see `core/settings.py`).
+- **Subprocess with argv as a list**, never `shell=True`, in every `docker compose` / `docker` call.
+- **CSRF** active on the UI (actions through the API use the bearer token, no CSRF).
+- **`.env` ignored in git**; `db.sqlite3` never tracked.
+- **Audit log** for every mutating action (UI / API / CLI / system).
+- **Healthcheck with grace period** to avoid exposing startup windows as "down" in external monitoring.
+- **`SECRET_KEY` explicitly required** when `DEBUG=False` (the kernel refuses to start if missing).
+- **Marketplace clones with sandboxed `alpine/git`** using the host's UID/GID, not as root in the kernel container.
+- **`SECRET_KEY` and `QUEAI_API_TOKEN` auto-generated on first install** with strong random values (idempotent — won't rotate existing values).
 
-### 2.2 Conocidas y aceptadas
+### 2.2 Known and accepted
 
-- **Docker socket = root**: el kernel tiene acceso completo al host
-  via `/var/run/docker.sock`. Mitigación: documentar el riesgo, no
-  exponer el kernel sin auth, no dar acceso a usuarios no confiables.
-  Una alternativa futura es usar `docker-socket-proxy` con verbos
-  restringidos.
-- **Plugins ejecutan código arbitrario**: un plugin malicioso del
-  registry oficial podría hacer daño. Mitigación: el registry está en
-  un repo separado bajo control del proyecto y revisado al sumar
-  nuevos plugins. Roadmap incluye firma criptográfica opcional.
-- **SQLite local**: BD sin password ni TLS. Si compartes el host con
-  otros usuarios sin namespacing, podrían leer `db.sqlite3`. Mitigar
-  con permisos POSIX (`chmod 600`) — el instalador no lo hace
-  automáticamente todavía.
-- **Logs por defecto a stdout**: si capturas logs externos, ten en
-  cuenta que pueden contener nombres de plugins, IDs de contenedores
-  y errores con paths del host. No incluyen secretos del `.env`.
+- **Docker socket = root**: the kernel has full host access via `/var/run/docker.sock`. Mitigation: document the risk, don't expose the kernel without auth, don't give access to untrusted users. A future alternative is `docker-socket-proxy` with restricted verbs.
+- **Plugins run arbitrary code**: a malicious plugin from the official registry could do harm. Mitigation: the registry is in a separate, project-controlled repo reviewed when adding new plugins. The roadmap includes optional cryptographic signing.
+- **Local SQLite**: a DB without password or TLS. If you share the host with untrusted users without namespacing, they could read `db.sqlite3`. Mitigate with POSIX permissions (`chmod 600`) — the installer doesn't do this automatically yet.
+- **Default logs to stdout**: if you capture logs externally, note that they may contain plugin names, container IDs and errors with host paths. They do not include `.env` secrets.
 
-### 2.3 No implementadas todavía
+### 2.3 Not implemented yet
 
-- HTTPS / TLS terminator integrado (se documenta poner un reverse
-  proxy delante; ver `docs/DEPLOYMENT.md`).
-- Two-factor auth para el admin.
-- API tokens por scope (hoy es un solo token con todo el acceso).
-- Firma criptográfica de plugins.
-- Rate limiting en el login.
+- Built-in HTTPS / TLS terminator (the recommendation is a reverse proxy in front).
+- Two-factor auth for the admin.
+- Scoped API tokens (today there's a single token with full access).
+- Cryptographic plugin signing.
+- Login rate limiting.
 
-## 3. Recomendaciones por entorno
+## 3. Recommendations per environment
 
-### 3.1 Desarrollo local (laptop, "para probar")
+### 3.1 Local development (laptop, "just to try it")
 
-- Sin restricciones especiales.
-- `DEBUG=True` está OK si solo accedes desde `127.0.0.1`.
-- Usa `QUEAI_ADMIN_USER` / `QUEAI_ADMIN_PASSWORD` con credenciales no
-  reutilizadas.
+- No special restrictions.
+- `DEBUG=True` is fine if you only access from `127.0.0.1`.
+- Use `QUEAI_ADMIN_USER` / `QUEAI_ADMIN_PASSWORD` with non-reused credentials.
 
-### 3.2 Homelab / self-host en red privada
+### 3.2 Homelab / self-host on a private network
 
-- **`DEBUG=False`** (obligatorio si la red es accesible por otros).
-- **`SECRET_KEY`** generado con `secrets.token_urlsafe(50)`.
-- **`QUEAI_API_TOKEN`** generado con `secrets.token_urlsafe(40)`.
-- **`ALLOWED_HOSTS`** restringido a tu IP / dominio interno.
-- Considera un **reverse proxy** (nginx, Caddy, Traefik) para TLS y
-  para esconder el kernel de la red.
-- **Backup periódico** con `queai backup`; guarda los archivos fuera
-  del host.
+- **`DEBUG=False`** (mandatory if the network is accessible to others).
+- **`SECRET_KEY`** generated with `secrets.token_urlsafe(50)`.
+- **`QUEAI_API_TOKEN`** generated with `secrets.token_urlsafe(40)`.
+- **`ALLOWED_HOSTS`** restricted to your IP / internal domain.
+- Consider a **reverse proxy** (nginx, Caddy, Traefik) for TLS and to hide the kernel from the network.
+- **Periodic backups** with `queai backup`; store the files off the host.
 
-### 3.3 Producción / accesible desde Internet
+### 3.3 Production / Internet-accessible
 
-- Todo lo de Homelab más:
-- **TLS obligatorio**, idealmente terminado en un reverse proxy
-  externo con Let's Encrypt.
-- **Cierra el dashboard de Traefik** (`:9090`) en el firewall del
-  host; no lo expongas públicamente.
-- **Logs centralizados** (Loki, Datadog, lo que uses).
-- **Monitoring externo** del endpoint `/health` y de los healthchecks
-  por plugin (`/api/v1/plugins/<id>/healthcheck`).
-- **Audit log review** periódico — la tabla `AuditEvent` está pensada
-  para que cualquier mutación quede trazada.
-- **Rotación de tokens y password de admin** cada N meses; usa
-  `QUEAI_ADMIN_ROTATE_PASSWORD=true` para rotar la del admin en el
-  próximo arranque sin recrear el usuario.
-- **Cerrá `/admin/` de Django** si no necesitás la admin UI nativa
-  (puedes deshabilitarla en `core/urls.py`).
+- Everything from Homelab, plus:
+- **Mandatory TLS**, ideally terminated by an external reverse proxy with Let's Encrypt.
+- **Close the Traefik dashboard** (`:9473`) at the host firewall; don't expose it publicly.
+- **Centralized logs** (Loki, Datadog, whatever you use).
+- **External monitoring** of `/health` and per-plugin healthchecks (`/api/v1/plugins/<id>/healthcheck`).
+- **Periodic audit log review** — the `AuditEvent` table is designed to leave a trace for every mutation.
+- **Token and admin password rotation** every N months; use `QUEAI_ADMIN_ROTATE_PASSWORD=true` to rotate the admin's password on the next boot without recreating the user.
+- **Close Django's `/admin/`** if you don't need the native admin UI (it can be disabled in `core/urls.py`).
 
-### 3.4 Aire-gapped (sin internet)
+### 3.4 Air-gapped (no internet)
 
-- El kernel funciona offline una vez instalado.
-- El marketplace remoto deja de funcionar — usa instalación de
-  plugins por carpeta directa (`plugins/<folder>/`) o desde un
-  registry interno copiado.
-- Recomendación adicional: deshabilita `/api/v1/marketplace/download`
-  via un middleware o un reverse proxy con denylist, para evitar que
-  un operador descargue plugins desde una URL externa por accidente.
+- The kernel works offline once installed.
+- The remote marketplace stops working — install plugins by direct folder placement (`plugins/<folder>/`) or from an internal mirror of the registry.
+- Extra recommendation: disable `/api/v1/marketplace/download` via a middleware or a reverse-proxy denylist, to prevent an operator from downloading plugins from an external URL by accident.
 
-## 4. Manejo de secretos
+## 4. Secret handling
 
-| Secreto | Dónde vive | Rotación |
+| Secret | Lives in | Rotation |
 |---|---|---|
-| `SECRET_KEY` (Django) | `.env` del kernel | manual; rotar invalida sesiones activas |
-| `QUEAI_API_TOKEN` | `.env` del kernel | manual; rotar invalida la CLI y scripts |
-| `QUEAI_ADMIN_PASSWORD` | `.env` del kernel | usa `QUEAI_ADMIN_ROTATE_PASSWORD=true` para forzarla |
-| `QUEAI_TRAEFIK_DASHBOARD_AUTH` | `.env` del kernel | regenera con `htpasswd -nbB user password` |
-| Secretos de cada plugin | `.env` del plugin (en su carpeta) | edita desde la UI o desde `queai env <name> --edit` |
+| `SECRET_KEY` (Django) | kernel's `.env` | manual; rotating invalidates active sessions |
+| `QUEAI_API_TOKEN` | kernel's `.env` | manual; rotating invalidates the CLI and scripts |
+| `QUEAI_ADMIN_PASSWORD` | kernel's `.env` | set `QUEAI_ADMIN_ROTATE_PASSWORD=true` to force it |
+| `QUEAI_TRAEFIK_DASHBOARD_AUTH` | kernel's `.env` | regenerate with `htpasswd -nbB user password` |
+| Per-plugin secrets | the plugin's own `.env` (inside its folder) | edit from the UI or `queai env <name> --edit` |
 
-Buenas prácticas:
+Good practice:
 
-- **Nunca commits los `.env`** — están en `.gitignore` por defecto.
-- **`queai backup`** los incluye en el tar; trata ese archivo como
-  secreto al guardarlo.
-- Si vas a usar la API desde scripts, exporta el token via env
-  (`QUEAI_API_TOKEN=...`) en lugar de hardcodearlo en archivos.
+- **Never commit `.env` files** — they're in `.gitignore` by default.
+- **`queai backup`** includes them in the tar; treat that file as a secret when storing it.
+- If you're calling the API from scripts, export the token via env (`QUEAI_API_TOKEN=...`) instead of hardcoding it in files.
 
-## 5. Limitaciones conocidas
+## 5. Known limitations
 
-- **Sin auditoría firmada**: el audit log puede ser modificado por
-  cualquiera con acceso de escritura a `db.sqlite3`.
-- **Sin federación**: no hay forma de gestionar varios kernels desde
-  una única consola. Es un kernel = un host.
-- **Sin permisos granulares**: el admin tiene todo; no hay rol
-  "read-only" o "solo logs".
+- **No signed auditing**: anyone with write access to `db.sqlite3` can modify the audit log.
+- **No federation**: there's no way to manage several kernels from a single console. One kernel = one host.
+- **No granular permissions**: the admin has everything; there's no "read-only" or "logs-only" role.
 
-Estas limitaciones están documentadas como decisiones explícitas en
-[`PRODUCTVISION.md`](PRODUCTVISION.md) (sección "Fuera de alcance").
+These limitations are documented as explicit decisions in [`PRODUCTVISION.md`](PRODUCTVISION.md) ("Out of scope" section).
