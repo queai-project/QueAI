@@ -3,6 +3,40 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] — 2026-06-10
+
+Second patch release of the day. Single bug fix surfaced by a
+user attempting the manual `docker compose up` install path.
+
+### Fixed
+
+- **`exec /entrypoint.sh: no such file or directory` on
+  `docker compose up`** when the repo was cloned by a git client
+  with `core.autocrlf=true` (default on Windows/WSL). The file
+  was on disk but had been converted to CRLF line endings on
+  checkout; the container then tried to execute `#!/bin/sh\r`
+  and got the misleading "not found". Fixed by shipping a
+  `.gitattributes` that forces LF on every text file regardless
+  of the client's autocrlf setting. Affects `.sh`, `.bash`,
+  Dockerfile, docker-compose, `entrypoint`, `install.sh`, plus
+  `.py` / `.yml` / `.toml` to avoid whitespace-only diffs from
+  Windows clones.
+
+### Notes for upgraders
+
+- New clones get LF endings automatically.
+- Existing clones that were affected: either re-clone, or run
+  inside the install directory:
+  ```
+  git pull
+  git rm --cached -r .
+  git reset --hard HEAD
+  ```
+  to re-normalize. As an immediate one-file fix:
+  `sed -i 's/\r$//' entrypoint.sh`.
+
+---
+
 ## [1.0.1] — 2026-06-10
 
 First patch release after the public launch. Two themes:
@@ -250,6 +284,7 @@ professional docs and branding.
 
 ---
 
+[1.0.2]: https://github.com/queai-project/QueAI/releases/tag/v1.0.2
 [1.0.1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.1
 [1.0.0]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0
 [1.0.0-rc1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0-rc1
