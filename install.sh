@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  QueAI — Instalador
+#  QueAI — Installer
 # =============================================================================
-#  Uso:
+#  Usage:
 #    curl -fsSL https://queai.dev/install.sh | bash
-#    bash install.sh [--dry-run] [--unattended] [--dir <ruta>] [--branch <name>]
+#    bash install.sh [--dry-run] [--unattended] [--dir <path>] [--branch <name>]
 # =============================================================================
 set -Eeuo pipefail
 
 # ----------------------------------------------------------------------------
-# Configuración
+# Configuration
 # ----------------------------------------------------------------------------
 APP_NAME="QueAI"
 REPO_URL="${QUEAI_REPO_URL:-https://github.com/queai-project/QueAI.git}"
@@ -20,16 +20,16 @@ INSTALL_DIR="${QUEAI_DIR:-$DEFAULT_DIR}"
 DRY_RUN=false
 UNATTENDED=false
 
-# Cuando generamos una contraseña de admin (modo --unattended o sin tty),
-# la guardamos aquí para mostrarla en el banner final una sola vez.
+# When we generate an admin password (--unattended mode or no tty), we save
+# it here so we can show it in the final banner exactly once.
 GENERATED_ADMIN_PASSWORD=""
 
 # ----------------------------------------------------------------------------
-# Helpers de salida
+# Output helpers
 # ----------------------------------------------------------------------------
 if [ -t 1 ]; then
-  # ANSI-C quoting ($'...') deja los bytes ESC reales en la variable,
-  # así funcionan igual con echo, printf y heredocs.
+  # ANSI-C quoting ($'...') stores the real ESC bytes in the variable, so it
+  # works the same way with echo, printf and heredocs.
   C_RESET=$'\033[0m';   C_INFO=$'\033[1;32m'; C_WARN=$'\033[1;33m'
   C_ERR=$'\033[1;31m';  C_DIM=$'\033[2m';     C_BOLD=$'\033[1m'
 else
@@ -46,25 +46,25 @@ usage() {
   cat <<EOF
 ${C_BOLD}QueAI installer${C_RESET}
 
-Uso:
-  bash install.sh [opciones]
+Usage:
+  bash install.sh [options]
 
-Opciones:
-  --dir <ruta>      Directorio de instalación (default: ${DEFAULT_DIR})
-  --branch <name>   Rama git a clonar (default: ${REPO_BRANCH})
-  --dry-run         Mostrar qué haría sin ejecutar acciones destructivas
-  --unattended      No hacer preguntas; usar defaults seguros
-  -h, --help        Mostrar esta ayuda
+Options:
+  --dir <path>      Install directory (default: ${DEFAULT_DIR})
+  --branch <name>   Git branch to clone (default: ${REPO_BRANCH})
+  --dry-run         Show what it would do without running destructive actions
+  --unattended      No prompts; use safe defaults
+  -h, --help        Show this help
 
-Variables de entorno:
-  QUEAI_REPO_URL    URL del repositorio (default: ${REPO_URL})
-  QUEAI_BRANCH      Rama git (default: ${REPO_BRANCH})
-  QUEAI_DIR         Directorio de instalación (default: ${DEFAULT_DIR})
+Environment variables:
+  QUEAI_REPO_URL    Repository URL (default: ${REPO_URL})
+  QUEAI_BRANCH      Git branch (default: ${REPO_BRANCH})
+  QUEAI_DIR         Install directory (default: ${DEFAULT_DIR})
 EOF
 }
 
 # ----------------------------------------------------------------------------
-# Parseo de argumentos
+# Argument parsing
 # ----------------------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -73,19 +73,20 @@ while [[ $# -gt 0 ]]; do
     --dry-run)    DRY_RUN=true; shift ;;
     --unattended) UNATTENDED=true; shift ;;
     -h|--help)    usage; exit 0 ;;
-    *)            err "Opción desconocida: $1"; usage; exit 2 ;;
+    *)            err "Unknown option: $1"; usage; exit 2 ;;
   esac
 done
 
 # ----------------------------------------------------------------------------
-# Utilidades
+# Utilities
 # ----------------------------------------------------------------------------
 have() { command -v "$1" >/dev/null 2>&1; }
 
 gen_secret() {
-  # Genera un token urlsafe del largo dado. Prefiere python3 (siempre presente
-  # en distros modernas y macOS); openssl como fallback. El kernel rechaza
-  # arrancar con DEBUG=False sin SECRET_KEY, así que esto NO es opcional.
+  # Generates a urlsafe token of the given length. Prefers python3 (always
+  # present on modern distros and macOS); openssl as fallback. The kernel
+  # refuses to start with DEBUG=False and no SECRET_KEY, so this is NOT
+  # optional.
   local len="${1:-50}"
   if have python3; then
     python3 -c "import secrets; print(secrets.token_urlsafe($len))"
@@ -93,30 +94,30 @@ gen_secret() {
     openssl rand -base64 $(( len * 3 / 4 + 4 )) 2>/dev/null | tr -d '/+=\n' | head -c "$len"
     echo
   else
-    err "Necesito python3 u openssl para generar SECRET_KEY/QUEAI_API_TOKEN."
+    err "Need python3 or openssl to generate SECRET_KEY/QUEAI_API_TOKEN."
     exit 1
   fi
 }
 
 port_in_use() {
-  # True si el puerto TCP está siendo escuchado en cualquier interfaz local.
-  # Prefiere ss (iproute2, presente en todas las distros modernas), luego
-  # lsof, luego /dev/tcp como último recurso (requiere bash con netredirs).
+  # True if the TCP port is being listened to on any local interface.
+  # Prefers ss (iproute2, present on every modern distro), then lsof,
+  # then /dev/tcp as last resort (requires bash with net redirects).
   local p="$1"
   if have ss; then
     ss -tlnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${p}\$"
   elif have lsof; then
     lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | awk '{print $9}' | grep -qE "[:.]${p}\$"
   else
-    # Si nadie escucha, este connect se cierra rápido con TRUE/FALSE distintos.
+    # If nothing is listening, this connect closes fast with TRUE/FALSE distinct.
     (timeout 1 bash -c "exec 3<>/dev/tcp/127.0.0.1/$p" 2>/dev/null) && return 0
     return 1
   fi
 }
 
 update_env_kv() {
-  # Inserta o reemplaza KEY=VAL en .env. Usa awk para no chocar con caracteres
-  # especiales en el valor (URLs con /, tokens base64url, etc.).
+  # Inserts or replaces KEY=VAL in .env. Uses awk to avoid clashing with
+  # special characters in the value (URLs with /, base64url tokens, etc.).
   local key="$1" val="$2"
   local file="$INSTALL_DIR/.env"
   if grep -qE "^${key}=" "$file" 2>/dev/null; then
@@ -131,7 +132,7 @@ update_env_kv() {
 }
 
 run() {
-  # Ejecuta o simula según --dry-run
+  # Run or simulate according to --dry-run
   if $DRY_RUN; then
     echo -e "${C_DIM}[dry-run]${C_RESET} $*"
   else
@@ -140,14 +141,14 @@ run() {
 }
 
 confirm() {
-  # Pregunta sí/no.
-  # - En --unattended responde "no" (lo seguro).
-  # - Cuando nos ejecutan vía `curl | bash` el stdin del script es el pipe
-  #   del curl, no la tty. Leemos directamente de /dev/tty para que la
-  #   pregunta funcione sin romper el pipe del que bash está consumiendo
-  #   el script. Si /dev/tty no es accesible (CI, contenedor sin -t),
-  #   abortamos con un mensaje claro.
-  local prompt="${1:-¿Continuar?}"
+  # Yes/no question.
+  # - In --unattended it answers "no" (the safe choice).
+  # - When we're executed via `curl | bash`, the script's stdin is the curl
+  #   pipe, not the tty. We read directly from /dev/tty so the prompt works
+  #   without breaking the pipe bash is consuming the script from. If
+  #   /dev/tty is not accessible (CI, container without -t), we abort with
+  #   a clear message.
+  local prompt="${1:-Continue?}"
   if $UNATTENDED; then
     warn "$prompt → (unattended: no)"
     return 1
@@ -157,8 +158,8 @@ confirm() {
   elif [ -t 0 ]; then
     read -r -p "$prompt [y/N] " ans
   else
-    err "No hay tty disponible para preguntar: \"$prompt\""
-    err "Re-ejecuta con --unattended para usar defaults, o descarga el script primero:"
+    err "No tty available to ask: \"$prompt\""
+    err "Re-run with --unattended to use defaults, or download the script first:"
     err "  curl -fsSL https://queai.dev/install.sh -o install.sh && bash install.sh"
     exit 1
   fi
@@ -167,19 +168,19 @@ confirm() {
 
 SUDO=""
 need_sudo() {
-  # Devuelve el prefijo sudo si hace falta y existe. Vacío si ya somos root.
+  # Returns the sudo prefix if needed and available. Empty if we're already root.
   if [[ $EUID -eq 0 ]]; then
     SUDO=""
   elif have sudo; then
     SUDO="sudo"
   else
-    err "Se necesitan permisos administrativos pero sudo no está instalado."
+    err "Administrative permissions needed but sudo is not installed."
     exit 1
   fi
 }
 
 # ----------------------------------------------------------------------------
-# Detección de sistema
+# System detection
 # ----------------------------------------------------------------------------
 OS=""           # linux | macos
 DISTRO=""       # debian | ubuntu | fedora | rhel | centos | arch | manjaro | macos
@@ -187,18 +188,18 @@ PKG_MGR=""      # apt | dnf | yum | pacman | brew
 ARCH=""         # amd64 | arm64
 
 detect_system() {
-  step "Detectando sistema"
+  step "Detecting system"
 
   case "$(uname -s)" in
     Linux)  OS="linux" ;;
     Darwin) OS="macos" ;;
-    *)      err "Sistema operativo no soportado: $(uname -s). Soportados: Linux, macOS."; exit 1 ;;
+    *)      err "Unsupported operating system: $(uname -s). Supported: Linux, macOS."; exit 1 ;;
   esac
 
   case "$(uname -m)" in
     x86_64|amd64) ARCH="amd64" ;;
     arm64|aarch64) ARCH="arm64" ;;
-    *)            err "Arquitectura no soportada: $(uname -m)"; exit 1 ;;
+    *)            err "Unsupported architecture: $(uname -m)"; exit 1 ;;
   esac
 
   if [[ "$OS" == "macos" ]]; then
@@ -216,8 +217,8 @@ detect_system() {
     elif have yum;     then PKG_MGR="yum"
     elif have pacman;  then PKG_MGR="pacman"
     else
-      err "No se encontró un gestor de paquetes soportado (apt/dnf/yum/pacman)."
-      err "Instala Docker y Git manualmente y re-ejecuta el instalador."
+      err "No supported package manager found (apt/dnf/yum/pacman)."
+      err "Install Docker and Git manually and re-run the installer."
       exit 1
     fi
   fi
@@ -228,10 +229,10 @@ detect_system() {
 }
 
 # ----------------------------------------------------------------------------
-# Instalación de paquetes
+# Package installation
 # ----------------------------------------------------------------------------
 pkg_install() {
-  # pkg_install <paquete>...
+  # pkg_install <package>...
   case "$PKG_MGR" in
     apt)    run "$SUDO apt-get update -qq && $SUDO apt-get install -y --no-install-recommends $*" ;;
     dnf)    run "$SUDO dnf install -y $*" ;;
@@ -243,10 +244,10 @@ pkg_install() {
 
 ensure_git() {
   if have git; then
-    log "Git ya instalado ($(git --version))"
+    log "Git already installed ($(git --version))"
     return
   fi
-  step "Instalando Git"
+  step "Installing Git"
   pkg_install git
 }
 
@@ -261,41 +262,41 @@ ensure_curl() {
 # Docker
 # ----------------------------------------------------------------------------
 docker_ok() {
-  # Docker presente y el demonio responde
+  # Docker present and the daemon responds
   have docker && docker info >/dev/null 2>&1
 }
 
 ensure_docker() {
-  step "Verificando Docker"
+  step "Checking Docker"
 
   if have docker; then
     if docker info >/dev/null 2>&1; then
-      log "Docker funcionando ($(docker --version))"
+      log "Docker working ($(docker --version))"
     else
-      warn "Docker instalado pero el demonio no responde."
-      warn "Posibles causas: servicio detenido o tu usuario no está en el grupo 'docker'."
+      warn "Docker installed but the daemon is not responding."
+      warn "Possible causes: service stopped or your user is not in the 'docker' group."
       if [[ "$OS" == "linux" ]]; then
-        if confirm "¿Intento iniciar el servicio docker?"; then
+        if confirm "Try to start the docker service?"; then
           need_sudo
           run "$SUDO systemctl enable --now docker || $SUDO service docker start"
         fi
       else
-        warn "Abre Docker Desktop manualmente antes de continuar."
+        warn "Open Docker Desktop manually before continuing."
       fi
     fi
     return
   fi
 
-  warn "Docker no está instalado."
+  warn "Docker is not installed."
   if [[ "$OS" == "macos" ]]; then
-    err "En macOS instala Docker Desktop manualmente desde:"
+    err "On macOS install Docker Desktop manually from:"
     err "  https://www.docker.com/products/docker-desktop/"
-    err "Re-ejecuta el instalador cuando Docker esté corriendo."
+    err "Re-run the installer once Docker is running."
     exit 1
   fi
 
-  if ! confirm "¿Instalar Docker oficial desde get.docker.com?"; then
-    err "Docker es requerido para continuar."
+  if ! confirm "Install the official Docker from get.docker.com?"; then
+    err "Docker is required to continue."
     exit 1
   fi
 
@@ -307,7 +308,7 @@ ensure_docker() {
 }
 
 ensure_docker_user() {
-  # Asegura que el usuario actual pueda hablar con el socket Docker sin sudo
+  # Make sure the current user can talk to the Docker socket without sudo
   [[ "$OS" != "linux" ]] && return 0
   [[ $EUID -eq 0 ]] && return 0
   if docker info >/dev/null 2>&1; then
@@ -315,86 +316,86 @@ ensure_docker_user() {
   fi
 
   if ! id -nG "$USER" | grep -qw docker; then
-    warn "Tu usuario no está en el grupo 'docker'."
-    if confirm "¿Agregarlo? (necesitarás reiniciar la sesión después)"; then
+    warn "Your user is not in the 'docker' group."
+    if confirm "Add it? (you'll need to log out and back in afterwards)"; then
       need_sudo
       run "$SUDO usermod -aG docker $USER"
-      warn "Cierra sesión y vuelve a entrar para que el cambio surta efecto,"
-      warn "o ejecuta 'newgrp docker' en esta terminal."
+      warn "Log out and back in for the change to take effect,"
+      warn "or run 'newgrp docker' in this terminal."
     fi
   fi
 }
 
-# DOCKER_RUNTIME_WRAP: vacío por defecto; "sg docker -c" si tenemos que
-# envolver los comandos de docker porque el shell actual no tiene aplicados
-# los permisos del grupo 'docker' (típico después de instalar Docker o de
-# añadir el usuario al grupo en esta misma sesión).
+# DOCKER_RUNTIME_WRAP: empty by default; "sg docker -c" when we have to wrap
+# docker commands because the current shell doesn't have the 'docker' group
+# permissions applied yet (typical right after installing Docker or after
+# adding the user to the group in this very session).
 DOCKER_RUNTIME_WRAP=""
 
 ensure_docker_runtime() {
-  # Cuando funciona sin envolver, no hacemos nada.
+  # When it works without wrapping, we do nothing.
   if docker info >/dev/null 2>&1; then
     return 0
   fi
 
-  # Si está en macOS y aquí seguimos, el Docker Desktop no está corriendo.
+  # If we're on macOS and we're still here, Docker Desktop is not running.
   if [[ "$OS" == "macos" ]]; then
-    err "Docker está instalado pero no responde. Abre Docker Desktop y vuelve a ejecutar."
+    err "Docker is installed but not responding. Open Docker Desktop and re-run."
     exit 1
   fi
 
-  # En Linux: el caso más común es que acabamos de instalar Docker o de
-  # añadir al usuario al grupo 'docker' en esta misma ejecución. La sesión
-  # no tiene aplicados los permisos hasta el siguiente login. 'sg docker'
-  # nos deja ejecutar comandos con el grupo aplicado sin re-loguearse.
+  # On Linux: the most common case is that we just installed Docker or
+  # added the user to the 'docker' group in this very run. The session
+  # doesn't have the permissions applied until the next login. 'sg docker'
+  # lets us execute commands with the group applied without re-login.
   if command -v sg >/dev/null 2>&1 && sg docker -c "docker info" >/dev/null 2>&1; then
     DOCKER_RUNTIME_WRAP="sg docker -c"
-    warn "Tu sesión todavía no aplica el grupo 'docker' (es normal si te lo acabamos de añadir)."
-    warn "Para este instalador uso 'sg docker' como wrapper. Después, cierra sesión y vuelve a entrar."
+    warn "Your session has not picked up the 'docker' group yet (normal if we just added it)."
+    warn "For this installer I use 'sg docker' as a wrapper. Afterwards, log out and back in."
     return 0
   fi
 
-  # No se pudo. Damos un mensaje útil según el caso.
-  err "Docker no responde desde este shell."
+  # Couldn't do it. Give a useful message based on the case.
+  err "Docker is not responding from this shell."
   if id -nG "$USER" 2>/dev/null | grep -qw docker; then
-    err "Estás en el grupo 'docker' pero el demonio no responde."
-    err "Verifica que esté corriendo:  sudo systemctl status docker"
+    err "You're in the 'docker' group but the daemon is not responding."
+    err "Check that it's running:  sudo systemctl status docker"
   else
-    err "Tu usuario no está en el grupo 'docker'."
-    err "Manualmente:"
+    err "Your user is not in the 'docker' group."
+    err "Manually:"
     err "  sudo usermod -aG docker \$USER"
-    err "Después cierra sesión, vuelve a entrar y re-ejecuta el instalador."
+    err "Then log out, log back in, and re-run the installer."
   fi
   exit 1
 }
 
 ensure_compose() {
-  # En instalaciones modernas viene como `docker compose` (plugin).
-  # En sistemas viejos puede ser `docker-compose` binario.
+  # On modern installations it comes as `docker compose` (plugin).
+  # On older systems it can be the `docker-compose` binary.
   if docker compose version >/dev/null 2>&1; then
-    log "Docker Compose v2 disponible"
+    log "Docker Compose v2 available"
     return
   fi
   if have docker-compose; then
-    warn "Detectado docker-compose v1 (legacy). Funcionará pero v2 es recomendado."
+    warn "Detected docker-compose v1 (legacy). It will work but v2 is recommended."
     return
   fi
-  err "Docker Compose no está disponible. Reinstala Docker desde get.docker.com."
+  err "Docker Compose is not available. Reinstall Docker from get.docker.com."
   exit 1
 }
 
 # ----------------------------------------------------------------------------
-# Repo y arranque
+# Repo and bring-up
 # ----------------------------------------------------------------------------
 clone_or_update_repo() {
-  step "Preparando $APP_NAME en $INSTALL_DIR"
+  step "Preparing $APP_NAME in $INSTALL_DIR"
 
   if [[ -d "$INSTALL_DIR/.git" ]]; then
-    log "Repo ya existe — sincronizando con 'origin/$REPO_BRANCH'"
-    # El directorio de instalación lo maneja el instalador; no esperamos
-    # commits locales. Si remoto y local divergen (force-push del kernel,
-    # ediciones manuales), hacemos hard-reset a origin para garantizar
-    # un estado conocido. El .env es untracked, no se toca.
+    log "Repo already exists — syncing with 'origin/$REPO_BRANCH'"
+    # The install directory is owned by the installer; we don't expect
+    # local commits. If remote and local diverge (kernel force-push, manual
+    # edits), we hard-reset to origin to guarantee a known state. The .env
+    # is untracked, so it's not touched.
     run "git -C '$INSTALL_DIR' fetch --depth=1 origin '$REPO_BRANCH'"
     run "git -C '$INSTALL_DIR' checkout -B '$REPO_BRANCH' 'origin/$REPO_BRANCH'"
     run "git -C '$INSTALL_DIR' reset --hard 'origin/$REPO_BRANCH'"
@@ -402,8 +403,8 @@ clone_or_update_repo() {
   fi
 
   if [[ -e "$INSTALL_DIR" ]]; then
-    err "$INSTALL_DIR existe pero no es un repo git."
-    err "Mueve el directorio o usa --dir <ruta> para indicar otro destino."
+    err "$INSTALL_DIR exists but is not a git repo."
+    err "Move the directory or use --dir <path> to point somewhere else."
     exit 1
   fi
 
@@ -411,34 +412,33 @@ clone_or_update_repo() {
 }
 
 inject_secret_if_empty() {
-  # Si la clave existe en .env con valor vacío, la rellena con un secreto
-  # generado. Si ya tiene valor, no la toca (idempotente). Si no existe, la
-  # añade al final del archivo.
+  # If the key exists in .env with an empty value, fills it with a generated
+  # secret. If it already has a value, leaves it alone (idempotent). If it
+  # doesn't exist, appends it to the file.
   local key="$1"
   local len="$2"
   local file="$INSTALL_DIR/.env"
 
   if grep -qE "^${key}=.+" "$file" 2>/dev/null; then
-    log "${key} ya configurado — no se sobrescribe"
+    log "${key} already configured — not overwriting"
     return
   fi
 
   if $DRY_RUN; then
-    dim "[dry-run] generaría ${key} (${len} bytes) y lo inyectaría en .env"
+    dim "[dry-run] would generate ${key} (${len} bytes) and inject into .env"
     return
   fi
 
   update_env_kv "$key" "$(gen_secret "$len")"
-  log "${key} generado automáticamente"
+  log "${key} generated automatically"
 }
 
 queai_already_running() {
-  # True si los containers oficiales del kernel ya están corriendo en este
-  # host. Sin esto, ensure_port_free aborta la segunda ejecución del
-  # instalador porque el puerto está "ocupado" — por el propio QueAI.
-  # Comprobamos los dos containers porque el kernel puede estar parado
-  # mientras Traefik sigue de pie, o viceversa: si CUALQUIERA está vivo
-  # estamos en una reinstall, no en un primer arranque.
+  # True if the official kernel containers are already running on this host.
+  # Without this, ensure_port_free aborts the second run of the installer
+  # because the port is "in use" — by QueAI itself. We check both containers
+  # because the kernel can be stopped while Traefik is up, or vice-versa: if
+  # ANY of the two is alive we're in a reinstall, not a first boot.
   if ! have docker; then
     return 1
   fi
@@ -447,22 +447,21 @@ queai_already_running() {
 }
 
 ensure_port_free() {
-  # QueAI se publica con un puerto fijo (8473 hub, 9473 dashboard Traefik).
-  # Decisión deliberada de no reasignar dinámicamente: la landing, README
-  # y docs anuncian 8473 sin condiciones; un puerto dinámico generaría
-  # incongruencia entre lo que prometemos y lo que el usuario ve.
+  # QueAI ships with fixed ports (8473 hub, 9473 Traefik dashboard).
+  # Deliberate choice not to reassign dynamically: the landing page, README
+  # and docs advertise 8473 unconditionally; a dynamic port would create
+  # inconsistency between what we promise and what the user sees.
   #
-  # PERO si los containers oficiales del propio QueAI ya están corriendo,
-  # el puerto está "ocupado por nosotros mismos" — eso es una reinstall
-  # legítima, no una colisión real. Skipear la verificación deja que
-  # docker compose up -d --build haga su trabajo: recrear con la imagen
-  # nueva sin perder estado. Esto cierra el último hueco de idempotencia
-  # del instalador (correrlo dos veces no rompe nada).
-  step "Verificando puertos"
+  # BUT if the official QueAI containers are already running, the port is
+  # "occupied by ourselves" — that's a legitimate reinstall, not a real
+  # collision. Skipping the check lets docker compose up -d --build do its
+  # job: recreate with the new image without losing state. This closes the
+  # last gap in installer idempotency (running it twice doesn't break).
+  step "Checking ports"
 
   if queai_already_running; then
-    log "QueAI ya está desplegado en este host — saltando verificación de puertos"
-    log "(el propio container ocupa 8473/9473; docker compose se encargará del refresh)"
+    log "QueAI is already deployed on this host — skipping port check"
+    log "(the container itself uses 8473/9473; docker compose will handle the refresh)"
     return 0
   fi
 
@@ -472,9 +471,9 @@ ensure_port_free() {
   web_port="${web_port:-8473}"
   dash_port="${dash_port:-9473}"
 
-  _abort_if_port_busy "$web_port" "hub web (QUEAI_PORT)"
-  _abort_if_port_busy "$dash_port" "dashboard Traefik (QUEAI_TRAEFIK_DASHBOARD_PORT)"
-  log "Puertos libres: $web_port, $dash_port"
+  _abort_if_port_busy "$web_port" "web hub (QUEAI_PORT)"
+  _abort_if_port_busy "$dash_port" "Traefik dashboard (QUEAI_TRAEFIK_DASHBOARD_PORT)"
+  log "Ports free: $web_port, $dash_port"
 }
 
 _abort_if_port_busy() {
@@ -482,34 +481,34 @@ _abort_if_port_busy() {
   if ! port_in_use "$port"; then
     return 0
   fi
-  err "Puerto $port ocupado ($label)."
+  err "Port $port is in use ($label)."
   err ""
-  err "QueAI usa puertos fijos (8473 / 9473) para mantener documentación"
-  err "y UI consistentes. Si necesitas un puerto distinto, instala manual:"
+  err "QueAI uses fixed ports (8473 / 9473) to keep the documentation and"
+  err "the UI consistent. If you need a different port, install manually:"
   err ""
   err "  git clone https://github.com/queai-project/QueAI.git ~/QueAI"
   err "  cd ~/QueAI"
   err "  cp .env.example .env"
-  err "  # Edita .env y cambia QUEAI_PORT a algo libre"
+  err "  # Edit .env and change QUEAI_PORT to a free port"
   err "  docker compose up -d --build"
   err ""
-  err "Para liberar el puerto: 'sudo ss -tlnp sport = :$port' te dice qué lo usa."
+  err "To see what's using it: 'sudo ss -tlnp sport = :$port'."
   exit 1
 }
 
 bootstrap_env() {
-  step "Preparando configuración"
+  step "Preparing configuration"
   if [[ ! -f "$INSTALL_DIR/.env" && -f "$INSTALL_DIR/.env.example" ]]; then
-    log "Creando .env desde .env.example"
+    log "Creating .env from .env.example"
     run "cp '$INSTALL_DIR/.env.example' '$INSTALL_DIR/.env'"
   else
-    log ".env ya existe (no se sobrescribe)"
+    log ".env already exists (not overwriting)"
   fi
 
-  # El kernel rechaza arrancar con DEBUG=False y SECRET_KEY vacío, y el
-  # .env.example viene con ambos secretos en blanco a propósito (no
-  # commiteamos defaults). Generamos valores fuertes en el primer arranque
-  # — pero respetamos cualquier valor que el usuario haya puesto.
+  # The kernel refuses to start with DEBUG=False and an empty SECRET_KEY,
+  # and .env.example ships with both secrets blank on purpose (we don't
+  # commit defaults). We generate strong values on first boot — but respect
+  # any value the user has already put in place.
   if [[ -f "$INSTALL_DIR/.env" ]]; then
     inject_secret_if_empty "SECRET_KEY" 50
     inject_secret_if_empty "QUEAI_API_TOKEN" 40
@@ -517,65 +516,65 @@ bootstrap_env() {
 }
 
 prompt_admin_credentials() {
-  # El kernel auto-crea un superuser en cada boot a partir de
-  # QUEAI_ADMIN_USER/QUEAI_ADMIN_PASSWORD. El .env.example viene con
-  # `admin/changeme` como marcador — eso NO debe llegar a un kernel real.
-  # Si los valores siguen siendo los defaults, pedimos credenciales nuevas.
-  step "Cuenta de administración"
+  # The kernel auto-creates a superuser on every boot from
+  # QUEAI_ADMIN_USER/QUEAI_ADMIN_PASSWORD. The .env.example ships with
+  # `admin/changeme` as a marker — that should NOT reach a real kernel. If
+  # the values are still the defaults, we ask for new credentials.
+  step "Admin account"
 
   local cur_user cur_pass
   cur_user="$(grep -E '^QUEAI_ADMIN_USER=' "$INSTALL_DIR/.env" | head -1 | cut -d= -f2 | tr -d '"')"
   cur_pass="$(grep -E '^QUEAI_ADMIN_PASSWORD=' "$INSTALL_DIR/.env" | head -1 | cut -d= -f2 | tr -d '"')"
 
-  # Re-ejecución del installer: si la pass ya no es el marcador "changeme",
-  # significa que la primera corrida (o el propio usuario) ya configuró
-  # algo real. No tocamos.
+  # Installer re-run: if the password is no longer the "changeme" marker,
+  # the first run (or the user themselves) already configured something
+  # real. We don't touch it.
   if [[ -n "$cur_pass" && "$cur_pass" != "changeme" ]]; then
-    log "Credenciales de admin ya configuradas — no se sobrescriben"
+    log "Admin credentials already configured — not overwriting"
     return
   fi
 
   if $DRY_RUN; then
-    dim "[dry-run] pediría usuario y contraseña de admin"
+    dim "[dry-run] would prompt for admin username and password"
     return
   fi
 
-  # Sin tty (curl|bash en CI, contenedor sin -t) o --unattended: generamos
-  # una password fuerte automáticamente y la mostramos al final del install
-  # — UNA sola vez. El usuario debe anotarla.
+  # No tty (curl|bash in CI, container without -t) or --unattended: we
+  # generate a strong password automatically and show it at the end of the
+  # install — ONCE. The user must write it down.
   if $UNATTENDED || [ ! -r /dev/tty ]; then
     GENERATED_ADMIN_PASSWORD="$(gen_secret 18)"
     update_env_kv "QUEAI_ADMIN_USER" "${cur_user:-admin}"
     update_env_kv "QUEAI_ADMIN_PASSWORD" "$GENERATED_ADMIN_PASSWORD"
-    warn "Sin terminal interactiva: generé una contraseña aleatoria para admin."
-    warn "Se mostrará al final del instalador (no se vuelve a mostrar)."
+    warn "No interactive terminal: I generated a random password for admin."
+    warn "It will be shown at the end of the installer (won't be shown again)."
     return
   fi
 
-  # Modo interactivo
+  # Interactive mode
   local admin_user pass1 pass2
-  log "Configura la cuenta administradora del kernel."
-  read -r -p "Usuario [admin]: " admin_user </dev/tty
+  log "Set up the kernel administrator account."
+  read -r -p "Username [admin]: " admin_user </dev/tty
   admin_user="${admin_user:-admin}"
 
   while true; do
-    read -r -s -p "Contraseña (mín. 8 caracteres): " pass1 </dev/tty
+    read -r -s -p "Password (min. 8 characters): " pass1 </dev/tty
     echo
     if [[ ${#pass1} -lt 8 ]]; then
-      warn "Demasiado corta. Mínimo 8 caracteres."
+      warn "Too short. Minimum 8 characters."
       continue
     fi
-    # Estos caracteres rompen el parseo del .env por Docker Compose.
+    # These characters break .env parsing for Docker Compose.
     case "$pass1" in
       *['"\$`']*)
-        warn "Evita los caracteres: \" \\ \$ \` (rompen el .env)."
+        warn "Avoid the characters: \" \\ \$ \` (they break the .env)."
         continue
         ;;
     esac
-    read -r -s -p "Repite la contraseña: " pass2 </dev/tty
+    read -r -s -p "Repeat password: " pass2 </dev/tty
     echo
     if [[ "$pass1" != "$pass2" ]]; then
-      warn "Las contraseñas no coinciden. Vuelve a intentarlo."
+      warn "Passwords don't match. Try again."
       continue
     fi
     break
@@ -583,11 +582,11 @@ prompt_admin_credentials() {
 
   update_env_kv "QUEAI_ADMIN_USER" "$admin_user"
   update_env_kv "QUEAI_ADMIN_PASSWORD" "$pass1"
-  log "Credenciales guardadas (usuario: $admin_user)"
+  log "Credentials saved (username: $admin_user)"
 }
 
 start_services() {
-  step "Levantando servicios"
+  step "Bringing services up"
   if $DRY_RUN; then
     dim "[dry-run] cd $INSTALL_DIR && docker compose up -d --build"
     return
@@ -595,15 +594,15 @@ start_services() {
 
   cd "$INSTALL_DIR"
 
-  # Elegimos el binario de compose disponible (v2 plugin o v1 binario).
+  # Pick the compose binary we have available (v2 plugin or v1 binary).
   local compose_bin="docker compose"
   if ! docker compose version >/dev/null 2>&1; then
     compose_bin="docker-compose"
   fi
 
   if [ -n "$DOCKER_RUNTIME_WRAP" ]; then
-    # sg docker -c "..." abre una sub-shell con el grupo docker aplicado.
-    # Le pasamos el cd + el comando completo en una sola string.
+    # sg docker -c "..." opens a sub-shell with the docker group applied.
+    # We pass the cd + the full command as a single string.
     $DOCKER_RUNTIME_WRAP "cd '$INSTALL_DIR' && $compose_bin up -d --build"
   else
     $compose_bin up -d --build
@@ -620,44 +619,44 @@ print_summary() {
   cat <<EOF
 
 ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}
-${C_INFO}✓ $APP_NAME instalado correctamente${C_RESET}
+${C_INFO}✓ $APP_NAME installed successfully${C_RESET}
 ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}
 
-  Abrir QueAI:        ${C_BOLD}http://localhost:${port}/${C_RESET}
+  Open QueAI:        ${C_BOLD}http://localhost:${port}/${C_RESET}
 
-  Directorio:         $INSTALL_DIR
-  Logs:               cd $INSTALL_DIR && docker compose logs -f
-  Detener:            cd $INSTALL_DIR && docker compose down
+  Directory:         $INSTALL_DIR
+  Logs:              cd $INSTALL_DIR && docker compose logs -f
+  Stop:              cd $INSTALL_DIR && docker compose down
 
-  Documentación:      $INSTALL_DIR/docs/
-  Reportar bugs:      https://github.com/queai-project/QueAI/issues
+  Documentation:     $INSTALL_DIR/docs/
+  Report bugs:       https://github.com/queai-project/QueAI/issues
 
 EOF
 
   if [[ -n "$GENERATED_ADMIN_PASSWORD" ]]; then
     cat <<EOF
 ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}
-${C_WARN}⚠ Credenciales generadas — anótalas, NO se mostrarán de nuevo${C_RESET}
+${C_WARN}⚠ Generated credentials — write them down, they will NOT be shown again${C_RESET}
 ${C_BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}
 
-  Usuario:    ${admin_user}
-  Contraseña: ${GENERATED_ADMIN_PASSWORD}
+  Username:   ${admin_user}
+  Password:   ${GENERATED_ADMIN_PASSWORD}
 
-  Cámbiala desde la UI (Cuenta → Cambiar contraseña) tras el
-  primer login, o pon QUEAI_ADMIN_ROTATE_PASSWORD=true en .env
-  para que el kernel rote en el próximo arranque.
+  Change it from the UI (Account → Change password) after your
+  first login, or set QUEAI_ADMIN_ROTATE_PASSWORD=true in .env so
+  the kernel rotates it on the next boot.
 
 EOF
   fi
 }
 
 # ----------------------------------------------------------------------------
-# Flujo principal
+# Main flow
 # ----------------------------------------------------------------------------
 main() {
-  echo -e "${C_BOLD}$APP_NAME — instalador${C_RESET}"
-  $DRY_RUN  && warn "Modo --dry-run: no se realizarán cambios reales."
-  $UNATTENDED && warn "Modo --unattended: usando defaults sin preguntar."
+  echo -e "${C_BOLD}$APP_NAME — installer${C_RESET}"
+  $DRY_RUN  && warn "Mode --dry-run: no real changes will be made."
+  $UNATTENDED && warn "Mode --unattended: using defaults without asking."
 
   detect_system
   ensure_git
