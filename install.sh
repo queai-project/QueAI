@@ -370,17 +370,43 @@ ensure_docker_runtime() {
 }
 
 ensure_compose() {
-  # On modern installations it comes as `docker compose` (plugin).
-  # On older systems it can be the `docker-compose` binary.
+  # We need `docker compose` (v2 plugin). The legacy `docker-compose` v1
+  # binary is EOL since 2023 and crashes against Docker daemons >= 25.x
+  # with `KeyError: 'ContainerConfig'` on every container recreate (i.e.
+  # on every upgrade `docker compose up -d --build`). We refuse to drive
+  # the install through v1 — it's better to stop here with a clear
+  # message than to crash halfway through.
   if docker compose version >/dev/null 2>&1; then
     log "Docker Compose v2 available"
     return
   fi
+
   if have docker-compose; then
-    warn "Detected docker-compose v1 (legacy). It will work but v2 is recommended."
-    return
+    err "Only the legacy docker-compose v1 was found, and it's unusable."
+    err ""
+    err "docker-compose v1 (last released 2021, EOL since 2023) crashes"
+    err "against modern Docker daemons (>= 25.x) with:"
+    err "  KeyError: 'ContainerConfig'"
+    err "every time a container is recreated, which happens on every"
+    err "kernel upgrade. Continuing would just fail halfway through."
+    err ""
+    err "Install Docker Compose v2 and re-run the installer:"
+  else
+    err "Docker Compose is not available."
+    err ""
+    err "Install Docker Compose v2 and re-run the installer:"
   fi
-  err "Docker Compose is not available. Reinstall Docker from get.docker.com."
+  err ""
+  case "$PKG_MGR" in
+    apt)    err "  sudo apt-get install -y docker-compose-plugin" ;;
+    dnf)    err "  sudo dnf install -y docker-compose-plugin" ;;
+    yum)    err "  sudo yum install -y docker-compose-plugin" ;;
+    pacman) err "  sudo pacman -Sy docker-compose" ;;
+    brew)   err "  brew install docker-compose" ;;
+    *)      err "  See https://docs.docker.com/compose/install/" ;;
+  esac
+  err ""
+  err "After installing, verify with:  docker compose version"
   exit 1
 }
 
@@ -594,11 +620,10 @@ start_services() {
 
   cd "$INSTALL_DIR"
 
-  # Pick the compose binary we have available (v2 plugin or v1 binary).
+  # ensure_compose() already validated v2 is available — it aborted earlier
+  # if only the legacy v1 binary was present. So we go straight to v2 here
+  # with no fallback path.
   local compose_bin="docker compose"
-  if ! docker compose version >/dev/null 2>&1; then
-    compose_bin="docker-compose"
-  fi
 
   if [ -n "$DOCKER_RUNTIME_WRAP" ]; then
     # sg docker -c "..." opens a sub-shell with the docker group applied.
