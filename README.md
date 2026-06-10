@@ -8,7 +8,7 @@ locally on CPU, proxy a public API (OpenAI, Anthropic, ElevenLabs), or
 chain several together — the kernel routes, monitors and audits everything
 from one place.
 
-> Stable version: **`v1.0.0`** — first Open Source release.
+> Stable version: **`v1.0.1`** — first Open Source release line.
 
 ## What it solves
 
@@ -90,7 +90,7 @@ Full guide in [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md). Cove
 
 ## Project status
 
-| Latest release | `v1.0.0` |
+| Latest release | `v1.0.1` |
 |---|---|
 | Tests | passing |
 | Lint | `ruff check .` clean |

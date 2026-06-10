@@ -3,6 +3,61 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-06-10
+
+First patch release after the public launch. Two themes:
+follow-up on community feedback about installer idempotency, and
+finishing the English translation pass that v1.0.0 left
+half-done.
+
+### Fixed
+
+- **Installer is now truly idempotent on a host that already has
+  QueAI deployed.** Re-running `curl | bash` used to abort at the
+  port-check step with "port 8473 in use" — because the very
+  QueAI deployment the user was upgrading was holding the port.
+  The installer now detects its own `queai_kernel` /
+  `queai_traefik` containers and skips the port check on
+  reinstall, letting `docker compose up -d --build` do the
+  refresh. Reported by a community reviewer right after the
+  launch; fix matches their suggested implementation.
+
+### Changed
+
+- **`install.sh` translated to English end-to-end.** Every
+  `[INFO]/[WARN]/[ERROR]` message, every step header, every
+  prompt, every banner in the success summary. The control flow,
+  function names, env vars, flag names and exit codes are
+  unchanged.
+- **Project documentation now fully in English.** The README
+  already shipped in English in v1.0.0, but the rest was still
+  in Spanish at launch. Translated in this release:
+  - `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md` itself.
+  - All issue templates (`bug_report`, `feature_request`,
+    `plugin_proposal`, `config`) and the PR template.
+  - Every page under `docs/` (PRODUCTVISION, ARCHITECTURE,
+    OPERATIONS, PLUGIN_DEVELOPMENT, API_REFERENCE, SECURITY,
+    DESIGN_TOKENS, index).
+  - `CODE_OF_CONDUCT.md` is the official Contributor Covenant
+    2.1 text, which is canonically published in English already,
+    so it stays as-is.
+- **README cleanup**: removed a duplicated "Arquitectura rápida"
+  block (left over from a merge) and a dangling reference to a
+  `docs/DEPLOYMENT.md` file that doesn't exist. Added a "Show
+  your support" section with the GitHub stars shield.
+
+### Notes for upgraders
+
+- Existing installations: `curl -fsSL https://queai.dev/install.sh | bash`
+  on a deployed host now upgrades the kernel code (`git reset
+  --hard origin/main`) and rebuilds the container image without
+  touching `.env`, `db.sqlite3`, installed plugins or admin
+  credentials.
+- Manual upgrade equivalent: `cd ~/QueAI && git pull &&
+  docker compose up -d --build`.
+
+---
+
 ## [1.0.0] — 2026-06-08
 
 First stable Open Source release. The kernel moves from "stable rc
@@ -195,5 +250,6 @@ professional docs and branding.
 
 ---
 
+[1.0.1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.1
 [1.0.0]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0
 [1.0.0-rc1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0-rc1
