@@ -1,0 +1,44 @@
+# Force LF line endings for files that must be executed as Unix scripts
+# regardless of the client's core.autocrlf setting (typical breakage when
+# a Windows/WSL clone with autocrlf=true converts /entrypoint.sh to CRLF
+# and `docker compose up` fails with the misleading
+#   exec /entrypoint.sh: no such file or directory
+# error — the file exists, but its `#!/bin/sh\r` shebang is invalid).
+
+# Default: let git handle text vs binary, but always check out text as LF.
+* text=auto eol=lf
+
+# Anything executed by Docker / Linux: hard LF.
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# Python source: LF (avoids spurious diffs and ruff warnings on Windows clones).
+*.py text eol=lf
+
+# Configuration with shebangs or that's read by Linux tools.
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.cfg  text eol=lf
+*.ini  text eol=lf
+
+# Dockerfile / Compose: LF.
+Dockerfile      text eol=lf
+docker-compose* text eol=lf
+
+# Shell entry points that don't have an extension.
+entrypoint      text eol=lf
+install.sh      text eol=lf
+
+# Binary assets — leave alone.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.svg  text eol=lf
+*.mo   binary
+*.db   binary
+*.sqlite3 binary
+*.tar.gz binary
+*.zip  binary
