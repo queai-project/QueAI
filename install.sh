@@ -432,16 +432,39 @@ inject_secret_if_empty() {
   log "${key} generado automáticamente"
 }
 
+queai_already_running() {
+  # True si los containers oficiales del kernel ya están corriendo en este
+  # host. Sin esto, ensure_port_free aborta la segunda ejecución del
+  # instalador porque el puerto está "ocupado" — por el propio QueAI.
+  # Comprobamos los dos containers porque el kernel puede estar parado
+  # mientras Traefik sigue de pie, o viceversa: si CUALQUIERA está vivo
+  # estamos en una reinstall, no en un primer arranque.
+  if ! have docker; then
+    return 1
+  fi
+  docker ps --format '{{.Names}}' 2>/dev/null \
+    | grep -qE '^(queai_traefik|queai_kernel)$'
+}
+
 ensure_port_free() {
   # QueAI se publica con un puerto fijo (8473 hub, 9473 dashboard Traefik).
-  # Hay decisión deliberada de no reasignar dinámicamente:
-  #   - La landing, README y docs anuncian 8473 sin condiciones; un puerto
-  #     dinámico generaría incongruencia entre lo que prometemos y lo que
-  #     el usuario ve.
-  #   - Si está ocupado, es señal de que esa máquina ya tiene otro
-  #     servicio en 8473 y la persona necesita decidir conscientemente —
-  #     editar .env y ejecutar `docker compose up -d` a mano.
+  # Decisión deliberada de no reasignar dinámicamente: la landing, README
+  # y docs anuncian 8473 sin condiciones; un puerto dinámico generaría
+  # incongruencia entre lo que prometemos y lo que el usuario ve.
+  #
+  # PERO si los containers oficiales del propio QueAI ya están corriendo,
+  # el puerto está "ocupado por nosotros mismos" — eso es una reinstall
+  # legítima, no una colisión real. Skipear la verificación deja que
+  # docker compose up -d --build haga su trabajo: recrear con la imagen
+  # nueva sin perder estado. Esto cierra el último hueco de idempotencia
+  # del instalador (correrlo dos veces no rompe nada).
   step "Verificando puertos"
+
+  if queai_already_running; then
+    log "QueAI ya está desplegado en este host — saltando verificación de puertos"
+    log "(el propio container ocupa 8473/9473; docker compose se encargará del refresh)"
+    return 0
+  fi
 
   local web_port dash_port
   web_port="$(grep -E '^QUEAI_PORT=' "$INSTALL_DIR/.env" | head -1 | cut -d= -f2 | tr -d '\"')"
