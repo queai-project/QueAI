@@ -32,7 +32,24 @@ PLUGINS_DIR = BASE_DIR / os.getenv("PLUGINS_DIR", "plugins")
 if not PLUGINS_DIR.exists():
     PLUGINS_DIR.mkdir(parents=True, exist_ok=True)
 
-QUEAI_VERSION = os.getenv("VERSION", "").strip()
+# Kernel version. Source of truth is the VERSION file at the repo root,
+# which is tracked in git and bumped per release. The previous wiring
+# read it from .env, which broke for users on upgrade — the installer
+# preserves their .env (so SECRET_KEY, admin password and per-host state
+# survive) and the VERSION="..." line they had from the first install
+# stayed frozen forever, even as the kernel code moved underneath. The
+# env var VERSION is still honored as an override (useful in dev / CI).
+def _read_kernel_version() -> str:
+    env_override = os.getenv("VERSION", "").strip()
+    if env_override:
+        return env_override
+    version_file = BASE_DIR / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    return ""
+
+
+QUEAI_VERSION = _read_kernel_version()
 
 # --- Core security -------------------------------------------------------
 DEBUG = _env_bool("DEBUG", default=False)

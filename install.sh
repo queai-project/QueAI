@@ -538,6 +538,18 @@ bootstrap_env() {
   if [[ -f "$INSTALL_DIR/.env" ]]; then
     inject_secret_if_empty "SECRET_KEY" 50
     inject_secret_if_empty "QUEAI_API_TOKEN" 40
+
+    # Strip the legacy `VERSION=...` line from existing .env files. Older
+    # installs (v1.0.0 / v1.0.1 / v1.0.2 first run) shipped a VERSION line
+    # in their .env.example, so users who installed back then have a
+    # stale value pinned there forever. The kernel now reads the version
+    # from the VERSION file at the repo root, so the .env line is dead
+    # weight — and worse, it acts as an override that hides upgrades. We
+    # drop it here on upgrade, idempotently. Only touches that one line.
+    if grep -qE '^VERSION=' "$INSTALL_DIR/.env" 2>/dev/null; then
+      log "Removing legacy VERSION= line from .env (now read from repo)"
+      sed -i.bak -E '/^VERSION=/d' "$INSTALL_DIR/.env" && rm -f "$INSTALL_DIR/.env.bak"
+    fi
   fi
 }
 

@@ -49,7 +49,10 @@ services:
       - HOST_PROJECT_PATH=${PWD}
       - HOST_UID=${UID:-1000}
       - HOST_GID=${GID:-1000}
-      - VERSION=${VERSION:-0.0.0}
+      # VERSION is read by the kernel from the VERSION file in the repo
+      # (mounted via `volumes: - .:/app`). The env var is kept here only
+      # as an optional override for dev/CI.
+      - VERSION=${VERSION:-}
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,*}
