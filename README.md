@@ -8,7 +8,7 @@ locally on CPU, proxy a public API (OpenAI, Anthropic, ElevenLabs), or
 chain several together — the kernel routes, monitors and audits everything
 from one place.
 
-> Stable version: **`v1.0.2`** — first Open Source release line.
+> Stable version: **`v1.0.3`** — first Open Source release line.
 
 ## What it solves
 
@@ -63,6 +63,13 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+> **Upgrading manually from v1.0.0 / v1.0.1 / v1.0.2?** Your `.env` may
+> carry a legacy `VERSION="..."` line from the old `.env.example`. Drop
+> it once with `sed -i '/^VERSION=/d' .env` before
+> `docker compose up -d --build`; the kernel will then read the actual
+> version from the `VERSION` file in the repo. The `curl | bash` upgrade
+> path does this automatically.
+
 ## URLs
 
 - Hub:               `http://localhost:8473/`
@@ -90,7 +97,7 @@ Full guide in [`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md). Cove
 
 ## Project status
 
-| Latest release | `v1.0.2` |
+| Latest release | `v1.0.3` |
 |---|---|
 | Tests | passing |
 | Lint | `ruff check .` clean |

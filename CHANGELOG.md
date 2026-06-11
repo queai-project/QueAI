@@ -3,6 +3,88 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] — 2026-06-10
+
+Two bug fixes for issues surfaced by real users in the first day
+after the launch. Tagged after testing both in a Multipass-style
+local simulation; this release does NOT include the chain of
+fixes attempted earlier in the day that were reverted from
+`main` because they introduced more friction than they removed.
+
+### Fixed
+
+- **Kernel version no longer stays pinned to whatever release the
+  user first installed on.** `QUEAI_VERSION` used to be read from
+  the `.env`, populated by a `VERSION="..."` line in
+  `.env.example`. The installer deliberately keeps an existing
+  `.env` on upgrade (so `SECRET_KEY`, admin password and per-host
+  state survive), which meant the original `VERSION` line stayed
+  in place forever — the navbar of every upgraded host kept
+  showing whatever version they first installed on, not what
+  was actually running. Reported on Telegram and reproduced
+  locally.
+
+  Now the source of truth is a `VERSION` file at the repo root,
+  tracked in git and bumped per release. It travels with
+  `git reset --hard origin/main` so the installer refreshes it
+  automatically. The env var `VERSION` is still honored as an
+  override (useful in dev / CI experiments).
+
+  On upgrade, the installer also strips the legacy `VERSION=`
+  line from existing `.env` files. Idempotent: it only touches
+  that one line if present.
+
+- **Installer no longer drives the install through
+  docker-compose v1.** v1 (`docker-compose` binary, last
+  released 2021, EOL since 2023) crashes against Docker daemons
+  >= 25.x with `KeyError: 'ContainerConfig'` every time a
+  container has to be recreated — i.e. on every kernel upgrade.
+  The previous detection let the install proceed with v1, which
+  blew up halfway through after the repo was already cloned, the
+  `.env` was prepared and the build was running.
+
+  `ensure_compose()` now aborts up front with a clear message
+  ("v1 is unusable, install v2") and a single command tailored
+  to the host's package manager
+  (`apt-get install docker-compose-plugin`, `dnf`, `yum`,
+  `pacman`, `brew`, or the upstream URL as a last resort). The
+  installer doesn't try to install v2 automatically and doesn't
+  ask in the middle of the flow — that decision belongs to the
+  user, and is one command long.
+
+### Notes for upgraders
+
+#### `curl | bash` upgrade
+
+Just re-run the one-liner. The installer strips the legacy
+`VERSION=` line from your `.env` and the rebuilt container then
+picks up the version from the new `VERSION` file at the repo
+root.
+
+```bash
+curl -fsSL https://queai.dev/install.sh | bash
+```
+
+#### Manual upgrade from v1.0.0 / v1.0.1 / v1.0.2
+
+If you installed manually (`git clone` + `docker compose up`) on
+any of v1.0.0–v1.0.2, your `.env` still has a stale
+`VERSION="..."` line that the kernel will keep reading as an env
+override. Clear it once and rebuild:
+
+```bash
+cd ~/QueAI
+git pull
+sed -i '/^VERSION=/d' .env
+docker compose up -d --build
+```
+
+The `sed` line only touches the `VERSION=` line. Your
+`SECRET_KEY`, `QUEAI_API_TOKEN`, admin password and other
+configuration are untouched.
+
+---
+
 ## [1.0.2] — 2026-06-10
 
 Second patch release of the day. Single bug fix surfaced by a
@@ -284,6 +366,7 @@ professional docs and branding.
 
 ---
 
+[1.0.3]: https://github.com/queai-project/QueAI/releases/tag/v1.0.3
 [1.0.2]: https://github.com/queai-project/QueAI/releases/tag/v1.0.2
 [1.0.1]: https://github.com/queai-project/QueAI/releases/tag/v1.0.1
 [1.0.0]: https://github.com/queai-project/QueAI/releases/tag/v1.0.0
