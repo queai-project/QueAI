@@ -117,11 +117,25 @@ networks:
 
 ## Environment variables
 
-If you include a `.env.example`, the kernel uses it as a template the first time someone opens the module's configuration.
+The kernel does **not** create a `.env` file when the plugin is installed. It only creates one — copying from `.env.example` if present — the first time the operator opens the **.env** editor on the module's card in the Hub. This is deliberate: install stays fast, and the operator gives explicit consent before secrets land on disk.
+
+That means **your plugin must boot without a `.env`**. Two practical consequences:
+
+1. **In `docker-compose.yml`, use `environment:` with shell-default interpolation, not `env_file:`.** Declaring `env_file: .env` makes the very first `docker compose up` fail with *"env file not found"* because no `.env` exists yet. The pattern that works:
+
+   ```yaml
+   environment:
+     - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+     - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+   ```
+
+   Compose interpolates `${OPENAI_API_KEY:-}` from a `.env` in the plugin's directory if present, otherwise falls back to the default after `:-`. The first install succeeds with empty/default values; once the operator saves a `.env` from the Hub, the container restart picks up the real values.
+
+2. **In your application code, never crash on a missing or empty env var.** Read it with a default (`os.environ.get("OPENAI_API_KEY", "")`) and return a clear error from the affected endpoints — point the user at the Hub's `.env` editor. Your `/health` endpoint should still return 200; the kernel uses it to decide whether the container is reachable, not whether it is *fully configured*.
 
 Good practice:
 
-- Document every variable in comments.
+- Ship a `.env.example` documenting every variable with a comment. It becomes the template the Hub clones when the operator first opens the `.env` editor.
 - Never commit real secrets.
 - Validate safe defaults at module startup.
 
@@ -134,11 +148,13 @@ Minimum `app/main.py` for a "chat proxy to OpenAI" plugin:
 ```python
 import os
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI(title="Chat Cloud Proxy", root_path="/api/chat_cloud")
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# Read with defaults so the container boots even before the operator
+# saves a .env from the Hub. See "Environment variables" above.
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 
@@ -148,11 +164,18 @@ class ChatIn(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    # 200 even without an API key — missing config is not an unhealthy
+    # process. `has_api_key` lets the UI render a banner.
+    return {"status": "healthy", "has_api_key": bool(OPENAI_API_KEY)}
 
 
 @app.post("/chat")
 async def chat(body: ChatIn):
+    if not OPENAI_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="OPENAI_API_KEY is not set — open this module's .env from the Hub.",
+        )
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             "https://api.openai.com/v1/chat/completions",
@@ -181,7 +204,9 @@ services:
   chat_cloud:
     build: .
     container_name: chat_cloud_service
-    env_file: .env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
     networks:
       - queai_network
     labels:
@@ -219,7 +244,8 @@ Before publishing a plugin:
 - `ui_entry_point` route reachable.
 - Healthcheck route working.
 - Logo renders correctly.
-- Environment variables documented.
+- Environment variables documented in `.env.example`.
+- `docker-compose.yml` uses `environment:` with shell defaults (`${VAR:-default}`) — never `env_file:` — so the first install succeeds without a `.env` (see [Environment variables](#environment-variables)).
 
 ## Marketplace publication (optional)
 
